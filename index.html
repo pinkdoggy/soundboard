@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>阿萬與動物朋友按鈕</title>
+<style>
+  :root{
+    --bg: #0b0d10;
+    --fg: #e9eef5;
+    --muted:#a8b3c7;
+    --card:#141821;
+    --card-2:#10141b;
+    --heart-button:#2d3645;
+    --border:#202636;
+    --accent:#6aa9ff;
+    --heart:#ff5a7a;
+    --chip-fg:#000000;
+    --shadow: 0 6px 24px rgba(0,0,0,.25);
+  }
+  :root.light{
+    --bg:#f8fafc;
+    --fg:#0d1320;
+    --muted:#4b5563;
+    --card:#ffffff;
+    --card-2:#f3f6fb;
+    --heart-button:#edf0f4;
+    --border:#e5e7eb;
+    --accent:#2563eb;
+    --heart:#e11d48;
+    --chip-fg:#ffffff;
+    --shadow: 0 4px 18px rgba(2,6,23,.08);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Noto Sans, "Helvetica Neue", Arial;
+  }
+  a{color:inherit}
+  .wrap{max-width:1100px;margin:0 auto;padding:20px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  h1{font-size:1.4rem;margin:0 8px 0 0;letter-spacing:.5px}
+  .theme-toggle{
+    margin-left:auto;border:1px solid var(--border);background:var(--card);color:var(--fg);
+    border-radius:10px;padding:8px 12px;cursor:pointer;box-shadow:var(--shadow)
+  }
+  /* Search Row */
+  .search-row{
+    display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;
+    position:sticky;top:0;background:var(--bg);padding:10px 0 14px;z-index:5
+  }
+  .searchbar{
+    flex:1 1 320px;display:flex;align-items:center;gap:8px;background:var(--card);
+    border:1px solid var(--border);border-radius:8px;
+    padding:6px 8px;
+    box-shadow:var(--shadow);position:relative;
+  }
+  .searchbar input{
+    flex:1;background:transparent;border:0;outline:0;color:var(--fg);
+    font-size:12px;padding:4px;
+    min-width:160px;
+  }
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 10px;
+    font-size:12px;color:var(--chip-fg);box-shadow:0 2px 8px rgba(0,0,0,.18);
+  }
+  .chip button{
+    appearance:none;border:0;background:transparent;color:inherit;cursor:pointer;font-size:14px;line-height:1;padding:0 0 0 2px
+  }
+  .suggest{
+    position:absolute;left:8px;right:8px;top:calc(100% + 6px);background:var(--card);
+    border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden
+  }
+  .suggest.hidden{display:none}
+  .suggest-item{
+    padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer
+  }
+  .suggest-item:last-child{border-bottom:0}
+  .suggest-item:hover{background:var(--card-2)}
+
+  /* Favorites + Grid */
+  .section-title{margin:18px 0 10px;font-weight:700;letter-spacing:.3px}
+  .grid{
+    display:grid;gap:4px;
+    grid-template-columns:repeat(6, minmax(0,1fr));
+  }
+  @media (max-width:1000px){.grid{grid-template-columns:repeat(5, minmax(0,1fr));}}
+  @media (max-width:800px){.grid{grid-template-columns:repeat(4, minmax(0,1fr));}}
+  @media (max-width:600px){.grid{grid-template-columns:repeat(3, minmax(0,1fr));}}
+  @media (max-width:400px){.grid{grid-template-columns:repeat(2, minmax(0,1fr));}}
+
+  .sound{
+    background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px; padding-left: 10px;padding-right: 10px;
+    box-shadow:var(--shadow);display:flex;flex-direction:column;gap:3px;user-select:none;
+    cursor:pointer;transition:transform .06s ease;
+  }
+  .sound:active{transform:scale(.985)}
+  .sound-top{display:flex;align-items:center;gap:4px}
+  .title{font-weight:600;font-size: 14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .heart{
+    width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;
+    border:1px solid var(--border);background:var(--heart-button);cursor:pointer;flex:0 0 auto;
+  }
+  .heart svg{width:14px;height:14px;display:block}
+  .heart[aria-pressed="true"] svg path{fill:var(--heart)}
+  .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .tag{
+    border-radius:16px;padding:1px 6px;font-size:12px;color:var(--chip-fg);
+    cursor:pointer;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.16);
+  }
+
+  /* Footer */
+  footer{margin:40px 0 20px;color:var(--muted);font-size:14px;text-align:center}
+
+  /* Avatar Stage (easter egg) */
+  .stage{
+    position:fixed;left:0;right:0;bottom:12px;display:flex;flex-wrap:wrap;gap:12px 14px;
+    justify-content:center;pointer-events:none;z-index:40;padding:0 12px;
+  }
+  .group{display:inline-flex;gap:8px;align-items:flex-end}
+  /* Avatar：保持透明背景 */
+  .avatar{
+    width:80px;height:80px;border-radius:8px;
+    background:transparent;
+    transform-origin:50% 100%;
+  }
+  .avatar>img{width:100%;height:100%;object-fit:cover}
+
+  /* Keyframes */
+  @keyframes popIn{
+    0%{transform:translateY(20px) scale(.7);opacity:0}
+    100%{transform:translateY(0) scale(1);opacity:1}
+  }
+  @keyframes jitter{
+    0%,100%{transform:translateY(0) rotate(0deg)}
+    20%{transform:translateY(-2px) rotate(-1deg)}
+    40%{transform:translateY(1px) rotate(1deg)}
+    60%{transform:translateY(-1px) rotate(.6deg)}
+    80%{transform:translateY(1px) rotate(-.6deg)}
+  }
+  @keyframes hopOut{
+    0%{transform:translateY(0);opacity:1}
+    40%{transform:translateY(-30px);opacity:1}   /* 輕微彈起 */
+    100%{transform:translateY(80px);opacity:0}   /* 直線下落並淡出 */
+  }
+  .pop-in{animation:popIn .28s cubic-bezier(.2,.9,.18,1) both}
+  .jit{animation:jitter .9s ease-in-out infinite}
+  .hop-out{animation:hopOut .5s cubic-bezier(.2,.8,.2,1) forwards}
+  .hidden{display:none}
+  .desc{color:var(--muted);font-size:12px;margin:0 0 6px}
+  .hint{color:var(--muted);padding:4px 4px;font-size:12px}
+
+  /* Utility */
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{border:1px solid var(--border);background:var(--card);color:var(--fg);border-radius:10px;padding:8px 12px;cursor:pointer}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <meta http-equiv="Cache-Control" content="no-store" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <header>
+      <h1>阿萬與動物朋友按鈕</h1>
+      <button id="themeBtn" class="theme-toggle" aria-label="切換主題">電燈開關</button>
+    </header>
+    <p class="desc">本站由粉肝製作維護，與厭世醫師阿萬官方無關。音效內容皆是粉肝去脈絡式、斷章取義的剪輯，僅供娛樂。最後更新時間：2025/9/18。</p>
+    <!-- 搜尋列（獨立成一個 row） -->
+    <div class="search-row">
+      <div class="searchbar" role="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.471 6.471 0 0 0 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"/></svg>
+        <input id="q" placeholder="搜尋標題或 #標籤（可多個，用空白分隔）" autocomplete="off" />
+        <div id="suggest" class="suggest hidden" role="listbox" aria-label="標籤推薦"></div>
+        <div id="activeChips" class="chips"></div>
+      </div>
+      <button id="clearBtn" class="btn" aria-label="清除搜尋">清除</button>
+    </div>
+
+    <!-- 最愛區 -->
+    <h3 class="section-title">最愛音效</h3>
+    <div id="favGrid" class="grid"></div>
+    <div id="favEmpty" class="hint hidden">還沒有最愛。點音效右上的 ❤️ 加入最愛。</div>
+
+    <!-- 全部 -->
+    <h3 class="section-title">全部音效</h3>
+    <p class="desc">提示：點音效即可播放；右鍵（或行動裝置長按）可下載。</p>
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="hint hidden">沒有符合搜尋的音效。</div>
+
+    <footer></footer>
+  </div>
+
+  <!-- 播放彩蛋舞台 -->
+  <div id="stage" class="stage" aria-hidden="true"></div>
+
+<script>
+(function(){
+  /** =======================
+   *  型別/工具
+   *  =======================*/
+  /**
+   * @typedef {{key:string, name:string, color:string, role:'streamer'|'category', avatar?:string}} Tag
+   * @typedef {{file:string, title:string, tags:string[]}} SoundConf
+   * @typedef {{id:string, src:string, title:string, tags:string[]}} Sound
+   */
+
+  const els = {
+    q: document.getElementById('q'),
+    suggest: document.getElementById('suggest'),
+    activeChips: document.getElementById('activeChips'),
+    grid: document.getElementById('grid'),
+    favGrid: document.getElementById('favGrid'),
+    empty: document.getElementById('empty'),
+    favEmpty: document.getElementById('favEmpty'),
+    themeBtn: document.getElementById('themeBtn'),
+    stage: document.getElementById('stage'),
+    clearBtn: document.getElementById('clearBtn'),
+  };
+
+  const state = {
+    tags /** @type {Record<string, Tag>} */: {},
+    tagList /** @type {Tag[]} */: [],
+    sounds /** @type {Sound[]} */: [],
+    favorites /** @type {Set<string>} */: new Set(JSON.parse(localStorage.getItem('favorites')||'[]')),
+    queryText: '',
+    queryTags /** @type {Set<string>} */: new Set(),
+    holdingTimer: null,
+  };
+
+  const dom = {
+    el(tag, attrs={}, children=[]){
+      const e = document.createElement(tag);
+      Object.entries(attrs).forEach(([k,v])=>{
+        if(k==='class') e.className = v;
+        else if(k==='style') Object.assign(e.style, v);
+        else if(k.startsWith('on') && typeof v === 'function') e.addEventListener(k.substring(2), v);
+        else if(v!==undefined && v!==null) e.setAttribute(k, v);
+      });
+      (Array.isArray(children)?children:[children]).filter(Boolean).forEach(c=>{
+        if(typeof c==='string') e.appendChild(document.createTextNode(c));
+        else e.appendChild(c);
+      });
+      return e;
+    },
+    svgHeart(){
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('viewBox','0 0 24 24');
+      svg.innerHTML = '<path d="M12 21s-6.716-4.438-9.428-7.15C.59 11.868.59 8.608 2.57 6.627 4.55 4.647 7.81 4.647 9.79 6.627L12 8.838l2.21-2.21c1.98-1.98 5.24-1.98 7.22 0 1.98 1.98 1.98 5.24 0 7.223C18.716 16.562 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="1.5"/>';
+      return svg;
+    }
+  };
+
+  const utils = {
+    slug(s){ return s.normalize('NFKC').trim(); },
+    byId(id){ return document.getElementById(id) },
+    saveFav(){ localStorage.setItem('favorites', JSON.stringify([...state.favorites])); },
+    inFav(id){ return state.favorites.has(id) },
+    /* 下載音檔（右鍵或長按） */
+    download(url, filename){
+      const a = document.createElement('a');
+      a.href = url; a.download = filename || '';
+      document.body.appendChild(a); a.click(); a.remove();
+    },
+    parseQuery(){
+      const raw = state.queryText.trim();
+      const parts = raw.length? raw.split(/\s+/):[];
+      const tags = new Set([...state.queryTags]); // 由點標籤加入的也在此
+      const terms = [];
+      for(const p of parts){
+        if(p.startsWith('#')) tags.add(utils.slug(p.slice(1)));
+        else terms.push(utils.slug(p));
+      }
+      return {terms, tags};
+    },
+    match(sound, terms, tags){
+      // 標籤條件：query 內每個 tag 都要存在
+      for(const t of tags){ if(!sound.tags.some(s=> utils.slug(s)===t)) return false; }
+      // 文字條件：每個 term 都要能在標題或任何標籤命中（AND）
+      for(const term of terms){
+        const inTitle = sound.title.toLowerCase().includes(term.toLowerCase());
+        const inTags = sound.tags.some(t=> t.toLowerCase().includes(term.toLowerCase()));
+        if(!(inTitle || inTags)) return false;
+      }
+      return true;
+    }
+  };
+
+  /** =======================
+   *  載入設定
+   *  =======================*/
+  async function loadConfig(){
+    const [tagsJson, soundsJson] = await Promise.all([
+      fetch('config/tags.json').then(r=>r.json()),
+      fetch('config/sounds.json').then(r=>r.json())
+    ]);
+    // tags
+    state.tags = {};
+    state.tagList = tagsJson.map(t=>({
+      key: utils.slug(t.key), name: t.name, color: t.color, role: t.role, avatar: t.avatar
+    }));
+    for(const t of state.tagList){ state.tags[utils.slug(t.key)] = t; }
+    // sounds
+    state.sounds = soundsJson.map(/** @returns {Sound} */ s=>{
+      const id = s.file.replace(/^.*[\\/]/,''); // 檔名含副檔名
+      return { id, src: `sounds/${s.file}`, title: s.title, tags: s.tags.slice() };
+    });
+  }
+
+  /** =======================
+   *  渲染 UI
+   *  =======================*/
+  function render(){
+    const {terms, tags} = utils.parseQuery();
+    const filtered = state.sounds.filter(s=> utils.match(s, terms, tags));
+
+    // 拆成 favorites 與非 favorites
+    const fav = filtered.filter(s=> utils.inFav(s.id));
+    const rest = filtered.filter(s=> !utils.inFav(s.id));
+
+    renderGrid(els.favGrid, fav);
+    renderGrid(els.grid, rest);
+
+    els.favEmpty.classList.toggle('hidden', fav.length>0);
+    els.empty.classList.toggle('hidden', filtered.length>0);
+
+    renderActiveChips();
+  }
+
+  function renderGrid(container, list){
+    container.innerHTML='';
+    for(const s of list){
+      container.appendChild(renderSoundCard(s));
+    }
+  }
+
+  function renderSoundCard(snd){
+    const heartBtn = dom.el('button',{
+      class:'heart', 'aria-pressed': String(utils.inFav(snd.id)), 'aria-label':'加入/移除最愛',
+      onclick:(e)=>{ e.stopPropagation(); toggleFavorite(snd.id, heartBtn); }
+    }, dom.svgHeart());
+
+    const tagWrap = dom.el('div', {class:'tags'});
+    for(const t of snd.tags){
+      const tagKey = utils.slug(t);
+      const tagDef = state.tags[tagKey];
+      const color = tagDef?.color || '#94a3b8';
+      const el = dom.el('span',{class:'tag', style:{background: color}}, t);
+      el.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        addTagToQuery(tagKey); // 點標籤加入搜尋
+      });
+      tagWrap.appendChild(el);
+    }
+
+    const card = dom.el('div', {class:'sound', role:'button', tabindex:'0', 'aria-label':`播放音效：${snd.title}`}, [
+      dom.el('div',{class:'sound-top'},[
+        dom.el('div',{class:'title', title:snd.title}, snd.title),
+        heartBtn
+      ]),
+      tagWrap
+    ]);
+
+    // 播放（可同時播放多個）
+    const play = async () => {
+      const audio = new Audio(snd.src);
+      audio.preload = 'auto';
+      audio.addEventListener('play', ()=> onPlayStart(snd, audio));
+      audio.addEventListener('ended', ()=> onPlayEnd(snd, audio));
+      try{ await audio.play(); }catch(e){ console.error(e); }
+    };
+
+    // 主要互動：點擊播放；Enter 也能播
+    card.addEventListener('click', play);
+    card.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); play(); } });
+
+    // 右鍵下載
+    card.addEventListener('contextmenu', (e)=>{
+      e.preventDefault(); utils.download(snd.src, snd.id);
+    });
+
+    // 行動裝置長按下載
+    const startHold = ()=> { clearTimeout(state.holdingTimer); state.holdingTimer = setTimeout(()=> utils.download(snd.src, snd.id), 650); };
+    const endHold = ()=> { clearTimeout(state.holdingTimer); };
+    card.addEventListener('pointerdown', startHold);
+    card.addEventListener('pointerup', endHold);
+    card.addEventListener('pointerleave', endHold);
+    card.addEventListener('pointercancel', endHold);
+
+    return card;
+  }
+
+  function toggleFavorite(id, btn){
+    if(state.favorites.has(id)) state.favorites.delete(id);
+    else state.favorites.add(id);
+    utils.saveFav();
+    btn.setAttribute('aria-pressed', String(state.favorites.has(id)));
+    render(); // 重新分組
+  }
+
+  function renderActiveChips(){
+    els.activeChips.innerHTML = '';
+    for(const key of state.queryTags){
+      const tag = state.tags[key];
+      const color = tag?.color || '#94a3b8';
+      const chip = dom.el('span',{class:'chip', style:{background:color}},[
+        `#${tag?.name || key}`,
+        dom.el('button',{title:'移除', onclick:()=>{ state.queryTags.delete(key); render(); }}, '×')
+      ]);
+      els.activeChips.appendChild(chip);
+    }
+  }
+
+  /** =======================
+   *  搜尋建議
+   *  =======================*/
+  function showSuggest(list){
+    const box = els.suggest; box.innerHTML = '';
+    if(!list.length){ box.classList.add('hidden'); return; }
+    for(const t of list){
+      const item = dom.el('div',{class:'suggest-item', role:'option', 'data-key':t.key},[
+        `#${t.name} `
+      ]);
+      item.addEventListener('click', ()=>{
+        addTagToQuery(t.key);
+        els.q.focus();
+      });
+      box.appendChild(item);
+    }
+    box.classList.remove('hidden');
+  }
+  function addTagToQuery(tagKey){
+    state.queryTags.add(tagKey);
+    // 也把 #標籤 追加到輸入框末端（非必要但更直覺）
+    /*
+    const val = els.q.value.trim();
+    const tagToken = `#${state.tags[tagKey]?.name || tagKey}`;
+    els.q.value = val ? `${val} ${tagToken}` : tagToken;
+    state.queryText = els.q.value;
+    */
+    render();
+    showSuggest([]);
+  }
+
+  /** =======================
+   *  播放彩蛋（頭像）
+   *  =======================*/
+  const activeGroups = new Set();
+  function onPlayStart(snd, audio){
+    const streamerTags = snd.tags
+      .map(k=> state.tags[utils.slug(k)])
+      .filter(t=> t && t.role==='streamer' && t.avatar);
+
+    if(streamerTags.length===0) return;
+
+    const group = dom.el('div',{class:'group'});
+    activeGroups.add(group);
+
+    streamerTags.forEach((t, i)=>{
+      const avatar = dom.el('div',{class:'avatar pop-in jit', style:{animationDelay:`${i*60}ms`}},[
+        dom.el('img',{src: t.avatar, alt: t.name})
+      ]);
+      group.appendChild(avatar);
+    });
+
+    els.stage.appendChild(group);
+
+    // 在播放中：保持 jit；結束時：依序 arc-out
+    audio.__group = group;
+  }
+
+  function onPlayEnd(_snd, audio){
+    const group = audio.__group;
+    if(!group) return;
+
+    // 依序下跳
+    const children = Array.from(group.children);
+    children.forEach((av, i)=>{
+      av.classList.remove('jit');
+      setTimeout(()=>{
+        av.classList.add('hop-out');
+        av.addEventListener('animationend', ()=>{
+          av.remove();
+          if(group.childElementCount===0){ group.remove(); activeGroups.delete(group); }
+        }, {once:true});
+      }, i*90);
+    });
+  }
+
+  /** =======================
+   *  主題切換
+   *  =======================*/
+  function applyTheme(theme){ document.documentElement.classList.toggle('light', theme==='light'); }
+  const savedTheme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme:light)').matches?'light':'dark');
+  applyTheme(savedTheme);
+  els.themeBtn.addEventListener('click', ()=>{
+    const next = document.documentElement.classList.contains('light')?'dark':'light';
+    localStorage.setItem('theme', next); applyTheme(next);
+  });
+
+  /** =======================
+   *  搜尋互動
+   *  =======================*/
+  els.q.addEventListener('input', ()=>{
+    state.queryText = els.q.value;
+    // 推薦：輸入任何字都推薦符合的標籤；若最後一段以 # 開頭則以該段為基準
+    const val = els.q.value;
+    const last = val.split(/\s+/).pop() || '';
+    const needle = last.startsWith('#') ? last.slice(1).toLowerCase() : val.trim().toLowerCase();
+    const list = needle
+      ? state.tagList.filter(t=> t.name.toLowerCase().includes(needle) || t.key.toLowerCase().includes(needle))
+      : state.tagList.slice(0,8);
+    showSuggest(list.slice(0,8));
+    render();
+  });
+  els.q.addEventListener('focus', ()=>{
+    if(els.suggest.classList.contains('hidden')) showSuggest(state.tagList.slice(0,8));
+  });
+  document.addEventListener('click',(e)=>{
+    if(!els.suggest.contains(e.target) && e.target!==els.q){ showSuggest([]); }
+  });
+  els.clearBtn.addEventListener('click', ()=>{
+    els.q.value=''; state.queryText=''; state.queryTags.clear(); render(); showSuggest([]);
+  });
+
+  /** =======================
+   *  啟動
+   *  =======================*/
+  loadConfig().then(()=> render()).catch(err=>{
+    console.error(err);
+    els.grid.innerHTML = '<div class="hint">載入設定檔失敗，請確認 <code>config/</code> 與檔名路徑。</div>';
+  });
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+[
+  { "key": "阿萬",   "name": "阿萬",   "color": "#f59e0b", "role": "streamer", "avatar": "avatars/drr1.png" },
+  { "key": "豹子頭", "name": "豹子頭", "color": "#58cf3a", "role": "streamer", "avatar": "avatars/bzhead.png" },
+  { "key": "Matsuko", "name": "Matsuko", "color": "#a78bfa", "role": "streamer", "avatar": "avatars/matsuko.png" },
+  { "key": "貓下去", "name": "貓下去", "color": "#c2be40", "role": "streamer", "avatar": "avatars/catdown.png" },
+  { "key": "瓦哈",   "name": "瓦哈",   "color": "#36c7b3", "role": "streamer", "avatar": "avatars/wahaha.png" },
+  { "key": "花雕雞", "name": "花雕雞",   "color": "#c9c9c9", "role": "streamer", "avatar": "" },
+
+  { "key": "叫", "name": "叫", "color": "#f1b785", "role": "category" },
+  { "key": "唱", "name": "唱", "color": "#f1b785", "role": "category" },
+  { "key": "破防", "name": "破防", "color": "#fb8571", "role": "category" },
+  { "key": "笑", "name": "笑", "color": "#22c55e", "role": "category" },
+  { "key": "怪聲", "name": "怪聲", "color": "#06b6d4", "role": "category" },
+  { "key": "罵", "name": "罵", "color": "#f97316", "role": "category" },
+  { "key": "罵", "name": "罵", "color": "#f97316", "role": "category" },
+  { "key": "誇獎", "name": "誇獎", "color": "#84cc16", "role": "category" },
+  { "key": "問候", "name": "問候", "color": "#84cc16", "role": "category" }
+]
