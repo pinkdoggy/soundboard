@@ -230,6 +230,21 @@
     holdingTimer: null,
   };
 
+  // 每次上線時把版本字串改一下（日期或 git sha 都行）
+  const VERSION = 'v2025-09-20-1';
+
+  // 幫任一 URL 加上 ?v=... 參數（若已帶 ? 會接 &）
+  const withV = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + encodeURIComponent(VERSION);
+
+  // 洗牌：Fisher–Yates
+  function shuffleInPlace(arr, rng = Math.random){
+    for(let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(rng() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
   const dom = {
     el(tag, attrs={}, children=[]){
       const e = document.createElement(tag);
@@ -291,7 +306,7 @@
   /** =======================
    *  載入設定
    *  =======================*/
-  async function loadConfig(){
+  async function loadConfig_old(){
     const [tagsJson, soundsJson] = await Promise.all([
       fetch('config/tags.json').then(r=>r.json()),
       fetch('config/sounds.json').then(r=>r.json())
@@ -308,7 +323,29 @@
       return { id, src: `sounds/${s.file}`, title: s.title, tags: s.tags.slice() };
     });
   }
+async function loadConfig(){
+  const [tagsJson, soundsJson] = await Promise.all([
+    // 重要：JSON 設 cache:'no-store'，並且帶版本字串
+    fetch(withV('config/tags.json'),   { cache: 'no-store' }).then(r=>r.json()),
+    fetch(withV('config/sounds.json'), { cache: 'no-store' }).then(r=>r.json())
+  ]);
 
+  // tags
+  state.tags = {};
+  state.tagList = tagsJson.map(t=>({
+    key: utils.slug(t.key), name: t.name, color: t.color, role: t.role, avatar: t.avatar
+  }));
+  for(const t of state.tagList){ state.tags[utils.slug(t.key)] = t; }
+
+  // sounds（這裡把實體檔案 src 也加上版本字串，確保更新就換 URL）
+  state.sounds = soundsJson.map(s=>{
+    const id = s.file.replace(/^.*[\\/]/,'');
+    return { id, src: withV(`sounds/${s.file}`), title: s.title, tags: s.tags.slice() };
+  });
+
+  // 每次載入洗牌一次（同一頁生命週期內順序固定，重新整理會再洗）
+  shuffleInPlace(state.sounds);
+}
   /** =======================
    *  渲染 UI
    *  =======================*/
@@ -460,7 +497,7 @@
 
     streamerTags.forEach((t, i)=>{
       const avatar = dom.el('div',{class:'avatar pop-in jit', style:{animationDelay:`${i*60}ms`}},[
-        dom.el('img',{src: t.avatar, alt: t.name})
+        dom.el('img', { src: withV(t.avatar), alt: t.name })
       ]);
       group.appendChild(avatar);
     });
