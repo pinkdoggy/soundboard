@@ -11,7 +11,7 @@
   { "key": "破防",    "name": "破防",   "color": "#e95079", "role": "category" },
   { "key": "叫",      "name": "叫",     "color": "#839b2f", "role": "category" },
   { "key": "唱",      "name": "唱",     "color": "#50a559", "role": "category" },  
-  { "key": "笑",      "name": "笑",     "color": "#38a581", "role": "category" },
+  { "key": "笑",      "name": "笑",     "color": "#edb34e", "role": "category" },
   { "key": "迷因",    "name": "迷因",   "color": "#2fa39c", "role": "category" },
   { "key": "誇獎",    "name": "誇獎",   "color": "#2ca0b0", "role": "category" },
   { "key": "定型文",  "name": "定型文", "color": "#319ace", "role": "category" },
