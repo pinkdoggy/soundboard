@@ -307,7 +307,8 @@
     <p>本站由粉肝製作，並非由厭世醫師阿萬官方經營。音效內容皆是粉肝去脈絡式、斷章取義的剪輯，僅供娛樂。最後更新時間：2025/9/21。</p>
     
     <p>阿萬本家→ <a href="https://x.com/drlifesucks" target="_blank">厭世醫師阿萬X</a>、<a href="https://www.youtube.com/@Dr.lifesucks" target="_blank">厭世醫師阿萬Youtube</a> </p>
-
+    <p><a href="https://discord.gg/BYGAZMJj" target="_blank">音效板問題回報與建議區</a></p>
+    
   </div>
 </div>
 
@@ -323,7 +324,7 @@
   /**
    * 檔案版本字串：每次部署變更此值，可確保抓取最新資料並強制 CDN/瀏覽器重新載入。
    */
-  const VERSION = 'v2025-09-21-1';
+  const VERSION = 'v2025-09-22-1';
 
   /**
    * 為給定的 URL 附加版本字串 (?v=<VERSION>)。如果已有查詢參數則加 &。
@@ -658,7 +659,7 @@
    * @param {string} msg
    * @param {number} [duration=1400]
    */
-  function toast(msg, duration = 1400){
+  function toast(msg, duration = 3000){
     const t = els.toast;
     if(!t) return;
     // 清除舊的計時器
