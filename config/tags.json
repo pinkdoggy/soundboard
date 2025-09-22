@@ -4,7 +4,7 @@
   { "key": "Matsuko", "name": "Matsuko",  "color": "#a78bfa", "role": "streamer", "avatar": "avatars/matsuko.png" },
   { "key": "貓下去",  "name": "貓下去",   "color": "#c2be40", "role": "streamer", "avatar": "avatars/catdown.png" },
   { "key": "瓦哈",    "name": "瓦哈",     "color": "#36c7b3", "role": "streamer", "avatar": "avatars/wahaha.png" },
-  { "key": "花雕雞",  "name": "花雕雞",   "color": "#c9c9c9", "role": "streamer", "avatar": "" },
+  { "key": "花雕雞",  "name": "花雕雞",   "color": "#c9c9c9", "role": "streamer", "avatar": "avatars/huadiaog.png" },
 
   { "key": "髒話",    "name": "髒話",   "color": "#e5595a", "role": "category" },
   { "key": "罵",      "name": "罵",     "color": "#e16144", "role": "category" },
