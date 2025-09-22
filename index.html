@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="icon" href="/favicon.png" type="image/png">
+
 <title>阿萬與動物朋友按鈕</title>
 <!--
   這個版本的靜態網站包含以下特性：
@@ -16,36 +18,78 @@
   8. 透過版本字串防止過度快取；同時將版本字串附加於所有音檔、頭像路徑與 JSON 請求 URL。
 -->
 <style>
-  :root{
-    --bg: #0b0d10;
-    --fg: #e9eef5;
-    --muted:#a8b3c7;
-    --card:#141821;
-    --card-2:#212832;
-    --border:#202636;
-    --accent:#6aa9ff;
-    --heart:#ff5a7a;
-    --chip-fg:#0b0d10;
-    --shadow: 0 6px 24px rgba(0,0,0,.25);
-  }
-  :root.light{
-    --bg:#f8fafc;
-    --fg:#0d1320;
-    --muted:#4b5563;
-    --card:#ffffff;
-    --card-2:#f3f6fb;
-    --border:#e5e7eb;
-    --accent:#2563eb;
-    --heart:#e11d48;
-    --chip-fg:#ffffff;
-    --shadow: 0 4px 18px rgba(2,6,23,.08);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0;background:var(--bg);color:var(--fg);
-    font:medium ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Noto Sans, "Helvetica Neue", Arial;
-  }
+:root {
+  --bg: #0b0d10;
+  --search: #0b0d1000;
+  --fg: #e9eef5;
+  --muted: #a8b3c7;
+  --card: #141821;
+  --card-2: #212832;
+  --border: #202636;
+  --accent: #6aa9ff;
+  --heart: #ff5a7a;
+  --chip-fg: #0b0d10;
+  --shadow: 0 6px 24px rgba(0,0,0,.25);
+
+  /* 暗色主題的背景混合模式 */
+  --bg-blend-mode: normal;
+  --bg-opacity: 0.2; /* 默認為 100% 不透明 */
+}
+
+:root.light {
+  --bg: #f8fafc;
+  --search: #f8fafc00;
+  --fg: #0d1320;
+  --muted: #4b5563;
+  --card: #ffffff;
+  --card-2: #f3f6fb;
+  --border: #e5e7eb;
+  --accent: #2563eb;
+  --heart: #e11d48;
+  --chip-fg: #ffffff;
+  --shadow: 0 4px 18px rgba(2,6,23,.08);
+
+  /* 亮色主題的背景混合模式和透明度 */
+  --bg-blend-mode: normal;
+  --bg-opacity: 0.2;
+}
+
+/* --- 通用樣式 --- */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--fg);
+  font: medium ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Noto Sans, "Helvetica Neue", Arial;
+  position: relative; /* 為 ::before 提供定位上下文 */
+  z-index: 1; /* 將所有內容提升到背景圖之上 */
+}
+
+/* --- 背景 --- */
+body::before {
+  content: '';
+  position: fixed; /* 背景固定在視窗 */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('assets/background-by-jia.avif'); 
+  background-size: auto 60%; 
+  background-repeat: repeat; 
+  background-attachment: fixed;
+  mix-blend-mode: var(--bg-blend-mode);
+  opacity: var(--bg-opacity);
+  z-index: -1; /* 將背景圖層放在最底部 */
+}
+
+  
   a{color:inherit}
   .wrap{max-width:1100px;margin:0 auto;padding:20px}
 
@@ -70,7 +114,7 @@
   /* 搜尋列 */
   .search-row{
     display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;
-    position:sticky;top:0;background:var(--bg);padding:8px 0 12px;z-index:5
+    position:sticky;top:0;background:var(--search);padding:8px 0 12px;z-index:5
   }
   .searchbar{
     flex:1 1 260px;display:flex;align-items:center;gap:6px;background:var(--card);
@@ -114,6 +158,7 @@
     background:var(--card);border:1px solid var(--border);border-radius:14px;padding:8px;
     box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px;user-select:none;
     cursor:pointer;transition:transform .06s ease;
+    
   }
   .sound:active{transform:scale(.985)}
   .sound-top{display:flex;align-items:center;gap:4px}
@@ -222,8 +267,8 @@
 
   /* Context Menu */
   .menu{
-    position:fixed;z-index:60;background:var(--card);
-    border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);
+    position:fixed;z-index:60;
+
     min-width:160px;overflow:hidden
   }
   .menu.hidden{display:none}
@@ -246,19 +291,94 @@
     /* transition added to avoid abrupt appearance */
     transition: box-shadow 0.3s ease;
   }
+
+  
+  :root {
+    --glass-bg: rgba(20,24,33,.3);
+    --glass-border: rgba(255,255,255,.12);
+  }
+  :root.light {
+    --glass-bg: rgba(255,255,255,.3);
+    --glass-border: rgba(15,23,42,.12);
+  }
+
+  .glass{
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: saturate(1.8) blur(3px);
+    -webkit-backdrop-filter: saturate(1.8) blur(3px);
+    background-clip: padding-box;
+    box-shadow: var(--shadow);
+  }
+
+  .searchbar, .sound, .menu{
+    background: var(--glass-bg) !important;
+    border-color: var(--glass-border) !important;
+    backdrop-filter: saturate(1) blur(2px);
+    -webkit-backdrop-filter: saturate(1) blur(2px);
+  }
+  /* Navbar enhancements */
+  header{ position: relative; }
+  .nav-toggle{
+    display:none;
+    align-items:center; justify-content:center;
+    border:1px solid var(--border); background: var(--card); color: var(--fg);
+    border-radius:10px; padding:8px; cursor:pointer; box-shadow: var(--shadow);
+  }
+  @media (max-width: 760px){
+    .nav-toggle{ display:inline-flex; }
+    header .tabs{
+      display:none;
+      position:absolute; right:0; top:100%;
+      padding:8px; border-radius:12px; gap:6px;
+      flex-direction:column; align-items:stretch;
+      min-width: 180px;
+      z-index: 30;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: saturate(1.8) blur(12px);
+      -webkit-backdrop-filter: saturate(1.8) blur(12px);
+      box-shadow: var(--shadow);
+    }
+    body.nav-open header .tabs{ display:flex; }
+  }
+  /* Background page tweaks */
+  body.bg-full{ --bg-opacity: 1 !important; }
+  .bg-page{ min-height: 50vh; }
+  .bg-credit{
+    position: fixed; right: 16px; bottom: 16px;
+    font-size: large; padding: 8px 12px; border-radius: 10px;
+    font-weight: 800;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: saturate(1.8) blur(10px);
+    -webkit-backdrop-filter: saturate(1.8) blur(10px);
+    box-shadow: var(--shadow);
+    z-index: 60;
+  }
+  .bg-credit a{ text-decoration: underline; }
+
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <h1>阿萬與動物朋友按鈕</h1>
+    <button id="navToggle" class="nav-toggle" aria-label="打開選單" aria-expanded="false" aria-controls="primaryNav" title="選單">
+      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
     <!-- 導覽分頁：放置於標題與主題切換按鈕之間，靠右排版 -->
-    <nav class="tabs" aria-label="主選單">
+    <nav id="primaryNav" class="tabs" aria-label="主選單">
       <button class="tab active" data-page="home">主頁</button>
+      <button class="tab" data-page="bg" id="tab-bg">背景</button>
       <!-- <button class="tab" data-page="game">小遊戲</button> -->
       <button class="tab" data-page="about">關於</button>
+      <button id="themeBtn" class="theme-toggle" aria-label="切換主題">電燈開關</button>
     </nav>
-    <button id="themeBtn" class="theme-toggle" aria-label="切換主題">電燈開關</button>
+    
   </header>
 
   <!-- 首頁內容：音效列表 -->
@@ -302,9 +422,15 @@
   <div id="page-game" class="hidden">
     <p>你怎麼發現的？絕讚施工中。</p>
   </div>
+  
+  <!-- 背景分頁 -->
+  <div id="page-bg" class="bg-page hidden" aria-labelledby="tab-bg" role="region">
+    <div class="bg-credit"><a href="https://x.com/jiauwu_0730" target="_blank" rel="noopener">背景插畫由 Jia 繪製</a></div>
+  </div>
   <!-- 關於分頁 -->
+
   <div id="page-about" class="hidden">
-    <p>本站由粉肝製作，並非由厭世醫師阿萬官方經營。音效內容皆是粉肝去脈絡式、斷章取義的剪輯，僅供娛樂。最後更新時間：2025/9/21。</p>
+    <p>本站由粉肝製作，並非由厭世醫師阿萬官方經營。音效內容皆是粉肝去脈絡式、斷章取義的剪輯，僅供娛樂。最後更新時間：2025/9/23。</p>
     
     <p>阿萬本家→ <a href="https://x.com/drlifesucks" target="_blank">厭世醫師阿萬X</a>、<a href="https://www.youtube.com/@Dr.lifesucks" target="_blank">厭世醫師阿萬Youtube</a> </p>
     <p><a href="https://discord.gg/BYGAZMJj" target="_blank">音效板問題回報與建議區</a></p>
@@ -324,7 +450,7 @@
   /**
    * 檔案版本字串：每次部署變更此值，可確保抓取最新資料並強制 CDN/瀏覽器重新載入。
    */
-  const VERSION = 'v2025-09-22-1';
+  const VERSION = 'v2025-09-23-1';
 
   /**
    * 為給定的 URL 附加版本字串 (?v=<VERSION>)。如果已有查詢參數則加 &。
@@ -367,6 +493,8 @@
     pageHome: document.getElementById('page-home'),
     pageGame: document.getElementById('page-game'),
     pageAbout: document.getElementById('page-about'),
+    pageBg: document.getElementById('page-bg'),
+    navToggle: document.getElementById('navToggle'),
     // 導覽標籤（動態抓取）
     get navTabs(){ return document.querySelectorAll('.tab'); },
     // 標籤一覽容器
@@ -490,7 +618,6 @@
     // 保留 list 參數（分享收到的列表）若存在
     const current = new URLSearchParams(location.search);
     if(current.has('list')) params.set('list', current.get('list'));
-    if(current.has('sound')) params.set('sound', current.get('sound'));
     // 加上 page 參數（非首頁才寫入）
     if(state.page && state.page !== 'home') params.set('page', state.page); else params.delete('page');
     const qs = params.toString();
@@ -515,7 +642,7 @@
 
     // 分頁：讀取 page 參數
     const pageParam = params.get('page');
-    if(pageParam === 'game' || pageParam === 'about') state.page = pageParam;
+    if(pageParam === 'game' || pageParam === 'about' || pageParam === 'bg') state.page = pageParam;
     else state.page = 'home';
     // 分享列表：讀取 list 參數，逗號分隔
     const listParam = params.get('list');
@@ -607,14 +734,20 @@
     els.pageHome.classList.add('hidden');
     els.pageGame.classList.add('hidden');
     els.pageAbout.classList.add('hidden');
+    if(els.pageBg) els.pageBg.classList.add('hidden');
     if(pg === 'home') els.pageHome.classList.remove('hidden');
     else if(pg === 'game') els.pageGame.classList.remove('hidden');
     else if(pg === 'about') els.pageAbout.classList.remove('hidden');
+    else if(pg === 'bg' && els.pageBg) els.pageBg.classList.remove('hidden');
     // 更新導覽標籤 active 樣式
     els.navTabs.forEach(tab => {
       if(tab.getAttribute('data-page') === pg) tab.classList.add('active');
       else tab.classList.remove('active');
     });
+    // 切換背景滿版模式與收起手機選單
+    document.body.classList.toggle('bg-full', pg==='bg');
+    document.body.classList.remove('nav-open');
+    if(els.navToggle) els.navToggle.setAttribute('aria-expanded','false');
     // 更新 URL：保留搜尋與其他參數
     updateURLFromState(true);
   }
@@ -904,7 +1037,7 @@
     // 讀取音效。若配置檔中包含 id，則使用該 id；否則 fallback 到檔名。加上版本字串。
     state.sounds = soundsJson.map(s => {
       const id = s.id || s.file.replace(/^.*[\\\/]/, '');
-      return { id, src: withV(`sounds/${s.file}`), title: s.title, tags: s.tags.slice() };
+      return { id, src: withV(`sounds/${s.file}`),file: s.file, title: s.title, tags: s.tags.slice() };
     });
     // 計算哪些標籤被使用到，以供標籤一覽
     const usedKeys = new Set();
@@ -1096,6 +1229,32 @@
         showPage(pg || 'home');
       });
     });
+        // 手機選單開關
+    if(els.navToggle){
+      els.navToggle.addEventListener('click', () => {
+        const open = !document.body.classList.contains('nav-open');
+        document.body.classList.toggle('nav-open', open);
+        els.navToggle.setAttribute('aria-expanded', String(open));
+      });
+    }
+
+    // 點擊頁面其他地方關閉手機選單
+    document.addEventListener('click', (e) => {
+      if(document.body.classList.contains('nav-open')){
+        const headerEl = document.querySelector('header');
+        if(headerEl && !headerEl.contains(e.target)){
+          document.body.classList.remove('nav-open');
+          if(els.navToggle) els.navToggle.setAttribute('aria-expanded','false');
+        }
+      }
+    });
+
+    // 點擊導覽後在小螢幕自動收合
+    els.navTabs.forEach(t => t.addEventListener('click', () => {
+      document.body.classList.remove('nav-open');
+      if(els.navToggle) els.navToggle.setAttribute('aria-expanded','false');
+    }));
+
     // 洗牌按鈕
     if(els.shuffleBtn){
       els.shuffleBtn.addEventListener('click', () => {
