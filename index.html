@@ -450,7 +450,7 @@ body::before {
   /**
    * 檔案版本字串：每次部署變更此值，可確保抓取最新資料並強制 CDN/瀏覽器重新載入。
    */
-  const VERSION = 'ver2025-09-23-3';
+  const VERSION = 'ver2025-09-23-4';
 
   /**
    * 為給定的 URL 附加版本字串 (?v=<VERSION>)。如果已有查詢參數則加 &。
@@ -1180,12 +1180,6 @@ body::before {
   /** 點標籤加入搜尋：pushState，並清除建議 */
   function addTagToQuery(tagKey){
     state.queryTags.add(tagKey);
-/*
-    const val = els.q.value.trim();
-    const tagToken = `#${state.tags[tagKey]?.name || tagKey}`;
-    els.q.value = val ? `${val} ${tagToken}` : tagToken;
-    state.queryText = els.q.value;
-*/
     render();
     showSuggest([]);
     updateURLFromState(true);
