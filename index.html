@@ -162,7 +162,7 @@ body::before {
     border-radius: 12px;
     padding:8px;
     box-shadow:var(--shadow);
-    display:flex;flex-direction:column;gap:2px;user-select:none;
+    display:flex;flex-direction:column;gap:5px 2px;user-select:none;
     cursor:pointer;transition:transform .06s ease;
     
   }
@@ -177,7 +177,7 @@ body::before {
     width:24px;height:24px;border-radius:50%;place-items:center;
     border:1px solid var(--border);background:var(--card-2);cursor:pointer;flex:0 0 auto;
   }
-  .heart svg{width:14px;height:14px;display:block}
+  .heart svg{width:16px;height:16px;display:block}
   .heart[aria-pressed="true"] svg path{fill:var(--heart)}
   .tags{display:flex;flex-wrap:wrap;gap:6px}
   .tag{
@@ -304,11 +304,11 @@ body::before {
 
   
   :root {
-    --glass-bg: rgba(20,24,33,.5);
+    --glass-bg: rgba(20,24,33,.75);
     --glass-border: rgba(255,255,255,.12);
   }
   :root.light {
-    --glass-bg: rgba(255,255,255,.5);
+    --glass-bg: rgba(255,255,255,.75);
     --glass-border: rgba(15,23,42,.12);
   }
 
@@ -491,7 +491,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
   /**
    * 檔案版本字串：每次部署變更此值，可確保抓取最新資料並強制 CDN/瀏覽器重新載入。
    */
-  const VERSION = 'ver2025-09-24-1';
+  const VERSION = 'ver2025-09-24-2';
 
   /**
    * 為給定的 URL 附加版本字串 (?v=<VERSION>)。如果已有查詢參數則加 &。
