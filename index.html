@@ -618,6 +618,8 @@ body::before {
     // 保留 list 參數（分享收到的列表）若存在
     const current = new URLSearchParams(location.search);
     if(current.has('list')) params.set('list', current.get('list'));
+    // 這行是正確的，是為了保證分享網址的邏輯能夠正確運作
+    if(current.has('sound')) params.set('sound', current.get('sound'));
     // 加上 page 參數（非首頁才寫入）
     if(state.page && state.page !== 'home') params.set('page', state.page); else params.delete('page');
     const qs = params.toString();
