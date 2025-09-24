@@ -6,17 +6,6 @@
 <link rel="icon" href="assets/favicon.png" type="image/png">
 
 <title>阿萬與動物朋友按鈕</title>
-<!--
-  這個版本的靜態網站包含以下特性：
-  1. 可擴充的 JSON 配置，透過 tags.json 與 sounds.json 管理標籤與音效。
-  2. 搜尋支援標題與 #標籤混合查詢，並且會將搜尋狀態同步到網址參數中。
-  3. 點擊標籤或在輸入框打入 #標籤 會自動加入搜尋；移除 chips 也會更新 URL。
-  4. 收藏功能，點擊愛心可加入/移除最愛，並儲存在 localStorage；最愛音效會置頂顯示。
-  5. 主題切換（深色/淺色），紀錄在 localStorage 中。
-  6. 音效播放期間會於下方顯示對應主播頭像的動態彩蛋，播放結束後簡單彈跳離場。
-  7. 右鍵（桌機）或長按（行動裝置）在音效卡片上會開啟自訂選單，可分享當前網址（含搜尋條件與鎖定音效）或下載音檔。
-  8. 透過版本字串防止過度快取；同時將版本字串附加於所有音檔、頭像路徑與 JSON 請求 URL。
--->
 <style>
 :root {
   --bg: #0b0d10;
@@ -264,6 +253,7 @@ body::before {
 
   /* 區塊標題與控制按鈕 */
   .section-header{display:flex;align-items:center;justify-content:space-between;margin:14px 0 8px;}
+.section-header .actions{display:flex;gap:8px;}
   .section-header h3{margin:0;font-size:1rem;font-weight:600;letter-spacing:.2px;}
   .small-btn{font-size:12px;padding:4px 8px;border-radius:8px;}
 
@@ -400,6 +390,12 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
 .search-row .searchbar input { min-width: 0; }
 .search-row #clearBtn { flex: 0 0 auto; white-space: nowrap; }
 
+
+  /* SortableJS drag styles & sorting mode cursor */
+  .drag-ghost{ opacity:.6; transform:scale(.98); }
+  .drag-chosen{ outline:2px dashed var(--accent); }
+  .dragging{ cursor:grabbing; }
+  body.sorting #favGrid .card{ cursor:grab; }
 </style>
 </head>
 <body>
@@ -439,7 +435,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     <!-- 最愛區 -->
     <div class="section-header">
       <h3>最愛音效</h3>
-      <button id="shareFavBtn" class="btn small-btn">分享最愛</button>
+      <div class="actions"><button id="sortFavBtn" class="btn small-btn">手動排序</button><button id="doneSortBtn" class="btn small-btn glow-persistent hidden">儲存排序</button><button id="shareFavBtn" class="btn small-btn">分享最愛</button></div>
     </div>
     <div id="favGrid" class="grid"></div>
     <div id="favEmpty" class="empty hidden">還沒有最愛。點音效右上的 ❤️ 加入最愛。</div>
@@ -475,6 +471,13 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     
     <p>阿萬本家→ <a href="https://x.com/drlifesucks" target="_blank">厭世醫師阿萬X</a>、<a href="https://www.youtube.com/@Dr.lifesucks" target="_blank">厭世醫師阿萬Youtube</a> </p>
     <p><a href="https://discord.gg/BYGAZMJj" target="_blank">音效板問題回報與建議區</a></p>
+    <h2>大德芳名錄</h2>
+<p>感謝53、Kie在DC弄了一堆音效，讓南想到可以做這個網站，並在提出這個想法的一開始就弄了一堆音效過來。還有同樣感謝在原型階段就幫忙收集音效的米糕跟薰薰草。
+<br/>感謝Jia繪製超可愛的背景圖跟收集了很多音效。
+<br/>
+<br/>感謝粉肝們收集很多音效，豐富了這個網站（Word筆劃順）：
+<br/>AmBinBong、HUI、Lococco de suzuran、Nokimi07、Sigh、TENN、Yichen沉沉、🌙🐰月桂葉香包♏🎵、布丁(25:00)、幸福柴柴、青末枝、凌伊LingYi（01）、夏白衫、澐▽米粉 肉干、課日Ryou(33)、貓貓雨。
+</p>
     
   </div>
 </div>
@@ -486,12 +489,13 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
 <!-- Toast提示 -->
 <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
 <script>
 (function(){
   /**
    * 檔案版本字串：每次部署變更此值，可確保抓取最新資料並強制 CDN/瀏覽器重新載入。
    */
-  const VERSION = 'ver2025-09-24-3';
+  const VERSION = 'ver2025-09-25-1';
 
   /**
    * 為給定的 URL 附加版本字串 (?v=<VERSION>)。如果已有查詢參數則加 &。
@@ -527,8 +531,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     stage: document.getElementById('stage'),
     clearBtn: document.getElementById('clearBtn'),
     get menu(){ return document.getElementById('menu'); },
-    get toast(){ return document.getElementById('toast'); }
-    ,
+    get toast(){ return document.getElementById('toast'); },
     // 分頁容器
     pageHome: document.getElementById('page-home'),
     pageGame: document.getElementById('page-game'),
@@ -543,7 +546,9 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     receivedSection: document.getElementById('receivedSection'),
     receivedGrid: document.getElementById('receivedGrid'),
     receivedHeader: document.getElementById('receivedHeader'),
-    // 分享最愛按鈕與洗牌按鈕
+    // 最愛排序/分享與洗牌按鈕
+    sortFavBtn: document.getElementById('sortFavBtn'),
+    doneSortBtn: document.getElementById('doneSortBtn'),
     shareFavBtn: document.getElementById('shareFavBtn'),
     shuffleBtn: document.getElementById('shuffleBtn')
   };
@@ -553,7 +558,8 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     tags: /** @type {Record<string, Tag>} */ ({}),
     tagList: /** @type {Tag[]} */ ([]),
     sounds: /** @type {Sound[]} */ ([]),
-    favorites: new Set(JSON.parse(localStorage.getItem('favorites')||'[]')),
+    favorites: JSON.parse(localStorage.getItem('favorites')||'[]'),
+    favSet: new Set(),
     queryText: '',
     queryTags: new Set(),
     // 長按/右鍵開選單的計時器
@@ -566,11 +572,17 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     // Toast 計時器 id
     toastTimer: null,
     // 使用過的標籤列表
-    usedTagList: /** @type {Tag[]} */ ([])
-    ,
+    usedTagList: /** @type {Tag[]} */ ([]),
+    // 排序編輯模式
+    isSorting: false,
+    sortable: /** @type {any} */ (null),
     // 目前被高亮（持續外光暈）的音效卡片 id（若有）
     highlightedCardId: ''
   };
+
+  // 初始同步 favorites Set 供快速查詢
+  state.favSet = new Set(state.favorites);
+
 
   // DOM 快速建造工具
   const dom = {
@@ -600,8 +612,8 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
   const utils = {
     slug(s){ return s.normalize('NFKC').trim().toLowerCase(); },
     byId(id){ return document.getElementById(id); },
-    saveFav(){ localStorage.setItem('favorites', JSON.stringify([...state.favorites])); },
-    inFav(id){ return state.favorites.has(id); },
+    saveFav(){ localStorage.setItem('favorites', JSON.stringify(state.favorites)); },
+    inFav(id){ return state.favSet.has(id); },
     // 下載音檔
     download(url, filename){
       const a = document.createElement('a');
@@ -724,10 +736,10 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
   });
 
   /**
-   * 建立分享音效的 URL：包含當前搜尋條件與鎖定的 sound id。
+   * 建立分享音效跟搜尋條件的 URL：包含當前搜尋條件與鎖定的 sound id。
    * @param {string} id 音檔檔名
    */
-  function buildSoundURL(id){
+  function buildTotalSoundURL(id){
     const params = buildSearchParams();
     params.set('sound', id);
     const qs = params.toString();
@@ -787,7 +799,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
       else tab.classList.remove('active');
     });
     // 切換背景滿版模式與收起手機選單
-    document.body.classList.toggle('bg-full', (pg==='bg' | pg==='about'));
+    document.body.classList.toggle('bg-full', (pg==='bg' || pg==='about'));
     document.body.classList.remove('nav-open');
     if(els.navToggle) els.navToggle.setAttribute('aria-expanded','false');
     // 更新 URL：保留搜尋與其他參數
@@ -857,7 +869,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     // 分享網址項目
     const share = dom.el('div', {class:'menu-item', role:'menuitem', tabindex:'0'}, '分享網址');
     share.addEventListener('click', async () => {
-      const url = buildSoundURL(snd.id);
+      const url = `${window.location.origin}/?sound=${snd.id}`;
       await copyToClipboard(url);
       closeMenu();
       toast('已複製分享連結');
@@ -1052,10 +1064,10 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
       localStorage.setItem(LS_FAVORITES, JSON.stringify(out));
       localStorage.setItem(LS_FAVORITES_VERSION, '2');
 
-      // 同步到 runtime
-      if (window.state && state.favorites) state.favorites = new Set(out);
-
-      // 使用你的 toast
+      // 同步到 runtime（本次載入立即生效）
+      state.favorites = out;
+      state.favSet = new Set(out);
+// 使用你的 toast
       if (typeof toast === 'function') {
         toast(`已升級最愛格式，共 ${out.length} 筆${missing.length ? `；未匹配 ${missing.length} 筆` : ''}。`);
       }
@@ -1095,11 +1107,13 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     // 收到的列表：轉成音效物件並過濾不存在者
     const received = state.receivedList.map(id => state.sounds.find(s => s.id === id)).filter(Boolean);
     // 最愛與收到的列表應用搜尋條件
-    const fav = filtered.filter(s => utils.inFav(s.id));
-    const rec = received.filter(s => filtered.includes(s) && !state.favorites.has(s.id));
+    const idToSound = new Map(state.sounds.map(s=>[s.id,s]));
+    const allowed = new Set(filtered.map(s=>s.id));
+    const fav = state.favorites.map(id => idToSound.get(id)).filter(s => s && allowed.has(s.id));
+    const rec = received.filter(s => filtered.includes(s) && !state.favSet.has(s.id));
     // 其餘音效：不在最愛也不在收到的列表
-    const rest = filtered.filter(s => !state.favorites.has(s.id) && !rec.includes(s));
-    renderGrid(els.favGrid, fav);
+    const rest = filtered.filter(s => !state.favSet.has(s.id) && !rec.includes(s));
+    if(!state.isSorting){ renderGrid(els.favGrid, fav, {inFav:true}); }
     renderGrid(els.receivedGrid, rec);
     renderGrid(els.grid, rest);
     els.favEmpty.classList.toggle('hidden', fav.length > 0);
@@ -1113,12 +1127,12 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     renderActiveChips();
   }
   /** 渲染單一區塊的音效列表 */
-  function renderGrid(container, list){
+  function renderGrid(container, list, opts={inFav:false}){
     container.innerHTML = '';
-    for(const s of list){ container.appendChild(renderSoundCard(s)); }
+    for(const s of list){ container.appendChild(renderSoundCard(s, opts)); }
   }
   /** 建立音效卡片元素 */
-  function renderSoundCard(snd){
+  function renderSoundCard(snd, opts={inFav:false}){
     const heartBtn = dom.el('button', {
       class:'heart', 'aria-pressed': String(utils.inFav(snd.id)), 'aria-label':'加入/移除最愛',
       onclick:(e) => { e.stopPropagation(); toggleFavorite(snd.id, heartBtn); }
@@ -1135,10 +1149,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
       });
       tagWrap.appendChild(el);
     }
-    const card = dom.el('div', {
-      id: 'snd-'+snd.id,
-      class:'sound', role:'button', tabindex:'0', 'aria-label':`播放音效：${snd.title}`
-    }, [
+    const card = dom.el('div', { id: 'snd-'+snd.id, 'data-id': snd.id, class:'sound', role:'button', tabindex:'0', 'aria-label':`播放音效：${snd.title}` }, [
       dom.el('div', {class:'sound-top'}, [
         dom.el('div', {class:'title', title:snd.title}, snd.title),
         heartBtn
@@ -1153,10 +1164,14 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
       audio.addEventListener('ended', () => onPlayEnd(snd, audio));
       try{ await audio.play(); }catch(e){ console.error(e); }
     };
-    card.addEventListener('click', play);
-    card.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); play(); } });
+    if(!(state.isSorting && opts.inFav)){
+      card.addEventListener('click', play);
+    }
+    if(!(state.isSorting && opts.inFav)){
+      card.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); play(); } });
+    }
     // 右鍵開選單
-    card.addEventListener('contextmenu', (e) => {
+    if(!(state.isSorting && opts.inFav)) card.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       closeMenu();
       openMenuForSound(snd, e.clientX, e.clientY);
@@ -1171,19 +1186,23 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
       }, 650);
     };
     const endHold = () => { clearTimeout(state.contextTimer); };
-    card.addEventListener('pointerdown', startHold);
-    card.addEventListener('pointerup', endHold);
-    card.addEventListener('pointerleave', endHold);
+    if(!(state.isSorting && opts.inFav)) card.addEventListener('pointerdown', startHold);
+    if(!(state.isSorting && opts.inFav)) card.addEventListener('pointerup', endHold);
+    if(!(state.isSorting && opts.inFav)) card.addEventListener('pointerleave', endHold);
     card.addEventListener('pointercancel', endHold);
     return card;
   }
 
   /** 切換最愛並重新渲染 */
   function toggleFavorite(id, btn){
-    if(state.favorites.has(id)) state.favorites.delete(id);
-    else state.favorites.add(id);
+    if(state.favSet.has(id)){
+      state.favorites = state.favorites.filter(x => x !== id);
+    }else{
+      state.favorites.push(id);
+    }
+    state.favSet = new Set(state.favorites);
     utils.saveFav();
-    btn.setAttribute('aria-pressed', String(state.favorites.has(id)));
+    btn.setAttribute('aria-pressed', String(state.favSet.has(id)));
     render();
   }
 
@@ -1269,12 +1288,70 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     // 洗牌按鈕
     if(els.shuffleBtn){
       els.shuffleBtn.addEventListener('click', () => {
-        shuffleInPlace(state.sounds);
+        // 只洗牌「非最愛」音效，不影響最愛區的排列
+        const nf = [];
+        const idxs = [];
+        state.sounds.forEach((s, i) => {
+          if(!state.favSet.has(s.id)){ nf.push(s); idxs.push(i); }
+        });
+        shuffleInPlace(nf);
+        idxs.forEach((i, k) => { state.sounds[i] = nf[k]; });
         render();
       });
     }
     // 分享最愛列表
-    if(els.shareFavBtn){
+    
+    // 手動排序（檢查點A）：啟用/停用 SortableJS 僅針對最愛清單
+    if(els.sortFavBtn && els.doneSortBtn){
+      els.sortFavBtn.addEventListener('click', () => {
+        state.isSorting = true;
+        document.body.classList.add('sorting');
+        els.sortFavBtn.classList.add('hidden');
+        els.doneSortBtn.classList.remove('hidden');
+        // 重新渲染最愛區塊，讓卡片在排序模式下不綁定播放/選單事件
+        const {terms, tags} = utils.parseQuery();
+        const idToSound = new Map(state.sounds.map(s=>[s.id,s]));
+        const allowed = new Set(state.sounds.filter(s=>utils.match(s, terms, tags)).map(s=>s.id));
+        const fav = state.favorites.map(id => idToSound.get(id)).filter(s => s && allowed.has(s.id));
+        renderGrid(els.favGrid, fav, {inFav:true});
+        // 啟用 SortableJS
+        if(typeof Sortable !== 'undefined'){
+          state.sortable = Sortable.create(els.favGrid, { dataIdAttr: 'data-id',
+            animation: 150,
+            delay: 150,
+            delayOnTouchOnly: true,
+            ghostClass: 'drag-ghost',
+            chosenClass: 'drag-chosen',
+            dragClass: 'dragging',
+            // 允許點擊 ❤️ 按鈕（不觸發拖曳）
+            filter: '.heart',
+            preventOnFilter: false
+          });
+        }else{
+          console.warn('SortableJS 未載入');
+        }
+      });
+      els.doneSortBtn.addEventListener('click', () => {
+        // 讀取目前 DOM 中的最愛順序
+        const orderedIds = Array.from(els.favGrid.children)
+          .map(el => el.getAttribute('data-id'))
+          .filter(Boolean);
+        if(orderedIds.length){
+          const rest = state.favorites.filter(id => !orderedIds.includes(id));
+          state.favorites = orderedIds.concat(rest);
+          state.favSet = new Set(state.favorites);
+          utils.saveFav();
+          if (typeof toast === 'function') toast('已儲存最愛排序');
+        }
+        if(state.sortable){ state.sortable.destroy(); state.sortable = null; }
+        state.isSorting = false;
+        document.body.classList.remove('sorting');
+        els.doneSortBtn.classList.add('hidden');
+        els.sortFavBtn.classList.remove('hidden');
+        render();
+      });
+    }
+if(els.shareFavBtn){
       els.shareFavBtn.addEventListener('click', async () => {
         const ids = [...state.favorites];
         if(ids.length === 0){ toast('沒有最愛可分享'); return; }
