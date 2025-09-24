@@ -1,0 +1,1382 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="icon" href="assets/favicon.png" type="image/png">
+
+<title>阿萬與動物朋友按鈕</title>
+<style>
+:root {
+  --bg: #0b0d10;
+  --search: #0b0d1000;
+  --fg: #e9eef5;
+  --muted: #a8b3c7;
+  --card: #141821;
+  --card-2: #212832;
+  --border: #202636;
+  --accent: #6aa9ff;
+  --heart: #ff5a7a;
+  --chip-fg: #0b0d10;
+  --shadow: 0 6px 24px rgba(0,0,0,.25);
+
+  /* 暗色主題的背景混合模式 */
+  --bg-blend-mode: normal;
+  --bg-opacity: 0.25;
+
+  --control-h: 44px;
+  --liquid-hover: rgba(96,150,255,.20);
+}
+
+:root.light {
+  --bg: #f8fafc;
+  --search: #f8fafc00;
+  --fg: #0d1320;
+  --muted: #4b5563;
+  --card: #ffffff;
+  --card-2: #f3f6fb;
+  --border: #e5e7eb;
+  --accent: #2563eb;
+  --heart: #e11d48;
+  --chip-fg: #ffffff;
+  --shadow: 0 4px 18px rgba(2,6,23,.08);
+
+  /* 亮色主題的背景混合模式和透明度 */
+  --bg-blend-mode: normal;
+  --bg-opacity: 0.35;
+}
+
+/* --- 通用樣式 --- */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--fg);
+  font: medium ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Noto Sans, "Helvetica Neue", Arial;
+  position: relative; /* 為 ::before 提供定位上下文 */
+  z-index: 1; /* 將所有內容提升到背景圖之上 */
+}
+
+/* --- 背景 --- */
+body::before {
+  content: '';
+  position: fixed; /* 背景固定在視窗 */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('assets/background-by-jia.avif'); 
+  background-size: auto 90%; 
+  background-repeat: repeat; 
+  background-attachment: fixed;
+  mix-blend-mode: var(--bg-blend-mode);
+  opacity: var(--bg-opacity);
+  z-index: -1; /* 將背景圖層放在最底部 */
+}
+
+  
+  a{color:inherit}
+  .wrap{max-width:1100px;margin:0 auto;padding:20px}
+
+  header{
+      display:flex;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-bottom:14px;
+  }
+  /* 標題允許縮放，但不壓縮右側導航與按鈕。將右邊元素推到最右側 */
+  header h1{
+    white-space:nowrap;
+    margin-right:auto; /* 使用 auto margin 讓後方導覽與按鈕靠右 */
+  }
+  /* 導覽列樣式已整合到 .tabs 和 .tab，保留舊樣式供未來需要使用 */
+  h1{font-size:1.4rem;margin:0 8px 0 0;letter-spacing:.5px}
+  .theme-toggle{
+    border:1px solid var(--border);background:var(--card);color:var(--fg);
+    border-radius:10px;padding:8px 12px;cursor:pointer;box-shadow:var(--shadow)
+  }
+  /* 搜尋列 */
+  .search-row{
+    display:flex;flex-wrap:wrap;gap:0px;align-items: stretch;
+    position:sticky;top:0;background:var(--search);padding:8px 0 12px;z-index:5
+  }
+  .searchbar{
+  flex:1 1 260px;display:flex;align-items:center;gap:6px;
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius:12px;padding:6px 8px;box-shadow:var(--shadow);position:relative;
+  height: var(--control-h);
+}
+  .searchbar input{ flex:1;background:transparent;border:0;outline:0;color:var(--fg);font-size:16px;min-width:160px;height:100%;line-height:var(--control-h);padding:0 6px; }
+  .chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+  .chip{
+    display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:4px 8px;
+    font-size:12px;color:var(--chip-fg);box-shadow:0 2px 6px rgba(0,0,0,.18);
+  }
+  .chip button{
+    appearance:none;border:0;background:transparent;color:inherit;cursor:pointer;font-size:14px;line-height:1;padding:0 0 0 2px
+  }
+
+  .searchbar .chip {
+    cursor:pointer;
+  }
+
+
+  /* Favorites + Grid */
+  .section-title{margin:18px 0 10px;font-weight:700;letter-spacing:.3px}
+  .grid{
+    display:grid;gap:4px;
+    grid-template-columns:repeat(6, minmax(0,1fr));
+  }
+  @media (max-width:1000px){.grid{grid-template-columns:repeat(5, minmax(0,1fr));}}
+  @media (max-width:800px){.grid{grid-template-columns:repeat(4, minmax(0,1fr));}}
+  @media (max-width:600px){.grid{grid-template-columns:repeat(3, minmax(0,1fr));}}
+  @media (max-width:400px){.grid{grid-template-columns:repeat(2, minmax(0,1fr));}}
+
+  .sound{
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: saturate(1) blur(8px);
+    -webkit-backdrop-filter: saturate(1) blur(8px);
+    border-radius: 12px;
+    padding:8px;
+    box-shadow:var(--shadow);
+    display:flex;flex-direction:column;gap:5px 2px;user-select:none;
+    cursor:pointer;transition:transform .06s ease;
+    
+  }
+  .sound:active{transform:scale(.985)}
+  .sound-top{display:flex;align-items:center;gap:4px}
+  .title{
+    font-weight:600; font-size: smaller;
+    flex:1;min-width:0;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis
+  }
+  .heart{
+    width:24px;height:24px;border-radius:50%;place-items:center;
+    border:1px solid var(--border);background:var(--card-2);cursor:pointer;flex:0 0 auto;
+  }
+  .heart svg{width:16px;height:16px;display:block}
+  .heart[aria-pressed="true"] svg path{fill:var(--heart)}
+  .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .tag{
+    border-radius:999px;padding:3px 6px;font-size:small;color:var(--chip-fg);
+    cursor:pointer;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.16);
+  }
+
+  .stage{
+    position:fixed;left:0;right:0;bottom:12px;display:flex;flex-wrap:wrap;gap:12px 14px;
+    justify-content:center;pointer-events:none;z-index:40;padding:0 12px;
+  }
+  .group{display:inline-flex;gap:8px;align-items:flex-end}
+  .avatar{
+    width:75px;height:75px;border-radius:999px;
+    background:transparent; /* 保持透明背景以呈現頭像 PNG 的透明區域 */
+    overflow:hidden;border:2px solid rgba(255,255,255,.8);
+    box-shadow:0 8px 24px rgba(0,0,0,.35);transform-origin:50% 100%;
+  }
+  .avatar>img{width:100%;height:100%;object-fit:cover}
+
+  /* Keyframes */
+  @keyframes popIn{0%{transform:translateY(20px) scale(.7);opacity:0} 100%{transform:translateY(0) scale(1);opacity:1}}
+  @keyframes jitter{
+    0%,100%{transform:translateY(0) rotate(0deg)}
+    20%{transform:translateY(-2px) rotate(-1deg)}
+    40%{transform:translateY(1px) rotate(1deg)}
+    60%{transform:translateY(-1px) rotate(.6deg)}
+    80%{transform:translateY(1px) rotate(-.6deg)}
+  }
+  /* 簡化的離場動畫：彈起後向下掉並淡出 */
+  @keyframes hopOut{
+    0%{transform:translateY(0);opacity:1}
+    22%{transform:translateY(-12px);opacity:1}
+    100%{transform:translateY(60px);opacity:0}
+  }
+  .pop-in{animation:popIn .28s cubic-bezier(.2,.9,.18,1) both}
+  .jit{animation:jitter .9s ease-in-out infinite}
+  .hop-out{animation:hopOut .5s cubic-bezier(.2,.8,.2,1) forwards}
+  .hidden{display:none}
+  .desc{color:var(--muted);font-size:14px;margin:0 0 6px}
+  .empty{color:var(--muted);padding:12px 0}
+
+  /* Utility */
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{border:1px solid var(--border);background:var(--card);color:var(--fg);border-radius:10px;padding:8px 12px;cursor:pointer}
+
+  /* 導覽分頁 */
+  /* 導覽分頁置於 header 右側，由 h1 的 margin-right:auto 推開 */
+  .tabs{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap; /* allow nav items to wrap on small screens */
+  }
+  .tab{
+    display:inline-block;
+    padding:6px 16px; /* 更寬的間距，與其他膠囊元素一致 */
+    font-size:14px;
+    border:1px solid var(--border);
+    border-radius:999px; /* pill 造型，與標籤一致 */
+    background:var(--card-2);
+    color:var(--fg);
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  .tab:hover{
+    background:var(--card);
+  }
+  .tab.active{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:var(--chip-fg);
+  }
+
+  /* 小螢幕時導覽列與主題切換按鈕換行並增加上邊距 */
+  @media (max-width: 600px) {
+    header .tabs {
+      margin-top: 8px;
+    }
+    header .theme-toggle {
+      margin-top: 8px;
+    }
+  }
+
+  /* 區塊標題與控制按鈕 */
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin:14px 0 8px;}
+.section-header .actions{display:flex;gap:8px;}
+  .section-header h3{margin:0;font-size:1rem;font-weight:600;letter-spacing:.2px;}
+  .small-btn{font-size:12px;padding:4px 8px;border-radius:8px;}
+
+  /* 標籤一覽 */
+  .tag-list{display:flex;flex-wrap:wrap;gap:6px 8px;margin:8px 0;}
+  .tag-list .tag{cursor:pointer;}
+
+  /* Context Menu */
+  .menu{
+  position: fixed; z-index: 9999;
+  min-width: 180px;
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  backdrop-filter: saturate(1.8) blur(12px);
+  -webkit-backdrop-filter: saturate(1.8) blur(12px);
+  border-radius: 12px; overflow: hidden;
+}
+  .menu.hidden{display:none}
+  .menu-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border)}
+  .menu-item:last-child{border-bottom:0}
+  .menu-item:hover{ background: var(--liquid-hover); }
+
+  /* Toast */
+  .toast{
+    position:fixed;left:50%;bottom:80px;transform:translateX(-50%);
+    background:var(--card);border:1px solid var(--border);
+    padding:10px 14px;border-radius:10px;box-shadow:var(--shadow);z-index:70
+  }
+  .toast.hidden{display:none}
+
+  /* 播放/分享聚焦高亮 */
+  /* 外光暈高光效果：持續發光 */
+  .glow-persistent{
+    box-shadow: 0 0 0 4px rgba(106,169,255,0.5), 0 0 12px rgba(106,169,255,0.75);
+    /* transition added to avoid abrupt appearance */
+    transition: box-shadow 0.3s ease;
+  }
+
+  
+  :root {
+    --glass-bg: rgba(20,24,33,.8);
+    --glass-border: rgba(255,255,255,.12);
+  }
+  :root.light {
+    --glass-bg: rgba(255,255,255,.6);
+    --glass-border: rgba(15,23,42,.12);
+  }
+
+  .glass{
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter:  blur(3px);
+    background-clip: padding-box;
+    box-shadow: var(--shadow);
+  }
+
+  .searchbar, .sound, .menu{
+    background: var(--glass-bg) !important;
+    border-color: var(--glass-border) !important;
+    backdrop-filter:  blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  /* Navbar enhancements */
+  header{ position: relative; }
+  .nav-toggle{
+    display:none;
+    align-items:center; justify-content:center;
+    border:1px solid var(--border); background: var(--card); color: var(--fg);
+    border-radius:10px; padding:8px; cursor:pointer; box-shadow: var(--shadow);
+  }
+  @media (max-width: 760px){
+    .nav-toggle{ display:inline-flex; }
+    header .tabs{
+      display:none;
+      position:absolute; right:0; top:100%;
+      padding:8px; border-radius:12px; gap:6px;
+      flex-direction:column; align-items:stretch;
+      min-width: 180px;
+      z-index: 30;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: saturate(1.8) blur(12px);
+      -webkit-backdrop-filter: saturate(1.8) blur(12px);
+      box-shadow: var(--shadow);
+    }
+    body.nav-open header .tabs{ display:flex; }
+  }
+  /* Background page tweaks */
+  body.bg-full{ --bg-opacity: 1 !important; }
+  .bg-page{ min-height: 50vh; }
+  .bg-credit{
+    position: fixed; right: 16px; bottom: 16px;
+    font-size: large; padding: 8px 12px; border-radius: 10px;
+    font-weight: 800;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: saturate(1.8) blur(10px);
+    -webkit-backdrop-filter: saturate(1.8) blur(10px);
+    box-shadow: var(--shadow);
+    z-index: 60;
+  }
+  .bg-credit a{ text-decoration: underline; }
+
+
+
+#clearBtn.btn{
+  height: var(--control-h);
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 14px;
+}
+.search-row .searchbar{
+  border-top-right-radius: 0; border-bottom-right-radius: 0;
+  border-right: 0 !important;
+}
+.search-row #clearBtn{
+  border-top-left-radius: 0; border-bottom-left-radius: 0;
+  border-left: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: saturate(1.5) blur(8px);
+  -webkit-backdrop-filter: saturate(1.5) blur(8px);
+}
+
+#page-about{ background: var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: saturate(1.8) blur(12px); -webkit-backdrop-filter: saturate(1.8) blur(12px); border-radius: 14px; padding: 14px 16px; box-shadow: var(--shadow); }
+
+
+/* --- Layout fixes (per request) --- */
+/* Keep h1 and nav-toggle on the same row; let the h1 text wrap internally */
+header { flex-wrap: nowrap; }
+header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
+/* Keep searchbar and clearBtn on the same row; let the searchbar shrink first */
+.search-row { flex-wrap: nowrap; }
+.search-row .searchbar { flex: 1 1 auto; min-width: 0; }
+.search-row .searchbar input { min-width: 0; }
+.search-row #clearBtn { flex: 0 0 auto; white-space: nowrap; }
+
+
+  /* SortableJS drag styles & sorting mode cursor */
+  .drag-ghost{ opacity:.6; transform:scale(.98); }
+  .drag-chosen{ outline:2px dashed var(--accent); }
+  .dragging{ cursor:grabbing; }
+  body.sorting #favGrid .card{ cursor:grab; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><a href="index.html">阿萬與動物朋友按鈕</a></h1>
+    <button id="navToggle" class="nav-toggle" aria-label="打開選單" aria-expanded="false" aria-controls="primaryNav" title="選單">
+      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <!-- 導覽分頁：放置於標題與主題切換按鈕之間，靠右排版 -->
+    <nav id="primaryNav" class="tabs" aria-label="主選單">
+      <button class="tab active" data-page="home">主頁</button>
+      <button class="tab" data-page="bg" id="tab-bg">背景</button>
+      <!-- <button class="tab" data-page="game">小遊戲</button> -->
+      <button class="tab" data-page="about">關於</button>
+      <button id="themeBtn" class="theme-toggle" aria-label="切換主題">電燈開關</button>
+    </nav>
+    
+  </header>
+
+  <!-- 首頁內容：音效列表 -->
+  <div id="page-home">
+    <!-- 搜尋列（獨立成 row） -->
+    <div class="search-row">
+      <div class="searchbar" role="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.471 6.471 0 0 0 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"/></svg>
+        <input id="q" placeholder="搜尋標題或 #標籤（可多個，用空白分隔）" autocomplete="off" />
+        <div id="activeChips" class="chips"></div>
+      </div>
+      <button id="clearBtn" class="btn" aria-label="清除搜尋">清除</button>
+    </div>
+    <!-- 標籤一覽 -->
+    <div id="tagList" class="tag-list"></div>
+    <!-- 最愛區 -->
+    <div class="section-header">
+      <h3>最愛音效</h3>
+      <div class="actions"><button id="sortFavBtn" class="btn small-btn">手動排序</button><button id="doneSortBtn" class="btn small-btn glow-persistent hidden">儲存排序</button><button id="shareFavBtn" class="btn small-btn">分享最愛</button></div>
+    </div>
+    <div id="favGrid" class="grid"></div>
+    <div id="favEmpty" class="empty hidden">還沒有最愛。點音效右上的 ❤️ 加入最愛。</div>
+    <!-- 收到的列表：僅當 URL 包含 list 參數時顯示 -->
+    <div id="receivedSection" class="hidden">
+      <div id="receivedHeader" class="section-header">
+        <h3>收到的列表</h3>
+      </div>
+      <div id="receivedGrid" class="grid"></div>
+    </div>
+    <!-- 全部音效 -->
+    <div class="section-header">
+      <h3>全部音效</h3>
+      <button id="shuffleBtn" class="btn small-btn">洗牌</button>
+    </div>
+    <p class="desc">提示：點音效即可播放；右鍵（或行動裝置長按）可分享/下載。</p>
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty hidden">沒有符合搜尋的音效。</div>
+  </div>
+  <!-- 小遊戲分頁 -->
+  <div id="page-game" class="hidden">
+    <p>你怎麼發現的？絕讚施工中。</p>
+  </div>
+  
+  <!-- 背景分頁 -->
+  <div id="page-bg" class="bg-page hidden" aria-labelledby="tab-bg" role="region">
+    <div class="bg-credit"><a href="https://x.com/jiauwu_0730" target="_blank" rel="noopener">背景插畫由 Jia 繪製</a></div>
+  </div>
+  <!-- 關於分頁 -->
+
+  <div id="page-about" class="hidden">
+    <p>本站由粉肝製作，並非由厭世醫師阿萬官方經營。音效內容皆是粉肝去脈絡式、斷章取義的剪輯，僅供娛樂。最後更新時間：2025/9/25。</p>
+    
+    <p>阿萬本家→ <a href="https://x.com/drlifesucks" target="_blank">厭世醫師阿萬X</a>、<a href="https://www.youtube.com/@Dr.lifesucks" target="_blank">厭世醫師阿萬Youtube</a> </p>
+    <p><a href="https://discord.gg/e6ch4VbRB4" target="_blank">音效板問題回報與建議區</a></p>
+    <h2>大德芳名錄</h2>
+<p>感謝53、Kie在DC弄了一堆音效，讓南想到可以做這個網站，並在提出這個想法的一開始就弄了一堆音效過來。還有同樣感謝在原型階段就幫忙收集音效的米糕跟薰薰草。
+<br/>感謝Jia繪製超可愛的背景圖跟收集了很多音效。
+<br/>
+<br/>感謝粉肝們收集很多音效，豐富了這個網站（Word筆劃順）：
+<br/>AmBinBong、HUI、Lococco de suzuran、Nokimi07、Sigh、TENN、Yichen沉沉、🌙🐰月桂葉香包♏🎵、布丁(25:00)、幸福柴柴、青末枝、凌伊LingYi（01）、夏白衫、澐▽米粉 肉干、課日Ryou(33)、貓貓雨。
+以及其他回報問題、提出建議的粉肝們，你們讓這個網站的功能更完善。
+</p>
+    
+  </div>
+</div>
+
+<!-- 播放彩蛋舞台 -->
+<div id="stage" class="stage" aria-hidden="true"></div>
+<!-- 右鍵/長按選單 -->
+<div id="menu" class="menu hidden" role="menu" aria-label="音效選單"></div>
+<!-- Toast提示 -->
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
+<script>
+(function(){
+  /**
+   * 檔案版本字串：每次部署變更此值，可確保抓取最新資料並強制 CDN/瀏覽器重新載入。
+   */
+  const VERSION = 'ver2025-09-25-2';
+
+  /**
+   * 為給定的 URL 附加版本字串 (?v=<VERSION>)。如果已有查詢參數則加 &。
+   * @param {string} url
+   * @returns {string}
+   */
+  function withV(url){
+    return url + (url.includes('?') ? '&' : '?') + 'v=' + encodeURIComponent(VERSION);
+  }
+
+  /** Fisher-Yates 洗牌演算法 **/
+  function shuffleInPlace(arr, rng = Math.random){
+    for(let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(rng() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  /** @typedef {{key:string, name:string, color:string, role:'streamer'|'category', avatar?:string}} Tag */
+  /** @typedef {{file:string, title:string, tags:string[]}} SoundConf */
+  /** @typedef {{id:string, src:string, title:string, tags:string[]}} Sound */
+
+  // 元素引用。對 menu 與 toast 使用 getter 確保 DOM 已存在。
+  const els = {
+    q: document.getElementById('q'),
+    activeChips: document.getElementById('activeChips'),
+    grid: document.getElementById('grid'),
+    favGrid: document.getElementById('favGrid'),
+    empty: document.getElementById('empty'),
+    favEmpty: document.getElementById('favEmpty'),
+    themeBtn: document.getElementById('themeBtn'),
+    stage: document.getElementById('stage'),
+    clearBtn: document.getElementById('clearBtn'),
+    get menu(){ return document.getElementById('menu'); },
+    get toast(){ return document.getElementById('toast'); },
+    // 分頁容器
+    pageHome: document.getElementById('page-home'),
+    pageGame: document.getElementById('page-game'),
+    pageAbout: document.getElementById('page-about'),
+    pageBg: document.getElementById('page-bg'),
+    navToggle: document.getElementById('navToggle'),
+    // 導覽標籤（動態抓取）
+    get navTabs(){ return document.querySelectorAll('.tab'); },
+    // 標籤一覽容器
+    tagList: document.getElementById('tagList'),
+    // 收到的列表
+    receivedSection: document.getElementById('receivedSection'),
+    receivedGrid: document.getElementById('receivedGrid'),
+    receivedHeader: document.getElementById('receivedHeader'),
+    // 最愛排序/分享與洗牌按鈕
+    sortFavBtn: document.getElementById('sortFavBtn'),
+    doneSortBtn: document.getElementById('doneSortBtn'),
+    shareFavBtn: document.getElementById('shareFavBtn'),
+    shuffleBtn: document.getElementById('shuffleBtn')
+  };
+
+  // 全域狀態。
+  const state = {
+    tags: /** @type {Record<string, Tag>} */ ({}),
+    tagList: /** @type {Tag[]} */ ([]),
+    sounds: /** @type {Sound[]} */ ([]),
+    favorites: JSON.parse(localStorage.getItem('favorites')||'[]'),
+    favSet: new Set(),
+    queryText: '',
+    queryTags: new Set(),
+    // 長按/右鍵開選單的計時器
+    contextTimer: null,
+    // 分頁狀態：home | game | about
+    page: 'home',
+    // 分享列表收到的 id 陣列
+    receivedList: /** @type {string[]} */ ([]),
+    // 已移除自動播放功能
+    // Toast 計時器 id
+    toastTimer: null,
+    // 使用過的標籤列表
+    usedTagList: /** @type {Tag[]} */ ([]),
+    // 排序編輯模式
+    isSorting: false,
+    sortable: /** @type {any} */ (null),
+    // 目前被高亮（持續外光暈）的音效卡片 id（若有）
+    highlightedCardId: ''
+  };
+
+  // 初始同步 favorites Set 供快速查詢
+  state.favSet = new Set(state.favorites);
+
+
+  // DOM 快速建造工具
+  const dom = {
+    el(tag, attrs={}, children=[]){
+      const e = document.createElement(tag);
+      Object.entries(attrs).forEach(([k,v])=>{
+        if(k==='class') e.className = v;
+        else if(k==='style') Object.assign(e.style, v);
+        else if(k.startsWith('on') && typeof v==='function') e.addEventListener(k.substring(2), v);
+        else if(v!==undefined && v!==null) e.setAttribute(k, v);
+      });
+      (Array.isArray(children)?children:[children]).filter(Boolean).forEach(c=>{
+        if(typeof c==='string') e.appendChild(document.createTextNode(c));
+        else e.appendChild(c);
+      });
+      return e;
+    },
+    svgHeart(){
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('viewBox','0 0 24 24');
+      svg.innerHTML = '<path d="M12 21s-6.716-4.438-9.428-7.15C.59 11.868.59 8.608 2.57 6.627 4.55 4.647 7.81 4.647 9.79 6.627L12 8.838l2.21-2.21c1.98-1.98 5.24-1.98 7.22 0 1.98 1.98 1.98 5.24 0 7.223C18.716 16.562 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="1.5"/>';
+      return svg;
+    }
+  };
+
+  // 工具函式
+  const utils = {
+    slug(s){ return s.normalize('NFKC').trim().toLowerCase(); },
+    byId(id){ return document.getElementById(id); },
+    saveFav(){ localStorage.setItem('favorites', JSON.stringify(state.favorites)); },
+    inFav(id){ return state.favSet.has(id); },
+    // 下載音檔
+    download(url, filename){
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename || '';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    },
+    // 解析輸入框文字與目前已選標籤，回傳 {terms, tags}
+    parseQuery(){
+      const raw = state.queryText.trim();
+      const parts = raw.length ? raw.split(/\s+/) : [];
+      const tags = new Set([...state.queryTags]);
+      const terms = [];
+      for(const p of parts){
+        if(p.startsWith('#')) tags.add(utils.slug(p.slice(1)));
+        else terms.push(utils.slug(p));
+      }
+      return {terms, tags};
+    },
+    // 判斷音效是否匹配搜尋條件
+    match(sound, terms, tags){
+      for(const t of tags){
+        if(!sound.tags.some(s => utils.slug(s) === t)) return false;
+      }
+      for(const term of terms){
+        const inTitle = sound.title.toLowerCase().includes(term.toLowerCase());
+        const inTags = sound.tags.some(t => t.toLowerCase().includes(term.toLowerCase()));
+        if(!(inTitle || inTags)) return false;
+      }
+      return true;
+    }
+  };
+
+  /**
+   * URL 同步工具：將當前搜尋條件封裝為 URLSearchParams
+   */
+  function buildSearchParams(){
+    const {terms, tags} = utils.parseQuery();
+    const params = new URLSearchParams(window.location.search);
+    if(terms.length) params.set('q', terms.join(' ')); else params.delete('q');
+    if(tags.size) params.set('tags', [...tags].join(',')); else params.delete('tags');
+    params.delete('sound'); // 修改搜尋時清除音效深連結
+    return params;
+  }
+
+  /**
+   * 將狀態寫回 URL。
+   * @param {boolean} push 若為 true 則使用 history.pushState，否則使用 replaceState
+   */
+  function updateURLFromState(push=false){
+    const params = buildSearchParams();
+    // 保留 list 參數（分享收到的列表）若存在
+    const current = new URLSearchParams(location.search);
+    if(current.has('list')) params.set('list', current.get('list'));
+    // 這行是正確的，是為了保證分享網址的邏輯能夠正確運作
+    if(current.has('sound')) params.set('sound', current.get('sound'));
+    // 加上 page 參數（非首頁才寫入）
+    if(state.page && state.page !== 'home') params.set('page', state.page); else params.delete('page');
+    const qs = params.toString();
+    const url = `${location.pathname}${qs ? '?' + qs : ''}`;
+    (push ? history.pushState : history.replaceState).call(history, null, '', url);
+  }
+
+  /**
+   * 從現有 URL 讀取搜尋條件並套用到狀態與輸入框
+   */
+  function applyURLToState(){
+    const params = new URLSearchParams(location.search);
+    const q = params.get('q') || '';
+    const tagsParam = params.get('tags') || '';
+    state.queryTags.clear();
+    const keys = tagsParam ? tagsParam.split(',').map(k => utils.slug(k)).filter(Boolean) : [];
+    for(const k of keys){ state.queryTags.add(k); }
+    state.queryText = q;
+    // 同步輸入框文字：將 q 與 #tagTokens 組合顯示
+    const tagTokens = keys.map(k => '#'+(state.tags[k]?.name || k));
+    els.q.value = [q, ...tagTokens].filter(Boolean).join(' ');
+
+    // 分頁：讀取 page 參數
+    const pageParam = params.get('page');
+    if(pageParam === 'game' || pageParam === 'about' || pageParam === 'bg') state.page = pageParam;
+    else state.page = 'home';
+    // 分享列表：讀取 list 參數，逗號分隔
+    const listParam = params.get('list');
+    if(listParam){
+      state.receivedList = listParam.split(',').filter(Boolean);
+    } else {
+      state.receivedList = [];
+    }
+  }
+
+  /**
+   * 若 URL 有 ?sound=<id>，則聚焦並閃爍該卡片
+   */
+  function focusSoundFromURL(){
+    const id = new URLSearchParams(location.search).get('sound');
+    if(!id) return;
+    const card = utils.byId('snd-'+id);
+    if(card){
+      card.scrollIntoView({behavior:'smooth', block:'center'});
+      // 移除舊的高亮
+      if(state.highlightedCardId){
+        const prev = utils.byId('snd-'+state.highlightedCardId);
+        if(prev){ prev.classList.remove('glow-persistent'); }
+      }
+      // 設定新的高亮 id
+      state.highlightedCardId = id;
+      // 加入持續外光暈
+      card.classList.add('glow-persistent');
+    }
+  }
+
+  // popstate 事件：返回/前進時載入 URL 條件
+  window.addEventListener('popstate', () => {
+    applyURLToState();
+    render();
+    focusSoundFromURL();
+  });
+
+  /**
+   * 建立分享音效跟搜尋條件的 URL：包含當前搜尋條件與鎖定的 sound id。
+   * @param {string} id 音檔檔名
+   */
+  function buildTotalSoundURL(id){
+    const params = buildSearchParams();
+    params.set('sound', id);
+    const qs = params.toString();
+    return `${location.origin}${location.pathname}${qs ? '?' + qs : ''}`;
+  }
+
+
+  /**
+   * 建立分享列表的 URL：加入 list 參數，使用逗號分隔的 id 列表。
+   * @param {string[]} ids
+   */
+  function buildListURL(ids){
+    const params = buildSearchParams();
+    if(ids && ids.length){
+      params.set('list', ids.join(','));
+    } else {
+      params.delete('list');
+    }
+    // 刪除單獨音效參數
+    params.delete('sound');
+    const qs = params.toString();
+    return `${location.origin}${location.pathname}${qs ? '?' + qs : ''}`;
+  }
+
+  /**
+   * 根據 id 自動播放音效（若存在）。會使用 renderSoundCard 中的邏輯建立 Audio。
+   * @param {string} id
+   */
+  function playSoundById(id){
+    const snd = state.sounds.find(s => s.id === id);
+    if(!snd) return;
+    const audio = new Audio(snd.src);
+    audio.preload = 'auto';
+    audio.addEventListener('play', () => onPlayStart(snd, audio));
+    audio.addEventListener('ended', () => onPlayEnd(snd, audio));
+    audio.play().catch(() => {});
+  }
+
+
+  /**
+   * 切換頁面：根據 page 名稱顯示不同內容，並更新網址參數與導覽樣式
+   * @param {'home'|'game'|'about'} pg
+   */
+  function showPage(pg){
+    state.page = pg;
+    els.pageHome.classList.add('hidden');
+    els.pageGame.classList.add('hidden');
+    els.pageAbout.classList.add('hidden');
+    if(els.pageBg) els.pageBg.classList.add('hidden');
+    if(pg === 'home') els.pageHome.classList.remove('hidden');
+    else if(pg === 'game') els.pageGame.classList.remove('hidden');
+    else if(pg === 'about') els.pageAbout.classList.remove('hidden');
+    else if(pg === 'bg' && els.pageBg) els.pageBg.classList.remove('hidden');
+    // 更新導覽標籤 active 樣式
+    els.navTabs.forEach(tab => {
+      if(tab.getAttribute('data-page') === pg) tab.classList.add('active');
+      else tab.classList.remove('active');
+    });
+    // 切換背景滿版模式與收起手機選單
+    document.body.classList.toggle('bg-full', (pg==='bg' || pg==='about'));
+    document.body.classList.remove('nav-open');
+    if(els.navToggle) els.navToggle.setAttribute('aria-expanded','false');
+    // 更新 URL：保留搜尋與其他參數
+    updateURLFromState(true);
+  }
+
+  /**
+   * 渲染標籤一覽：列出所有使用到的標籤
+   */
+  function renderTagList(){
+    const container = els.tagList;
+    if(!container) return;
+    container.innerHTML = '';
+    state.usedTagList.forEach(t => {
+      const el = dom.el('span', {class:'tag', style:{background: t.color || '#94a3b8'}}, t.name);
+      el.addEventListener('click', () => {
+        addTagToQuery(t.key);
+      });
+      container.appendChild(el);
+    });
+  }
+
+  /**
+   * 嘗試使用剪貼簿 API，若不支援則降階到舊方式。
+   * @param {string} text
+   */
+  function copyToClipboard(text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      return navigator.clipboard.writeText(text).catch(() => legacyCopy(text));
+    }
+    return legacyCopy(text);
+  }
+  function legacyCopy(text){
+    const ta = dom.el('textarea',{style:{position:'fixed',left:'-9999px',top:'0'}}, text);
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    ta.remove();
+    return Promise.resolve();
+  }
+
+  /** Toast 提示顯示小資訊
+   * 可傳入顯示時間（毫秒）；若為 0 則不會自動隱藏
+   * @param {string} msg
+   * @param {number} [duration=1400]
+   */
+  function toast(msg, duration = 3000){
+    const t = els.toast;
+    if(!t) return;
+    // 清除舊的計時器
+    if(state.toastTimer){ clearTimeout(state.toastTimer); state.toastTimer = null; }
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    if(duration > 0){
+      state.toastTimer = setTimeout(() => {
+        t.classList.add('hidden');
+        state.toastTimer = null;
+      }, duration);
+    }
+  }
+
+  /** 打開音效的右鍵/長按選單 */
+  function openMenuForSound(snd, x, y){
+    const m = els.menu;
+    if(!m) return;
+    m.innerHTML = '';
+    // 分享網址項目
+    const share = dom.el('div', {class:'menu-item', role:'menuitem', tabindex:'0'}, '分享網址');
+    share.addEventListener('click', async () => {
+      const url = `${window.location.origin}/soundboard/?sound=${snd.id}`;
+      await copyToClipboard(url);
+      closeMenu();
+      toast('已複製分享連結');
+      const card = utils.byId('snd-'+snd.id);
+    });
+    // 下載音檔項目
+    const dl = dom.el('div', {class:'menu-item', role:'menuitem', tabindex:'0'}, '下載音檔');
+    dl.addEventListener('click', () => {
+      closeMenu();
+      utils.download(snd.src, snd.file);
+    });
+    m.append(share, dl);
+    m.classList.remove('hidden');
+    // 定位選單：確保元素有尺寸後再計算
+    requestAnimationFrame(() => positionMenu(x, y));
+  }
+
+  /** 定位選單在視窗內 */
+  function positionMenu(x, y){
+    const m = els.menu;
+    if(!m) return;
+    const pad = 6;
+    const w = m.offsetWidth || 180;
+    const h = m.offsetHeight || 100;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const left = Math.min(Math.max(0, x), vw - w - pad);
+    const top  = Math.min(Math.max(0, y), vh - h - pad);
+    m.style.left = left + 'px';
+    m.style.top  = top  + 'px';
+  }
+
+  /** 關閉選單 */
+  function closeMenu(){
+    const m = els.menu;
+    if(!m) return;
+    m.classList.add('hidden');
+    m.innerHTML = '';
+  }
+  // 點擊外部或按 ESC 關閉選單
+  document.addEventListener('click', (e) => {
+    const m = els.menu;
+    if(m && !m.classList.contains('hidden') && !m.contains(e.target)) closeMenu();
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape') closeMenu();
+  });
+  window.addEventListener('resize', closeMenu);
+
+  /** 切換主題 */
+  function applyTheme(theme){
+    document.documentElement.classList.toggle('light', theme === 'light');
+  }
+  const savedTheme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark');
+  applyTheme(savedTheme);
+  els.themeBtn.addEventListener('click', () => {
+    const next = document.documentElement.classList.contains('light') ? 'dark' : 'light';
+    if (next == "dark") {
+      playSoundById("oNTWqg"); //瓦哈音效 開燈啊
+    }
+    localStorage.setItem('theme', next);
+    applyTheme(next);
+  });
+
+  /** 播放彩蛋：當音效播放時顯示頭像，播放結束後彈跳離場 */
+  const activeGroups = new Set();
+  function onPlayStart(snd, audio){
+    const streamerTags = snd.tags
+      .map(k => state.tags[utils.slug(k)])
+      .filter(t => t && t.role === 'streamer' && t.avatar);
+    if(streamerTags.length === 0) return;
+    const group = dom.el('div', {class:'group'});
+    activeGroups.add(group);
+    streamerTags.forEach((t, i) => {
+      const avatar = dom.el('div', {
+        class:'avatar pop-in jit',
+        style:{animationDelay:`${i*60}ms`}
+      }, [
+        dom.el('img', {src: withV(t.avatar), alt: t.name})
+      ]);
+      group.appendChild(avatar);
+    });
+    els.stage.appendChild(group);
+    audio.__group = group;
+  }
+  function onPlayEnd(_snd, audio){
+    const group = audio.__group;
+    if(!group) return;
+    const children = Array.from(group.children);
+    children.forEach((av, i) => {
+      av.classList.remove('jit');
+      setTimeout(() => {
+        av.classList.add('hop-out');
+        av.addEventListener('animationend', () => {
+          av.remove();
+          if(group.childElementCount === 0){ group.remove(); activeGroups.delete(group); }
+        }, {once:true});
+      }, i * 90);
+    });
+  }
+
+  /** ===== Favorites schema migration: file -> id (v1 -> v2) ===== */
+  const LS_FAVORITES         = 'favorites';
+  const LS_FAVORITES_VERSION = 'favorites_version';        // '2' 表新版（id）
+  const LS_FAVORITES_BACKUP  = 'favorites_legacy_backup';  // 備份舊資料（除錯用）
+  const ID_REGEX = /^[A-Za-z0-9_-]{6}$/;
+
+  /** 將可能的舊資料各種型態，穩健轉成字串陣列 */
+  function parseLegacyFavorites(raw){
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed.map(String);
+      if (parsed && typeof parsed === 'object') {
+        // 舊版若是 map 形式：{ "meme/awooga.mp3": true, "x.ogg": false, ... }
+        return Object.keys(parsed).filter(k => !!parsed[k]).map(String);
+      }
+    } catch(e){
+      // 非 JSON：支援用逗號/空白分隔的舊格式
+      if (typeof raw === 'string') {
+        return raw.split(/[,\s]+/).map(s => s.trim()).filter(Boolean);
+      }
+    }
+    return [];
+  }
+
+  /** 規一化 file key：去掉查詢字串、去頭尾斜線、保留原大小寫（另有小寫對照表） */
+  function canonFileKey(s){
+    if (!s) return '';
+    let k = String(s);
+    k = k.split('?')[0];           // 去除 ?v=xxx
+    k = k.replace(/^\.?\//,'');    // 去掉 ./ 或 /
+    try { k = decodeURIComponent(k); } catch {}
+    return k;
+  }
+
+  /** 由 sounds.json 建立對照表：file/basename/大小寫寬鬆 -> id */
+  function buildFileMapsFromConfig(soundsJson){
+    const exact = new Map();
+    const lower = new Map();
+    soundsJson.forEach(s => {
+      const file = canonFileKey(s.file);             // 例如: "animals/cat.mp3"
+      const base = file.split('/').pop();            // 例如: "cat.mp3"
+      const id   = s.id || base;                     // 若缺 id，退回檔名（極少數情況）
+      [
+        file,
+        base,
+        'sounds/' + file,         // 某些舊資料可能帶或不帶 sounds/
+        'sounds/' + base
+      ].forEach(k => { exact.set(k, id); lower.set(k.toLowerCase(), id); });
+    });
+    return { exact, lower };
+  }
+
+  /** 需要遷移嗎？（favorites 不是純 6 碼 id 清單，就視為需要） */
+  function favoritesNeedMigration(raw){
+    const list = parseLegacyFavorites(raw);
+    if (list.length === 0) return false;
+    return !list.every(x => ID_REGEX.test(x));
+  }
+
+  /** 主程序：在拿到 soundsJson（含 file 與 id）後呼叫 */
+  function migrateFavoritesFromFilesToIds(soundsJson){
+    try {
+      const raw = localStorage.getItem(LS_FAVORITES);
+      if (!favoritesNeedMigration(raw)) {
+        localStorage.setItem(LS_FAVORITES_VERSION, '2');
+        return;
+      }
+      const legacy = parseLegacyFavorites(raw);
+      const { exact, lower } = buildFileMapsFromConfig(soundsJson);
+
+      const out = [];
+      const seen = new Set();
+      const missing = [];
+
+      legacy.forEach(k => {
+        const c = canonFileKey(k);
+        const base = c.split('/').pop();
+        const candidates = [c, c.replace(/^sounds\//,''), base, 'sounds/'+c, 'sounds/'+base];
+        let id = null;
+        for (const cand of candidates){
+          id = exact.get(cand) || lower.get(cand.toLowerCase());
+          if (id) break;
+        }
+        if (!id) { missing.push(k); return; }
+        if (!seen.has(id)) { seen.add(id); out.push(id); }
+      });
+
+      // 寫入新版 + 備份舊版
+      localStorage.setItem(LS_FAVORITES_BACKUP, raw);
+      localStorage.setItem(LS_FAVORITES, JSON.stringify(out));
+      localStorage.setItem(LS_FAVORITES_VERSION, '2');
+
+      // 同步到 runtime（本次載入立即生效）
+      state.favorites = out;
+      state.favSet = new Set(out);
+// 使用你的 toast
+      if (typeof toast === 'function') {
+        toast(`已升級最愛格式，共 ${out.length} 筆${missing.length ? `；未匹配 ${missing.length} 筆` : ''}。`);
+      }
+      console.info('[favorites migration] done:', { converted: out.length, missing });
+    } catch (err) {
+      console.warn('[favorites migration] error:', err);
+    }
+  }
+
+  /** 載入設定檔：使用版本字串與 no-store 以防快取；並洗牌音效 */
+  async function loadConfig(){
+    const [tagsJson, soundsJson] = await Promise.all([
+      fetch(withV('config/tags.json'), {cache:'no-store'}).then(r => r.json()),
+      fetch(withV('config/sounds.json'), {cache:'no-store'}).then(r => r.json())
+    ]);
+    // 讀取標籤
+    migrateFavoritesFromFilesToIds(soundsJson);
+    state.tags = {};
+    state.tagList = tagsJson.map(t => ({ key: utils.slug(t.key), name: t.name, color: t.color, role: t.role, avatar: t.avatar }));
+    for(const t of state.tagList){ state.tags[utils.slug(t.key)] = t; }
+    // 讀取音效。若配置檔中包含 id，則使用該 id；否則 fallback 到檔名。加上版本字串。
+    state.sounds = soundsJson.map(s => {
+      const id = s.id || s.file.replace(/^.*[\\\/]/, '');
+      return { id, src: withV(`sounds/${s.file}`),file: s.file, title: s.title, tags: s.tags.slice() };
+    });
+    // 計算哪些標籤被使用到，以供標籤一覽
+    const usedKeys = new Set();
+    state.sounds.forEach(snd => snd.tags.forEach(t => usedKeys.add(utils.slug(t))));
+    state.usedTagList = state.tagList.filter(t => usedKeys.has(t.key));
+  }
+
+  /** 渲染介面：依據搜尋條件篩選音效，區分最愛與其他 */
+  function render(){
+    const {terms, tags} = utils.parseQuery();
+    // 依搜尋條件過濾所有音效
+    const filtered = state.sounds.filter(s => utils.match(s, terms, tags));
+    // 收到的列表：轉成音效物件並過濾不存在者
+    const received = state.receivedList.map(id => state.sounds.find(s => s.id === id)).filter(Boolean);
+    // 最愛與收到的列表應用搜尋條件
+    const idToSound = new Map(state.sounds.map(s=>[s.id,s]));
+    const allowed = new Set(filtered.map(s=>s.id));
+    const fav = state.favorites.map(id => idToSound.get(id)).filter(s => s && allowed.has(s.id));
+    const rec = received.filter(s => filtered.includes(s) && !state.favSet.has(s.id));
+    // 其餘音效：不在最愛也不在收到的列表
+    const rest = filtered.filter(s => !state.favSet.has(s.id) && !rec.includes(s));
+    if(!state.isSorting){ renderGrid(els.favGrid, fav, {inFav:true}); }
+    renderGrid(els.receivedGrid, rec);
+    renderGrid(els.grid, rest);
+    els.favEmpty.classList.toggle('hidden', fav.length > 0);
+    els.empty.classList.toggle('hidden', filtered.length > 0);
+    // 顯示或隱藏收到的列表區塊
+    if(rec.length > 0){
+      if(els.receivedSection){ els.receivedSection.classList.remove('hidden'); }
+    }else{
+      if(els.receivedSection){ els.receivedSection.classList.add('hidden'); }
+    }
+    renderActiveChips();
+  }
+  /** 渲染單一區塊的音效列表 */
+  function renderGrid(container, list, opts={inFav:false}){
+    container.innerHTML = '';
+    for(const s of list){ container.appendChild(renderSoundCard(s, opts)); }
+  }
+  /** 建立音效卡片元素 */
+  function renderSoundCard(snd, opts={inFav:false}){
+    const heartBtn = dom.el('button', {
+      class:'heart', 'aria-pressed': String(utils.inFav(snd.id)), 'aria-label':'加入/移除最愛',
+      onclick:(e) => { e.stopPropagation(); toggleFavorite(snd.id, heartBtn); }
+    }, dom.svgHeart());
+    const tagWrap = dom.el('div', {class:'tags'});
+    for(const t of snd.tags){
+      const tagKey = utils.slug(t);
+      const tagDef = state.tags[tagKey];
+      const color = tagDef?.color || '#94a3b8';
+      const el = dom.el('span', {class:'tag', style:{background: color}}, t);
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        addTagToQuery(tagKey);
+      });
+      tagWrap.appendChild(el);
+    }
+    const card = dom.el('div', { id: 'snd-'+snd.id, 'data-id': snd.id, class:'sound', role:'button', tabindex:'0', 'aria-label':`播放音效：${snd.title}` }, [
+      dom.el('div', {class:'sound-top'}, [
+        dom.el('div', {class:'title', title:snd.title}, snd.title),
+        heartBtn
+      ]),
+      tagWrap
+    ]);
+    // 播放功能
+    const play = async () => {
+      const audio = new Audio(snd.src);
+      audio.preload = 'auto';
+      audio.addEventListener('play', () => onPlayStart(snd, audio));
+      audio.addEventListener('ended', () => onPlayEnd(snd, audio));
+      try{ await audio.play(); }catch(e){ console.error(e); }
+    };
+    if(!(state.isSorting && opts.inFav)){
+      card.addEventListener('click', play);
+    }
+    if(!(state.isSorting && opts.inFav)){
+      card.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); play(); } });
+    }
+    // 右鍵開選單
+    if(!(state.isSorting && opts.inFav)) card.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      closeMenu();
+      openMenuForSound(snd, e.clientX, e.clientY);
+    });
+    // 行動長按開選單
+    const startHold = (e) => {
+      clearTimeout(state.contextTimer);
+      const {clientX, clientY} = e;
+      state.contextTimer = setTimeout(() => {
+        closeMenu();
+        openMenuForSound(snd, clientX || window.innerWidth/2, clientY || window.innerHeight/2);
+      }, 650);
+    };
+    const endHold = () => { clearTimeout(state.contextTimer); };
+    if(!(state.isSorting && opts.inFav)) card.addEventListener('pointerdown', startHold);
+    if(!(state.isSorting && opts.inFav)) card.addEventListener('pointerup', endHold);
+    if(!(state.isSorting && opts.inFav)) card.addEventListener('pointerleave', endHold);
+    card.addEventListener('pointercancel', endHold);
+    return card;
+  }
+
+  /** 切換最愛並重新渲染 */
+  function toggleFavorite(id, btn){
+    if(state.favSet.has(id)){
+      state.favorites = state.favorites.filter(x => x !== id);
+    }else{
+      state.favorites.push(id);
+    }
+    state.favSet = new Set(state.favorites);
+    utils.saveFav();
+    btn.setAttribute('aria-pressed', String(state.favSet.has(id)));
+    render();
+  }
+
+  /** 渲染搜尋列上的已選標籤 chips */
+  function renderActiveChips(){
+    els.activeChips.innerHTML = '';
+    for(const key of state.queryTags){
+      const tag = state.tags[key];
+      const color = tag?.color || '#94a3b8';
+      const chip = dom.el('span', {class:'chip', style:{background: color},onclick:() => { state.queryTags.delete(key); render(); updateURLFromState(true); }}, [
+        `#${tag?.name || key}`,
+        dom.el('button', {title:'移除', onclick:() => { state.queryTags.delete(key); render(); updateURLFromState(true); }}, '×')
+      ],
+    );
+      els.activeChips.appendChild(chip);
+    }
+  }
+
+  /** 點標籤加入搜尋：pushState，並清除建議 */
+  function addTagToQuery(tagKey){
+    state.queryTags.add(tagKey);
+    render();
+    updateURLFromState(true);
+  }
+
+  /** 初始化事件綁定 */
+  function initEvents(){
+    // 搜尋框輸入
+    els.q.addEventListener('input', () => {
+      state.queryText = els.q.value;
+      const val = els.q.value;
+      const last = val.split(/\s+/).pop() || '';
+      const needle = last.startsWith('#') ? last.slice(1).toLowerCase() : val.trim().toLowerCase();
+      const list = needle
+        ? state.tagList.filter(t => t.name.toLowerCase().includes(needle) || t.key.toLowerCase().includes(needle))
+        : state.tagList.slice(0, 8);
+      render();
+      updateURLFromState(false);
+    });
+
+    // 清除搜尋
+    els.clearBtn.addEventListener('click', () => {
+      els.q.value = '';
+      state.queryText = '';
+      state.queryTags.clear();
+      render();
+      updateURLFromState(true);
+    });
+
+    // 導覽切換
+    els.navTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const pg = tab.getAttribute('data-page');
+        showPage(pg || 'home');
+      });
+    });
+        // 手機選單開關
+    if(els.navToggle){
+      els.navToggle.addEventListener('click', () => {
+        const open = !document.body.classList.contains('nav-open');
+        document.body.classList.toggle('nav-open', open);
+        els.navToggle.setAttribute('aria-expanded', String(open));
+      });
+    }
+
+    // 點擊頁面其他地方關閉手機選單
+    document.addEventListener('click', (e) => {
+      if(document.body.classList.contains('nav-open')){
+        const headerEl = document.querySelector('header');
+        if(headerEl && !headerEl.contains(e.target)){
+          document.body.classList.remove('nav-open');
+          if(els.navToggle) els.navToggle.setAttribute('aria-expanded','false');
+        }
+      }
+    });
+
+    // 點擊導覽後在小螢幕自動收合
+    els.navTabs.forEach(t => t.addEventListener('click', () => {
+      document.body.classList.remove('nav-open');
+      if(els.navToggle) els.navToggle.setAttribute('aria-expanded','false');
+    }));
+
+    // 洗牌按鈕
+    if(els.shuffleBtn){
+      els.shuffleBtn.addEventListener('click', () => {
+        // 只洗牌「非最愛」音效，不影響最愛區的排列
+        const nf = [];
+        const idxs = [];
+        state.sounds.forEach((s, i) => {
+          if(!state.favSet.has(s.id)){ nf.push(s); idxs.push(i); }
+        });
+        shuffleInPlace(nf);
+        idxs.forEach((i, k) => { state.sounds[i] = nf[k]; });
+        render();
+      });
+    }
+    // 分享最愛列表
+    
+    // 手動排序（檢查點A）：啟用/停用 SortableJS 僅針對最愛清單
+    if(els.sortFavBtn && els.doneSortBtn){
+      els.sortFavBtn.addEventListener('click', () => {
+        state.isSorting = true;
+        document.body.classList.add('sorting');
+        els.sortFavBtn.classList.add('hidden');
+        els.doneSortBtn.classList.remove('hidden');
+        // 重新渲染最愛區塊，讓卡片在排序模式下不綁定播放/選單事件
+        const {terms, tags} = utils.parseQuery();
+        const idToSound = new Map(state.sounds.map(s=>[s.id,s]));
+        const allowed = new Set(state.sounds.filter(s=>utils.match(s, terms, tags)).map(s=>s.id));
+        const fav = state.favorites.map(id => idToSound.get(id)).filter(s => s && allowed.has(s.id));
+        renderGrid(els.favGrid, fav, {inFav:true});
+        // 啟用 SortableJS
+        if(typeof Sortable !== 'undefined'){
+          state.sortable = Sortable.create(els.favGrid, { dataIdAttr: 'data-id',
+            animation: 150,
+            delay: 150,
+            delayOnTouchOnly: true,
+            ghostClass: 'drag-ghost',
+            chosenClass: 'drag-chosen',
+            dragClass: 'dragging',
+            // 允許點擊 ❤️ 按鈕（不觸發拖曳）
+            filter: '.heart',
+            preventOnFilter: false
+          });
+        }else{
+          console.warn('SortableJS 未載入');
+        }
+      });
+      els.doneSortBtn.addEventListener('click', () => {
+        // 讀取目前 DOM 中的最愛順序
+        const orderedIds = Array.from(els.favGrid.children)
+          .map(el => el.getAttribute('data-id'))
+          .filter(Boolean);
+        if(orderedIds.length){
+          const rest = state.favorites.filter(id => !orderedIds.includes(id));
+          state.favorites = orderedIds.concat(rest);
+          state.favSet = new Set(state.favorites);
+          utils.saveFav();
+          if (typeof toast === 'function') toast('已儲存最愛排序');
+        }
+        if(state.sortable){ state.sortable.destroy(); state.sortable = null; }
+        state.isSorting = false;
+        document.body.classList.remove('sorting');
+        els.doneSortBtn.classList.add('hidden');
+        els.sortFavBtn.classList.remove('hidden');
+        render();
+      });
+    }
+if(els.shareFavBtn){
+      els.shareFavBtn.addEventListener('click', async () => {
+        const ids = [...state.favorites];
+        if(ids.length === 0){ toast('沒有最愛可分享'); return; }
+        const url = buildListURL(ids);
+        await copyToClipboard(url);
+        toast('已複製分享最愛列表連結');
+      });
+    }
+  }
+
+  // 入口：載入設定後初始化狀態、渲染並套用 URL 查詢
+  loadConfig().then(() => {
+    applyURLToState();
+    renderTagList();
+    showPage(state.page);
+    render();
+    focusSoundFromURL();
+    initEvents();
+  }).catch(err => {
+    console.error(err);
+    els.grid.innerHTML = '<div class="empty">載入設定檔失敗，請確認 <code>config/</code> 路徑是否正確。</div>';
+  });
+
+})();
+</script>
+</body>
+</html>
