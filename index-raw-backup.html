@@ -401,7 +401,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
 <body>
 <div class="wrap">
   <header>
-    <h1><a href="/">阿萬與動物朋友按鈕</a></h1>
+    <h1><a href="index.html">阿萬與動物朋友按鈕</a></h1>
     <button id="navToggle" class="nav-toggle" aria-label="打開選單" aria-expanded="false" aria-controls="primaryNav" title="選單">
       <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -670,7 +670,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
   /**
    * 檔案版本字串：每次部署變更此值，可確保抓取最新資料並強制 CDN/瀏覽器重新載入。
    */
-  const VERSION = 'ver2025-09-26-1';
+  const VERSION = 'ver2025-09-25-3';
 
   /**
    * 為給定的 URL 附加版本字串 (?v=<VERSION>)。如果已有查詢參數則加 &。
@@ -829,16 +829,6 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
         if(!(inTitle || inTags)) return false;
       }
       return true;
-    }
-    ,
-    // Debounce helper to limit how often a callback runs while an input is changing
-    // usage: const debounced = utils.debounce(fn, 200);
-    debounce(fn, wait = 200){
-      let t = null;
-      return (...args) => {
-        if(t) clearTimeout(t);
-        t = setTimeout(() => { t = null; try { fn(...args); } catch(e) { console.error(e); } }, wait);
-      };
     }
   };
 
@@ -1338,20 +1328,10 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
   }
   /** 建立音效卡片元素 */
   function renderSoundCard(snd, opts={inFav:false}){
-    const heartDisabled = !!(state.isSorting && opts.inFav);
-    const heartAttrs = {
-      class:'heart',
-      'aria-pressed': String(utils.inFav(snd.id)),
-      'aria-label':'加入/移除最愛'
-    };
-    if (heartDisabled) {
-      heartAttrs['disabled'] = 'true';
-      heartAttrs['aria-disabled'] = 'true';
-      heartAttrs['title'] = '正在編輯最愛排序，無法變更最愛';
-    } else {
-      heartAttrs['onclick'] = (e) => { e.stopPropagation(); toggleFavorite(snd.id, heartBtn); };
-    }
-    const heartBtn = dom.el('button', heartAttrs, dom.svgHeart());
+    const heartBtn = dom.el('button', {
+      class:'heart', 'aria-pressed': String(utils.inFav(snd.id)), 'aria-label':'加入/移除最愛',
+      onclick:(e) => { e.stopPropagation(); toggleFavorite(snd.id, heartBtn); }
+    }, dom.svgHeart());
     const tagWrap = dom.el('div', {class:'tags'});
     for(const t of snd.tags){
       const tagKey = utils.slug(t);
@@ -1410,11 +1390,6 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
 
   /** 切換最愛並重新渲染 */
   function toggleFavorite(id, btn){
-    // 在最愛排序（編輯）模式中禁止新增或移除最愛，增加robust性
-    if(state.isSorting){
-      if (typeof toast === 'function') toast('正在編輯最愛排序，無法變更最愛', 1200);
-      return;
-    }
     if(state.favSet.has(id)){
       state.favorites = state.favorites.filter(x => x !== id);
     }else{
@@ -1422,7 +1397,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     }
     state.favSet = new Set(state.favorites);
     utils.saveFav();
-    if(btn) btn.setAttribute('aria-pressed', String(state.favSet.has(id)));
+    btn.setAttribute('aria-pressed', String(state.favSet.has(id)));
     render();
   }
 
@@ -1450,8 +1425,8 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
 
   /** 初始化事件綁定 */
   function initEvents(){
-    // 搜尋框輸入（使用 debounce 降低 render 頻率）
-    const handleSearchInput = () => {
+    // 搜尋框輸入
+    els.q.addEventListener('input', () => {
       state.queryText = els.q.value;
       const val = els.q.value;
       const last = val.split(/\s+/).pop() || '';
@@ -1461,8 +1436,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
         : state.tagList.slice(0, 8);
       render();
       updateURLFromState(false);
-    };
-    els.q.addEventListener('input', utils.debounce(handleSearchInput, 180));
+    });
 
     // 清除搜尋
     els.clearBtn.addEventListener('click', () => {
@@ -1635,9 +1609,6 @@ function setupConcentrationGame() {
   let timer = 0, timerId = null, running = false;
   let allowClick = true;
   let pairs = [];
-  // pending pair / timeout 用於延遲檢查配對；若使用者在等待期間點擊其他卡，會立刻結算這對。
-  let pendingTimeout = null;
-  let pendingPair = null; // {f, s}
   let timerStarted = false; // only start timer on first card flip
 
   /**
@@ -1734,16 +1705,14 @@ function setupConcentrationGame() {
       state.cgRunning = false;
       return;
     }
-  cards = [];
-  // 清除任何先前殘留的 pending timeout/pair，避免在重新開始遊戲時觸發舊的 callback
-  try { if (pendingTimeout) { clearTimeout(pendingTimeout); pendingTimeout = null; pendingPair = null; } } catch(e) {}
+    cards = [];
     pairs.forEach((p, i) => {
       // 為每個配對建立兩張相同的卡片（兩張卡片都會顯示 avatar 並播放相同音檔）
       cards.push({ type: 'card', pairId: p.id, id: `${p.id}-0`, audio: p.audio, avatar: p.avatar, streamer: p.streamer, streamerName: p.streamerName, title: p.title, matched: false, seen: false });
       cards.push({ type: 'card', pairId: p.id, id: `${p.id}-1`, audio: p.audio, avatar: p.avatar, streamer: p.streamer, streamerName: p.streamerName, title: p.title, matched: false, seen: false });
     });
-  shuffleInPlace(cards);
-  matchedPairs = 0; correct = 0; wrong = 0; tries = 0; timer = 0; first = null; second = null; allowClick = true;
+    shuffleInPlace(cards);
+    matchedPairs = 0; correct = 0; wrong = 0; tries = 0; timer = 0; first = null; second = null; allowClick = true;
     // 建立新回合時不自動啟動遊戲或計時器；遊戲會在玩家翻開第一張卡時開始。
     timerStarted = false;
     running = false;
@@ -1762,8 +1731,6 @@ function setupConcentrationGame() {
       if (timerEl) timerEl.classList.remove('cg-running');
   // 透過清空 board 的 innerHTML 移除所有事件處理器與 DOM 元素
       boardEl.innerHTML = '';
-      // 清除任何尚未完成的 pending timeout
-      try{ if(pendingTimeout){ clearTimeout(pendingTimeout); pendingTimeout = null; pendingPair = null; } }catch(e){}
     };
   }
   function updateBoard() {
@@ -1816,16 +1783,6 @@ function setupConcentrationGame() {
   }
 
   function onCardClick(idx) {
-    // 如果有待處理的 pendingPair，使用者此刻點擊其他卡片時應立即結算該 pendingPair
-    if (typeof pendingPair !== 'undefined' && pendingPair && (pendingPair.f || pendingPair.s)) {
-      // 先清除 timeout 並立刻結算
-      if (pendingTimeout){ clearTimeout(pendingTimeout); pendingTimeout = null; }
-      const p = pendingPair; pendingPair = null;
-      checkMatchPair(p.f, p.s);
-      // 重置全域 first/second，允許繼續互動
-      first = null; second = null;
-      allowClick = true;
-    }
     if (!allowClick) return;
     const card = cards[idx];
     if (card.flipped || card.matched) return;
@@ -1863,73 +1820,43 @@ function setupConcentrationGame() {
       if (typeof toast === 'function' && card.title) toast(card.title, 3000);
       tries++;
       allowClick = false;
-      // 捕獲當前第一張/第二張卡的引用，避免在延遲期間被其他邏輯改寫造成 race condition。
-      const fCard = first;
-      const sCard = second;
-      // 儲存為 pendingPair，並啟動超時（500ms）。如果使用者在此期間點擊其他卡
-      // 則會在 onCardClick 開頭立刻結算這對。
-      pendingPair = { f: fCard, s: sCard };
-      if (pendingTimeout) { clearTimeout(pendingTimeout); pendingTimeout = null; }
-      pendingTimeout = setTimeout(() => {
-        pendingTimeout = null;
-        const p = pendingPair; pendingPair = null;
-        checkMatchPair(p.f, p.s);
-        // 重置全域暫存，允許下一回合互動
-        first = null;
-        second = null;
+      setTimeout(() => {
+        checkMatch();
         allowClick = true;
-      }, 500);
+      }, 900);
     }
     updateStats();
   }
 
-  /**
-   * 檢查一對卡片是否配對，僅操作傳入的卡物件（避免 race condition）。
-   * 這個函式不會去重置外層的 first/second 變數，呼叫端應負責重置與允許使用者互動。
-   * @param {object|null} f 第一張卡
-   * @param {object|null} s 第二張卡
-   */
-  function checkMatchPair(f, s) {
-    if (!f || !s) return;
-    if (f.pairId === s.pairId) {
+  function checkMatch() {
+    if (!first || !second) return;
+    if (first.pairId === second.pairId) {
       // 配對正確：增加正確計分（+2）
-      f.matched = true;
-      s.matched = true;
+      first.matched = true;
+      second.matched = true;
       correct += 2;
       matchedPairs += 1;
       // 保持翻面狀態並標記為已配對（不可再次點擊）
     } else {
       // 未配對：判定是否在此回合前已看過任一張卡，根據情況增加 wrong 分數
-      const aSeen = !!f._seenBefore;
-      const bSeen = !!s._seenBefore;
+      const aSeen = !!first._seenBefore;
+      const bSeen = !!second._seenBefore;
       if (aSeen && bSeen) wrong += 2;
       else if (aSeen || bSeen) wrong += 1;
       // 將兩張卡翻回（關閉翻面狀態）
-      
-      f.flipped = false;
-      s.flipped = false;
-      
+      first.flipped = false;
+      second.flipped = false;
     }
     // 清理暫存的 _seenBefore 標記
-    delete f._seenBefore;
-    delete s._seenBefore;
-    // 更新 UI 與統計
+    delete first._seenBefore;
+    delete second._seenBefore;
+    first = null; second = null;
     updateBoard();
     updateStats();
     if (matchedPairs === pairs.length) {
       stopCurrentAudio();
       endGame();
     }
-  }
-
-  // 向後相容的 wrapper（保留原本任何直接呼叫 checkMatch 的行為）
-  function checkMatch() {
-    const f = first;
-    const s = second;
-    checkMatchPair(f, s);
-    // 呼叫端（例如延遲回呼）通常會負責重置 first/second 與 allowClick；
-    // 若有直接呼叫此 wrapper，這裡也確保把 first/second 清空以避免殘留狀態。
-    first = null; second = null;
   }
 
   function updateStats() {
@@ -1981,7 +1908,6 @@ function setupConcentrationGame() {
     // 若準確率為 100%，隨機播放一則指定 id 的獎勵音效
     try {
       if (perc === 100) {
-        // 硬編碼獎勵語音 id 清單
         const rewardIds = ['c4B1fg','Hv3yFA','JkJ9-A','5VHtAg'];
         const reward = state.sounds && state.sounds.find(s => s.id === rewardIds[Math.floor(Math.random() * rewardIds.length)]);
         if (reward && reward.src) {
