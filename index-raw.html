@@ -478,6 +478,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
         <ul>
           <li>第一次翻開的牌不對計分造成影響，屬於記憶提示。</li>
           <li>每翻開兩張卡，若為相同主播的相同音效即為配對，共有 8 對配對。</li>
+          <li>（不會出現帶有「髒話」或「SUS」標籤的語音，但是會有尖叫，請小心耳膜。）</li>
         </ul>
       </div>
     </div>
@@ -1723,7 +1724,7 @@ function setupConcentrationGame() {
     let validSounds = state.sounds.filter(s => {
       const st = s.tags.filter(isStreamer);
       if (st.length !== 1) return false;
-      if (s.tags.includes('髒話')) return false;
+      if (s.tags.includes('髒話') || s.tags.includes('SUS')) return false;
       return true;
     });
 

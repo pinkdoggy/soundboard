@@ -6,10 +6,17 @@
   <title>Soundboard — 軌道編輯器 Demo (Tone.js + Wavesurfer)</title>
   <style>
     body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;display:flex;height:100vh}
-    .sidebar{width:280px;border-right:1px solid #ddd;padding:12px;overflow:auto}
+    .sidebar{width:280px;border-right:1px solid #ddd;padding:12px;overflow:auto;min-width:180px;transition:width .18s ease,padding .18s ease}
+    .sidebar.collapsed{width:0;min-width:0;padding:0;overflow:hidden}
+    /* keep sidebar visible by default on small screens unless user collapses it explicitly */
+    @media (max-width:700px){
+      .sidebar{position:relative;z-index:2}
+      .main{flex:1;min-width:0}
+    }
     .main{flex:1;padding:12px;display:flex;flex-direction:column}
     .controls{display:flex;gap:8px;margin-bottom:8px}
-    .timeline{flex:1;border:1px solid #ccc;border-radius:6px;padding:8px;overflow:auto;background:#fafafa}
+  .timeline{flex:1;border:1px solid #ccc;border-radius:6px;padding:8px;overflow:auto;background:#fafafa;position:relative}
+  .playhead{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,50,50,0.95);z-index:999;pointer-events:none;display:none}
     .tracks{display:flex;flex-direction:column;gap:8px}
     .track{height:80px;background:#fff;border:1px dashed #ccc;position:relative}
     .clip{position:absolute;top:6px;height:68px;background:#6aa9ff;color:#012;display:flex;align-items:center;padding:6px;border-radius:6px;cursor:pointer;overflow:hidden}
@@ -22,6 +29,9 @@
 <body>
   <div class="sidebar">
     <h3>音效清單</h3>
+    <div>
+      <input id="soundSearch" placeholder="搜尋音效…" style="width:100%;padding:6px;margin-bottom:8px" />
+    </div>
     <div id="soundList">載入中...</div>
     <hr/>
     <div class="small">拖曳一個音效到任意軌道即可建立片段。拖曳後可在下一次播放前移動位置（示範用）。</div>
@@ -30,6 +40,7 @@
     <div class="controls">
       <button id="playBtn">Play</button>
       <button id="stopBtn">Stop</button>
+      <button id="toggleSidebarBtn" title="切換側欄">☰</button>
       <label>px/sec <input id="scale" type="number" value="100" style="width:80px"/></label>
       <span id="status" class="small">狀態：未就緒</span>
     </div>
@@ -39,6 +50,7 @@
     <div class="small" id="timeDisplay">00:00 / 00:00</div>
     <div class="time-ruler" id="ruler">時間尺 (秒)</div>
     <div class="timeline">
+      <div id="playhead" class="playhead"></div>
       <div class="tracks" id="tracks"></div>
     </div>
   </div>
@@ -49,6 +61,9 @@
   <script>
   // Simple demo: preload sounds from config/sounds.json and allow drag->drop into tracks
   const soundListEl = document.getElementById('soundList');
+  const sidebarEl = document.querySelector('.sidebar');
+  const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+  const soundSearchInput = document.getElementById('soundSearch');
   const tracksEl = document.getElementById('tracks');
   const playBtn = document.getElementById('playBtn');
   const stopBtn = document.getElementById('stopBtn');
@@ -80,19 +95,18 @@
       const res = await fetch('config/sounds.json');
       const data = await res.json();
       soundListEl.innerHTML = '';
-      data.slice(0,60).forEach(s=>{ // limit for demo
+      // add all sounds to the model
+      data.forEach(s=>{
         const id = s.id || s.file.split('/').pop();
         const src = 'sounds/' + s.file;
         sounds.push({id, file:s.file, title:s.title || id, src});
-        const div = document.createElement('div');
-        div.className = 'sound-item'; div.draggable=true; div.dataset.id=id;
-        div.textContent = s.title || s.file;
-        div.addEventListener('dragstart', (ev)=>{ ev.dataTransfer.setData('text/sound-id', id); });
-        soundListEl.appendChild(div);
       });
+      // render full list (with optional search)
+      renderSoundList();
       status('載入完成，開始預載音訊...');
       await preloadAll();
       status('就緒 — 可拖曳到軌道');
+      renderRuler();
     }catch(e){ soundListEl.textContent = '載入失敗：'+e.message; }
   }
 
@@ -118,6 +132,7 @@
     const startSec = Math.max(0, x / pxPerSec);
     createClip(id, track, startSec);
     this.style.background='';
+    renderRuler();
   }
 
   function createClip(soundId, track, start){
@@ -128,7 +143,44 @@
     const clip = { id: 'c'+Math.random().toString(36).slice(2,8), soundId, track, start, duration: dur };
     clips.push(clip);
     renderClipDOM(clip);
+    renderRuler();
   }
+
+  function renderRuler(){
+    const ruler = document.getElementById('ruler');
+    // compute total length in seconds from clips
+    const end = clips.reduce((m,c)=>Math.max(m, c.start + c.duration), 10);
+    // show ticks every 1s, but compute visible width
+    const totalPx = Math.max(600, end * pxPerSec);
+    // create a simple textual ruler showing second markers
+    let html = '';
+    for(let s=0;s<=Math.ceil(end);s+=1){
+      const left = s * pxPerSec;
+      html += `<span style="position:relative;display:inline-block;margin-left:${s===0?left: left - (s-1)*pxPerSec}px;width:1px;height:14px;background:#888;vertical-align:middle"></span><span style="margin-left:6px">${s}</span>`;
+    }
+    ruler.innerHTML = '時間尺 (秒) — 長度: ' + Math.ceil(end) + 's';
+    // ensure timeline min width to allow scrolling
+    document.querySelector('.tracks').style.minWidth = totalPx + 'px';
+  }
+
+  // render the sound list with optional filter
+  function renderSoundList(filter){
+    const q = (filter||'').trim().toLowerCase();
+    soundListEl.innerHTML = '';
+    const list = sounds.filter(s => !q || (s.title||'').toLowerCase().includes(q) || (s.file||'').toLowerCase().includes(q));
+    if(list.length === 0){ soundListEl.textContent = '找不到音效'; return; }
+    for(const s of list){
+      const id = s.id;
+      const div = document.createElement('div');
+      div.className = 'sound-item'; div.draggable=true; div.dataset.id=id;
+      div.textContent = s.title || s.file;
+      div.addEventListener('dragstart', (ev)=>{ ev.dataTransfer.setData('text/sound-id', id); });
+      soundListEl.appendChild(div);
+    }
+  }
+
+  // wire search input
+  soundSearchInput?.addEventListener('input', (e)=>{ renderSoundList(e.target.value); });
 
   function renderClipDOM(clip){
     const trackEl = tracksEl.children[clip.track];
@@ -165,6 +217,8 @@
   let playEndTime = 0;
   let rafId = null;
   let stopTimeout = null;
+  const playheadEl = document.getElementById('playhead');
+  const timelineEl = document.querySelector('.timeline');
 
   function updateProgress(){
     const now = Tone.now();
@@ -175,7 +229,42 @@
     const timeDisplay = document.getElementById('timeDisplay');
     if(bar) bar.style.width = (pct*100) + '%';
     if(timeDisplay) timeDisplay.textContent = formatTime(elapsed) + ' / ' + formatTime(total);
+    // move playhead
+    if(playheadEl){
+      if(pct > 0 && pct < 1){
+        playheadEl.style.display = 'block';
+      } else if(pct >= 1){
+        playheadEl.style.display = 'none';
+      } else if(pct === 0){
+        playheadEl.style.display = 'block';
+      }
+      // compute x in px relative to timeline content (not viewport)
+      const elapsedSec = elapsed;
+      const x = elapsedSec * pxPerSec;
+      playheadEl.style.left = x + 'px';
+      // auto-scroll: keep playhead near center (or within 30% edges)
+      try{
+        const viewW = timelineEl.clientWidth;
+        const scrollLeft = timelineEl.scrollLeft;
+        const absX = x; // playhead absolute in content
+        const leftEdge = scrollLeft + viewW*0.2;
+        const rightEdge = scrollLeft + viewW*0.8;
+        if(absX < leftEdge || absX > rightEdge){
+          // scroll so playhead is centered
+          const target = Math.max(0, absX - viewW/2);
+          timelineEl.scrollLeft = target;
+        }
+      }catch(e){ console.warn('scroll err', e); }
+    }
     if(pct < 1){ rafId = requestAnimationFrame(updateProgress); } else { rafId = null; }
+  }
+
+  function formatTime(t){
+    // t in seconds
+    if(!isFinite(t) || t <= 0) return '00:00';
+    const s = Math.floor(t%60).toString().padStart(2,'0');
+    const m = Math.floor(t/60).toString().padStart(2,'0');
+    return m+':'+s;
   }
 
   function playTimeline(){
@@ -198,6 +287,8 @@
     const end = clips.reduce((m,c)=>Math.max(m, c.start + c.duration), 0);
     playStartTime = base;
     playEndTime = base + end;
+  // initialize playhead position
+  if(playheadEl){ playheadEl.style.display = 'block'; playheadEl.style.left = '0px'; }
     // schedule a stop to ensure cleanup
     stopTimeout = setTimeout(()=>{ stopTimeline(); status('就緒'); }, (end + 1)*1000);
     Tone.Transport.start();
@@ -215,6 +306,7 @@
     try{ Tone.Transport.stop(); }catch(e){}
     status('已停止');
     if(rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    if(playheadEl){ playheadEl.style.display = 'none'; playheadEl.style.left = '0px'; }
     const bar = document.getElementById('progressBar'); if(bar) bar.style.width='0%';
     const timeDisplay = document.getElementById('timeDisplay'); if(timeDisplay) timeDisplay.textContent = '00:00 / 00:00';
   }
@@ -223,9 +315,19 @@
   stopBtn.addEventListener('click', ()=> stopTimeline());
   scaleInput.addEventListener('change', ()=>{ pxPerSec = Number(scaleInput.value)||100; // reposition clips
     clips.forEach(c=>{ if(c.dom){ c.dom.style.left = (c.start*pxPerSec)+'px'; c.dom.style.width = Math.max(40, c.duration*pxPerSec)+'px'; } });
+    renderRuler();
   });
 
   // init
+  // restore sidebar state
+  try{
+    const collapsed = localStorage.getItem('editor.sidebar.collapsed');
+    if(collapsed === '1'){ sidebarEl.classList.add('collapsed'); }
+  }catch(e){}
+  toggleSidebarBtn?.addEventListener('click', ()=>{
+    const is = sidebarEl.classList.toggle('collapsed');
+    try{ localStorage.setItem('editor.sidebar.collapsed', is? '1':'0'); }catch(e){}
+  });
   loadSounds();
   </script>
 </body>
