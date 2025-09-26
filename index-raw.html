@@ -401,7 +401,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
 <body>
 <div class="wrap">
   <header>
-    <h1><a href="/">阿萬與動物朋友按鈕</a></h1>
+    <h1>阿萬與動物朋友按鈕</h1>
     <button id="navToggle" class="nav-toggle" aria-label="打開選單" aria-expanded="false" aria-controls="primaryNav" title="選單">
       <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -1609,7 +1609,7 @@ if(els.shareFavBtn){
     initEvents();
     // 點擊標題時回到主頁並清除搜尋（阻止預設的全頁導向），然後重新渲染與更新 URL
     try{
-      const titleLink = document.querySelector('header h1 a');
+      const titleLink = document.querySelector('header h1');
       if(titleLink){
         titleLink.addEventListener('click', (e) => {
           // 如果使用者使用 Ctrl/Cmd + click 或 想要在新分頁開啟，保留原行為
