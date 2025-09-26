@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Soundboard — 軌道編輯器 Demo (Tone.js + Wavesurfer)</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;display:flex;height:100vh}
+    .sidebar{width:280px;border-right:1px solid #ddd;padding:12px;overflow:auto}
+    .main{flex:1;padding:12px;display:flex;flex-direction:column}
+    .controls{display:flex;gap:8px;margin-bottom:8px}
+    .timeline{flex:1;border:1px solid #ccc;border-radius:6px;padding:8px;overflow:auto;background:#fafafa}
+    .tracks{display:flex;flex-direction:column;gap:8px}
+    .track{height:80px;background:#fff;border:1px dashed #ccc;position:relative}
+    .clip{position:absolute;top:6px;height:68px;background:#6aa9ff;color:#012;display:flex;align-items:center;padding:6px;border-radius:6px;cursor:pointer;overflow:hidden}
+    .sound-item{padding:8px;border:1px solid #eee;border-radius:6px;margin-bottom:6px;background:#fff;cursor:grab}
+    .sound-item:active{cursor:grabbing}
+    .time-ruler{height:24px;margin-bottom:8px;color:#666}
+    .small{font-size:12px;color:#666}
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h3>音效清單</h3>
+    <div id="soundList">載入中...</div>
+    <hr/>
+    <div class="small">拖曳一個音效到任意軌道即可建立片段。拖曳後可在下一次播放前移動位置（示範用）。</div>
+  </div>
+  <div class="main">
+    <div class="controls">
+      <button id="playBtn">Play</button>
+      <button id="stopBtn">Stop</button>
+      <label>px/sec <input id="scale" type="number" value="100" style="width:80px"/></label>
+      <span id="status" class="small">狀態：未就緒</span>
+    </div>
+    <div id="progressContainer" style="height:10px;background:#eee;border-radius:6px;overflow:hidden;margin-bottom:8px">
+      <div id="progressBar" style="height:100%;width:0;background:linear-gradient(90deg,#6aa9ff,#2b7cff);"></div>
+    </div>
+    <div class="small" id="timeDisplay">00:00 / 00:00</div>
+    <div class="time-ruler" id="ruler">時間尺 (秒)</div>
+    <div class="timeline">
+      <div class="tracks" id="tracks"></div>
+    </div>
+  </div>
+
+  <!-- Tone.js & Wavesurfer.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.min.js"></script>
+  <script src="https://unpkg.com/wavesurfer.js"></script>
+  <script>
+  // Simple demo: preload sounds from config/sounds.json and allow drag->drop into tracks
+  const soundListEl = document.getElementById('soundList');
+  const tracksEl = document.getElementById('tracks');
+  const playBtn = document.getElementById('playBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const statusEl = document.getElementById('status');
+  const scaleInput = document.getElementById('scale');
+
+  // Demo config
+  const TRACK_COUNT = 3;
+  let pxPerSec = Number(scaleInput.value) || 100;
+
+  // Data model
+  const sounds = []; // {id, file, title, src}
+  const buffers = new Map(); // id -> Tone.Buffer
+  const clips = []; // {id, soundId, track, start, duration, dom}
+
+  // Create track DOMs
+  for(let i=0;i<TRACK_COUNT;i++){
+    const t = document.createElement('div'); t.className='track'; t.dataset.track=i;
+    // allow drop
+    t.addEventListener('dragover', e=>{ e.preventDefault(); t.style.background='#f0f8ff'; });
+    t.addEventListener('dragleave', e=>{ t.style.background=''; });
+    t.addEventListener('drop', onDropToTrack);
+    tracksEl.appendChild(t);
+  }
+
+  // Load sounds.json (uses same config path as app)
+  async function loadSounds(){
+    try{
+      const res = await fetch('config/sounds.json');
+      const data = await res.json();
+      soundListEl.innerHTML = '';
+      data.slice(0,60).forEach(s=>{ // limit for demo
+        const id = s.id || s.file.split('/').pop();
+        const src = 'sounds/' + s.file;
+        sounds.push({id, file:s.file, title:s.title || id, src});
+        const div = document.createElement('div');
+        div.className = 'sound-item'; div.draggable=true; div.dataset.id=id;
+        div.textContent = s.title || s.file;
+        div.addEventListener('dragstart', (ev)=>{ ev.dataTransfer.setData('text/sound-id', id); });
+        soundListEl.appendChild(div);
+      });
+      status('載入完成，開始預載音訊...');
+      await preloadAll();
+      status('就緒 — 可拖曳到軌道');
+    }catch(e){ soundListEl.textContent = '載入失敗：'+e.message; }
+  }
+
+  function status(t){ statusEl.textContent = '狀態：'+t; }
+
+  async function preloadAll(){
+    // Tone.Buffer handles caching and decoding
+    const promises = sounds.map(s => {
+      return new Promise((resolve) => {
+        const b = new Tone.Buffer(s.src, ()=>{ buffers.set(s.id,b); resolve(); }, err=>{ console.warn('buf err',s.id,err); resolve(); });
+      });
+    });
+    await Promise.all(promises);
+  }
+
+  function onDropToTrack(e){
+    e.preventDefault();
+    const id = e.dataTransfer.getData('text/sound-id');
+    const track = Number(this.dataset.track);
+    // compute start based on mouse offset in track
+    const rect = this.getBoundingClientRect();
+    const x = e.clientX - rect.left + this.scrollLeft;
+    const startSec = Math.max(0, x / pxPerSec);
+    createClip(id, track, startSec);
+    this.style.background='';
+  }
+
+  function createClip(soundId, track, start){
+    const snd = sounds.find(s=>s.id===soundId);
+    if(!snd) return;
+    const buffer = buffers.get(soundId);
+    const dur = buffer ? buffer.duration : 2;
+    const clip = { id: 'c'+Math.random().toString(36).slice(2,8), soundId, track, start, duration: dur };
+    clips.push(clip);
+    renderClipDOM(clip);
+  }
+
+  function renderClipDOM(clip){
+    const trackEl = tracksEl.children[clip.track];
+    const el = document.createElement('div'); el.className='clip'; el.dataset.clip=clip.id;
+    el.style.left = (clip.start * pxPerSec) + 'px';
+    el.style.width = Math.max(40, clip.duration * pxPerSec) + 'px';
+    el.textContent = sounds.find(s=>s.id===clip.soundId)?.title || clip.soundId;
+    // allow dragging horizontally (simple)
+    let dragStartX=0, origLeft=0, dragging=false;
+    el.addEventListener('pointerdown', (ev)=>{
+      dragging=true; dragStartX = ev.clientX; origLeft = parseFloat(el.style.left)||0; el.setPointerCapture(ev.pointerId);
+    });
+    document.addEventListener('pointermove', (ev)=>{
+      if(!dragging) return; const dx = ev.clientX - dragStartX; el.style.left = (origLeft + dx) + 'px';
+    });
+    el.addEventListener('pointerup', (ev)=>{ if(!dragging) return; dragging=false; const left = parseFloat(el.style.left)||0; clip.start = Math.max(0, left/pxPerSec); el.releasePointerCapture(ev.pointerId); });
+    // on double-click show waveform using Wavesurfer
+    el.addEventListener('dblclick', async ()=>{
+      const ws = WaveSurfer.create({container: el, waveColor:'#ffffff66', progressColor:'#fff', height:68, interact:false});
+      const b = buffers.get(clip.soundId);
+      if(b){
+        // Load from url to wavesurfer (for demo), or use decode -> export PCM for wavesurfer loadBlob
+        ws.load(sounds.find(s=>s.id===clip.soundId).src);
+        setTimeout(()=>ws.destroy(), 4000);
+      }
+    });
+    trackEl.appendChild(el);
+    clip.dom = el;
+  }
+
+  // Playback: schedule with Tone.Transport
+  let currentPlayers = [];
+  let playStartTime = 0;
+  let playEndTime = 0;
+  let rafId = null;
+  let stopTimeout = null;
+
+  function updateProgress(){
+    const now = Tone.now();
+    const elapsed = Math.max(0, now - playStartTime);
+    const total = Math.max(0, playEndTime - playStartTime);
+    const pct = total > 0 ? Math.min(1, elapsed / total) : 0;
+    const bar = document.getElementById('progressBar');
+    const timeDisplay = document.getElementById('timeDisplay');
+    if(bar) bar.style.width = (pct*100) + '%';
+    if(timeDisplay) timeDisplay.textContent = formatTime(elapsed) + ' / ' + formatTime(total);
+    if(pct < 1){ rafId = requestAnimationFrame(updateProgress); } else { rafId = null; }
+  }
+
+  function playTimeline(){
+    if(Tone.context.state !== 'running') Tone.context.resume();
+    // stop any existing
+    stopTimeline();
+    Tone.Transport.cancel();
+    currentPlayers = [];
+    const base = Tone.now() + 0.1;
+    for(const clip of clips){
+      const buf = buffers.get(clip.soundId);
+      if(!buf) continue;
+      const player = new Tone.Player(buf).toDestination();
+      currentPlayers.push(player);
+      const when = base + clip.start;
+      const offset = 0;
+      const dur = clip.duration;
+      try{ player.start(when, offset, dur); }catch(e){ console.warn(e); }
+    }
+    const end = clips.reduce((m,c)=>Math.max(m, c.start + c.duration), 0);
+    playStartTime = base;
+    playEndTime = base + end;
+    // schedule a stop to ensure cleanup
+    stopTimeout = setTimeout(()=>{ stopTimeline(); status('就緒'); }, (end + 1)*1000);
+    Tone.Transport.start();
+    status('播放中');
+    // start RAF progress
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(updateProgress);
+  }
+
+  function stopTimeline(){
+    // stop players
+    try{ currentPlayers.forEach(p=>{ try{ p.stop(); }catch(e){} }); }catch(e){}
+    currentPlayers = [];
+    if(stopTimeout){ clearTimeout(stopTimeout); stopTimeout = null; }
+    try{ Tone.Transport.stop(); }catch(e){}
+    status('已停止');
+    if(rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    const bar = document.getElementById('progressBar'); if(bar) bar.style.width='0%';
+    const timeDisplay = document.getElementById('timeDisplay'); if(timeDisplay) timeDisplay.textContent = '00:00 / 00:00';
+  }
+
+  playBtn.addEventListener('click', ()=> playTimeline());
+  stopBtn.addEventListener('click', ()=> stopTimeline());
+  scaleInput.addEventListener('change', ()=>{ pxPerSec = Number(scaleInput.value)||100; // reposition clips
+    clips.forEach(c=>{ if(c.dom){ c.dom.style.left = (c.start*pxPerSec)+'px'; c.dom.style.width = Math.max(40, c.duration*pxPerSec)+'px'; } });
+  });
+
+  // init
+  loadSounds();
+  </script>
+</body>
+</html>

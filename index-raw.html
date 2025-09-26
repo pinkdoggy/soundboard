@@ -1607,6 +1607,31 @@ if(els.shareFavBtn){
     render();
     focusSoundFromURL();
     initEvents();
+    // 點擊標題時回到主頁並清除搜尋（阻止預設的全頁導向），然後重新渲染與更新 URL
+    try{
+      const titleLink = document.querySelector('header h1 a');
+      if(titleLink){
+        titleLink.addEventListener('click', (e) => {
+          // 如果使用者使用 Ctrl/Cmd + click 或 想要在新分頁開啟，保留原行為
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+          // 若已在主頁，則強制重新整理頁面
+          if(state.page === 'home'){
+            // 允許瀏覽器做完整 reload
+            return location.reload();
+          }
+          e.preventDefault();
+          // 清除搜尋狀態並回首頁
+          state.queryText = '';
+          state.queryTags.clear();
+          if(els.q) els.q.value = '';
+          showPage('home');
+          render();
+          updateURLFromState(true);
+          // 平滑滾回頂部
+          try{ window.scrollTo({top:0, behavior:'smooth'}); }catch(e){}
+        });
+      }
+    }catch(e){/* ignore */}
   }).catch(err => {
     console.error(err);
     els.grid.innerHTML = '<div class="empty">載入設定檔失敗，請確認 <code>config/</code> 路徑是否正確。</div>';
