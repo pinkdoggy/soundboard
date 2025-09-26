@@ -2006,7 +2006,7 @@ function setupConcentrationGame() {
     resultEl.classList.remove('hidden');
     // 若準確率為 100%，隨機播放一則指定 id 的獎勵音效
     try {
-      if (perc === 100) {
+      if (perc >= 90) {
         // 硬編碼獎勵語音 id 清單
         const rewardIds = ['c4B1fg','Hv3yFA','JkJ9-A','5VHtAg'];
         const reward = state.sounds && state.sounds.find(s => s.id === rewardIds[Math.floor(Math.random() * rewardIds.length)]);
@@ -2015,7 +2015,7 @@ function setupConcentrationGame() {
           stopCurrentAudio();
           currentAudio = new Audio(reward.src);
           currentAudio.play().catch(()=>{});
-          if (typeof toast === 'function') toast('恭喜達成 100%', 3000);
+          if (typeof toast === 'function') toast('你是記憶猛肝', 3000);
         }
       }
       /*
