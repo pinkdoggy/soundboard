@@ -16,6 +16,7 @@
   --card-2: #212832;
   --border: #202636;
   --accent: #6aa9ff;
+  --accent2: #ff9e6a;
   --heart: #ff5a7a;
   --chip-fg: #0b0d10;
   --shadow: 0 6px 24px rgba(0,0,0,.25);
@@ -37,6 +38,7 @@
   --card-2: #f3f6fb;
   --border: #e5e7eb;
   --accent: #2563eb;
+  --accent2: #eb7b25;
   --heart: #e11d48;
   --chip-fg: #ffffff;
   --shadow: 0 4px 18px rgba(2,6,23,.08);
@@ -253,7 +255,7 @@ body::before {
 
   /* 區塊標題與控制按鈕 */
   .section-header{display:flex;align-items:center;justify-content:space-between;margin:14px 0 8px;}
-.section-header .actions{display:flex;gap:8px;}
+  .section-header .actions{display:flex;gap:3px;}
   .section-header h3{margin:0;font-size:1rem;font-weight:600;letter-spacing:.2px;}
   .small-btn{font-size:12px;padding:4px 8px;border-radius:8px;}
 
@@ -283,6 +285,160 @@ body::before {
     padding:10px 14px;border-radius:10px;box-shadow:var(--shadow);z-index:70
   }
   .toast.hidden{display:none}
+
+  /* 混音面板 */
+  .mix-panel{
+    position:fixed;
+    left:50%;
+    transform:translateX(-50%);
+    bottom:16px;
+    width:min(980px, calc(100% - 32px));
+    background:var(--glass-bg);
+    border:1px solid var(--glass-border);
+    backdrop-filter:saturate(1.6) blur(18px);
+    -webkit-backdrop-filter:saturate(1.6) blur(18px);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    padding:12px 14px 14px;
+    z-index:80;
+  }
+  .mix-panel.hidden{display:none}
+  .mix-header{display:flex;flex-direction:column;gap:6px;}
+  .mix-scroll-host{
+    position:relative;
+    overflow-x:auto;
+    overflow-y:hidden;
+    border-radius:12px;
+    background:rgba(15,23,42,0.22);
+    border:1px solid rgba(255,255,255,0.12);
+    scrollbar-width:none;
+  }
+  .mix-scroll-host::-webkit-scrollbar{display:none}
+  .mix-scroll-content{
+    position:relative;
+    min-height:75px;
+  }
+  .mix-track-lanes{
+    position:relative;
+  }
+  .mix-track{
+    position:relative;
+    height:25px;
+    border-bottom:1px dashed var(--glass-border);
+    background-color: var(--glass-bg);
+    overflow:hidden;
+  }
+  .mix-track:last-of-type{border-bottom:0;}
+  .mix-track::before{
+    content:attr(data-label);
+    position:absolute;
+    left:0;
+    top:50%;
+    transform:translate(-110%, -50%);
+    font-size:12px;
+    color:var(--muted);
+  }
+  .mix-clip{
+    position:absolute;
+    top:1px;
+    height:23px;
+    border-radius:8px;
+    padding:4px 26px 4px 8px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--chip-fg);
+    display:flex;
+    align-items:center;
+    cursor:grab;
+    box-shadow:0 1px 3px rgba(0,0,0,0.35);
+  }
+  .mix-clip:active{cursor:grabbing;}
+  .mix-clip.dragging{opacity:0.85; box-shadow:0 2px 5px rgba(0,0,0,0.55); cursor:grabbing;}
+  .mix-clip-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;}
+  .mix-clip-remove{
+    position:absolute;
+    right:4px;
+    top:4px;
+    border:0;
+    width:15px;
+    height:15px;
+    border-radius:999px;
+    background:rgba(15,23,42,0.6);
+    color:var(--chip-fg);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+  }
+  .mix-clip-remove:hover{background:rgba(15,23,42,0.8);}
+  .mix-clip-placeholder{height:23px;margin:0;position:absolute;top:1px;left:0;right:0;pointer-events:none;}
+  .mix-playhead{
+    position:absolute;
+    top:0;
+    bottom:0;
+    width:2px;
+    background:var(--accent);
+    z-index:3;
+    pointer-events:none;
+  }
+  .mix-bar-row{display:flex;align-items:center;gap:8px;margin:0 4px;}
+  .mix-bar-row > .mix-bar{flex:1;display:flex;align-items:center;gap:6px;min-width:0;}
+  .mix-bar input[type="range"]{flex:1;min-width:0;}
+  .mix-controls{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:4px;
+  }
+  .mix-controls-left{display:flex;align-items:center;gap:4px;}
+  .mix-controls-center{display:flex;align-items:center;gap:2px;}
+  .mix-controls-right{display:flex;align-items:center;gap:4px;}
+  .mix-btn{
+    border:1px solid var(--glass-border);
+    background:var(--card-2);
+    color:var(--fg);
+    border-radius:8px;
+    padding:6px 6px;
+    cursor:pointer;
+    min-width:32px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:2px;
+    font-size:13px;
+  }
+  .mix-btn:hover{background:rgba(15,23,42,0.55);}
+  .mix-btn[disabled]{opacity:0.4;cursor:not-allowed;}
+  .mix-muted{color:var(--muted);font-size:12px;}
+
+  .mix-modal-backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:120;
+  }
+  .mix-modal-backdrop.hidden{display:none;}
+  .mix-modal{
+    background:var(--bg);
+    border:1px solid var(--glass-border);
+    border-radius:12px;
+    padding:18px 20px;
+    max-width:320px;
+    box-shadow:var(--shadow);
+  }
+  .mix-modal-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:16px;
+  }
 
   /* 播放/分享聚焦高亮 */
   /* 外光暈高光效果：持續發光 */
@@ -411,8 +567,8 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     <!-- 導覽分頁：放置於標題與主題切換按鈕之間，靠右排版 -->
     <nav id="primaryNav" class="tabs" aria-label="主選單">
       <button class="tab active" data-page="home">主頁</button>
-      <button class="tab" data-page="bg" id="tab-bg">背景</button>
        <button class="tab" data-page="game">小遊戲</button>
+       <button class="tab" data-page="bg" id="tab-bg">背景</button>
       <button class="tab" data-page="about">關於</button>
       <button id="themeBtn" class="theme-toggle" aria-label="切換主題">電燈開關</button>
     </nav>
@@ -435,7 +591,11 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     <!-- 最愛區 -->
     <div class="section-header">
       <h3>最愛音效</h3>
-      <div class="actions"><button id="sortFavBtn" class="btn small-btn">手動排序</button><button id="doneSortBtn" class="btn small-btn glow-persistent hidden">儲存排序</button><button id="shareFavBtn" class="btn small-btn">分享最愛</button></div>
+      <div class="actions">
+        <button id="sortFavBtn" class="btn small-btn">手動排列</button>
+        <button id="doneSortBtn" class="btn small-btn glow-persistent hidden">儲存排列</button>
+        <button id="shareFavBtn" class="btn small-btn">分享</button>
+      </div>
     </div>
     <div id="favGrid" class="grid"></div>
     <div id="favEmpty" class="empty hidden">還沒有最愛。點音效右上的 ❤️ 加入最愛。</div>
@@ -450,6 +610,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     <div class="section-header">
       <h3>全部音效</h3>
       <div class="actions">
+        <button id="openMixBtn" class="btn small-btn">音軌</button>
         <button id="shuffleBtn" class="btn small-btn">洗牌</button>
         <button id="resetOrderBtn" class="btn small-btn">預設順序</button>
       </div>
@@ -642,19 +803,73 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
   <!-- 關於分頁 -->
 
   <div id="page-about" class="hidden">
-    <p>本站由粉肝製作，並非由厭世醫師阿萬官方經營。音效內容皆是粉肝去脈絡式、斷章取義的剪輯，僅供娛樂。最後更新時間：2025/9/25。</p>
+    <p>本站由粉肝製作，並非由厭世醫師阿萬官方經營。音效內容皆是粉肝去脈絡式、斷章取義的剪輯，僅供娛樂。最後更新時間：2025/9/29。</p>
     
     <p>阿萬本家→ <a href="https://x.com/drlifesucks" target="_blank">厭世醫師阿萬X</a>、<a href="https://www.youtube.com/@Dr.lifesucks" target="_blank">厭世醫師阿萬Youtube</a> </p>
     <p><a href="https://discord.gg/e6ch4VbRB4" target="_blank">音效板問題回報與建議區</a></p>
+    <img src="/assets/art-by-sigh.png" alt="" style="margin: 0 auto; max-width:100%; max-height: 250px; display: block; object-fit: cover;"/>
+    <p style="text-align: right;">插畫：<a href="https://x.com/sigh121212" target="_blank">Minie(Sigh)</a></p>
     <h2>大德芳名錄</h2>
-<p>感謝53、Kie在DC弄了一堆音效，讓南想到可以做這個網站，並在提出這個想法的一開始就弄了一堆音效過來。還有同樣感謝在原型階段就幫忙收集音效的米糕跟薰薰草。
-<br/>感謝Jia繪製超可愛的背景圖跟收集了很多音效。
-<br/>
-<br/>感謝粉肝們收集很多音效，豐富了這個網站（Word筆劃順）：
-<br/>AmBinBong、CZ、HUI、Lococco de suzuran、Nokimi07、Sigh、TENN、Yichen沉沉、🌙🐰月桂葉香包♏🎵、布丁(25:00)、幸福柴柴、青末枝、凌伊LingYi（01）、夏白衫、澐▽米粉 肉干、貓貓雨。
-以及其他回報問題、提出建議的粉肝們，你們讓這個網站的功能更完善。
-</p>
-    
+    <p>感謝53、Kie在DC弄了一堆音效，讓南想到可以做這個網站，並在提出這個想法的一開始就弄了一堆音效過來。還有同樣感謝在原型階段就幫忙收集音效的米糕跟薰薰草。
+    <br/>感謝Jia繪製超可愛的背景圖跟收集了很多音效。
+    <br/>
+    <br/>感謝粉肝們收集很多音效，豐富了這個網站（Word筆劃順）：
+    <br/>AmBinBong、CZ、HUI、Lococco de suzuran、Nokimi07、Sigh、TENN、Yichen沉沉、🌙🐰月桂葉香包♏🎵、布丁(25:00)、幸福柴柴、青末枝、凌伊LingYi（01）、夏白衫、澐▽米粉 肉干、貓貓雨。
+    以及其他回報問題、提出建議的粉肝們，你們讓這個網站的功能更完善。
+    </p>
+      
+  </div>
+</div>
+
+<!-- 混音軌道面板 -->
+<div id="mixPanel" class="mix-panel hidden" aria-hidden="true" role="region" aria-label="混音軌道控制">
+  <div class="mix-header">
+    <div class="mix-bar-row">
+      <div class="mix-bar">
+        <span class="mix-muted">縮放</span>
+        <input id="mixZoomRange" type="range" min="5" max="150" step="5" value="50" aria-label="混音軌道縮放" />
+      </div>
+      <div class="mix-bar">
+        <span class="mix-muted">位置</span>
+        <input id="mixScrollRange" type="range" min="0" max="100" step="1" value="0" aria-label="混音軌道檢視位置" />
+      </div>
+    </div>
+    <div id="mixScrollHost" class="mix-scroll-host" aria-hidden="false">
+      <div id="mixScrollContent" class="mix-scroll-content">
+        <div id="mixTrackLanes" class="mix-track-lanes">
+          <div class="mix-track" data-track="0" data-label="1"></div>
+          <div class="mix-track" data-track="1" data-label="2"></div>
+          <div class="mix-track" data-track="2" data-label="3"></div>
+        </div>
+        <div id="mixPlayhead" class="mix-playhead" style="left:0"></div>
+      </div>
+    </div>
+  </div>
+  <div class="mix-controls">
+    <div class="mix-controls-left">
+      <button id="mixClearBtn" class="mix-btn" type="button">清除</button>
+    </div>
+    <div class="mix-controls-center">
+      <button id="mixUndoBtn" class="mix-btn" type="button" aria-label="上一步">↺</button>
+      <button id="mixRedoBtn" class="mix-btn" type="button" aria-label="下一步">↻</button>
+      <button id="mixToStartBtn" class="mix-btn" type="button" aria-label="移到開頭">⏮</button>
+      <button id="mixPlayPauseBtn" class="mix-btn" type="button" aria-label="播放或暫停">▶</button>
+      <button id="mixToEndBtn" class="mix-btn" type="button" aria-label="移到結尾">⏭</button>
+    </div>
+    <div class="mix-controls-right">
+      <button id="mixCloseBtn" class="mix-btn" type="button">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- 混音清除確認 -->
+<div id="mixConfirmModal" class="mix-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="mixConfirmTitle">
+  <div class="mix-modal">
+    <h3 id="mixConfirmTitle">要清除所有音軌嗎？</h3>
+    <div class="mix-modal-actions">
+      <button id="mixConfirmCancel" class="mix-btn" type="button">取消</button>
+      <button id="mixConfirmAccept" class="mix-btn" type="button">清除</button>
+    </div>
   </div>
 </div>
 
@@ -664,14 +879,18 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
 <div id="menu" class="menu hidden" role="menu" aria-label="音效選單"></div>
 <!-- Toast提示 -->
 <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-
+<!--
+<script src="https://cdn.jsdelivr.net/npm/tone@14.8.39/build/Tone.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
+-->
+<script src="scripts/Tone.js"></script>
+<script src="scripts/Sortable.min.js"></script>
 <script>
 (function(){
   /**
    * 檔案版本字串：每次部署變更此值，可確保抓取最新資料並強制 CDN/瀏覽器重新載入。
    */
-  const VERSION = 'ver2025-09-26-1';
+  const VERSION = 'ver2025-09-29-1';
 
   /**
    * 為給定的 URL 附加版本字串 (?v=<VERSION>)。如果已有查詢參數則加 &。
@@ -708,6 +927,24 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     clearBtn: document.getElementById('clearBtn'),
     get menu(){ return document.getElementById('menu'); },
     get toast(){ return document.getElementById('toast'); },
+    mixPanel: document.getElementById('mixPanel'),
+    mixScrollHost: document.getElementById('mixScrollHost'),
+    mixScrollContent: document.getElementById('mixScrollContent'),
+    mixTrackLanes: document.getElementById('mixTrackLanes'),
+    mixPlayhead: document.getElementById('mixPlayhead'),
+    mixScrollRange: document.getElementById('mixScrollRange'),
+    mixZoomRange: document.getElementById('mixZoomRange'),
+    mixClearBtn: document.getElementById('mixClearBtn'),
+    mixUndoBtn: document.getElementById('mixUndoBtn'),
+    mixRedoBtn: document.getElementById('mixRedoBtn'),
+    mixToStartBtn: document.getElementById('mixToStartBtn'),
+    mixPlayPauseBtn: document.getElementById('mixPlayPauseBtn'),
+    mixToEndBtn: document.getElementById('mixToEndBtn'),
+    mixCloseBtn: document.getElementById('mixCloseBtn'),
+    mixConfirmModal: document.getElementById('mixConfirmModal'),
+    mixConfirmCancel: document.getElementById('mixConfirmCancel'),
+    mixConfirmAccept: document.getElementById('mixConfirmAccept'),
+    openMixBtn: document.getElementById('openMixBtn'),
     // 分頁容器
     pageHome: document.getElementById('page-home'),
     pageGame: document.getElementById('page-game'),
@@ -739,6 +976,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     favSet: new Set(),
     queryText: '',
     queryTags: new Set(),
+    soundMap: new Map(),
     // 長按/右鍵開選單的計時器
     contextTimer: null,
     // 分頁狀態：home | game | about
@@ -842,6 +1080,1132 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
       };
     }
   };
+
+  /** ===== 混音軌道狀態 ===== */
+  const MIX_TRACK_COUNT = 3;
+  const MIX_STORAGE_KEY = 'mix_tracks_v1';
+  const MIX_HISTORY_LIMIT = 10;
+  const MIX_MIN_SECONDS = 30;
+  const MIX_PX_PER_SEC_DEFAULT = 30;
+  const MIX_ZOOM_MIN = 20;
+  const MIX_ZOOM_MAX = 120;
+
+  /**
+   * @typedef {{id:string,soundId:string,start:number,duration:number,track:number}} MixClip
+   */
+
+  const mixState = {
+    tracks: Array.from({length: MIX_TRACK_COUNT}, () => /** @type {MixClip[]} */([])),
+    playhead: 0,
+    pxPerSecond: MIX_PX_PER_SEC_DEFAULT,
+    contentDuration: 0,
+    timelineDuration: MIX_MIN_SECONDS,
+    durationCache: new Map(),
+    durationRequests: new Map(),
+    history: [],
+    future: [],
+    isOpen: false,
+    isPlaying: false,
+    scrollRatio: 0,
+    initialized: false
+  };
+
+  const mixAudio = {
+    players: new Map(),
+    loading: new Map(),
+    rafId: 0,
+    startTime: 0,
+    startPlayhead: 0,
+    scheduleIds: [],
+    toneStarted: false
+  };
+
+  let mixDrag = null;
+  let mixPan = null;
+  let mixPanSuppressClick = false;
+  let mixZoomPersistTimer = null;
+
+  function mixResetTracks(){
+    return Array.from({length: MIX_TRACK_COUNT}, () => /** @type {MixClip[]} */([]));
+  }
+
+  function mixNormalizeClip(raw){
+    if(!raw || typeof raw !== 'object') return null;
+    const soundId = typeof raw.soundId === 'string' ? raw.soundId : '';
+    if(!soundId) return null;
+    const start = Number(raw.start);
+    const duration = Number(raw.duration);
+    const track = Number(raw.track);
+    if(!Number.isFinite(start) || start < 0) return null;
+    if(!Number.isFinite(duration) || duration <= 0) return null;
+    if(!Number.isInteger(track) || track < 0 || track >= MIX_TRACK_COUNT) return null;
+    const id = typeof raw.id === 'string' && raw.id ? raw.id : mixGenerateClipId();
+    return { id, soundId, start: mixRoundSeconds(start), duration: mixRoundSeconds(duration), track };
+  }
+
+  /**
+   * 將 localStorage 中的片段資料（支援新版縮寫鍵與舊版完整鍵）轉換成標準 clip 物件。
+   * 新版縮寫鍵對照：sid(soundId)、st(start)、du(duration)、tr(track)。
+   */
+  function mixNormalizeClipFromStorage(raw){
+    if(!raw || typeof raw !== 'object') return null;
+    const converted = {
+      id: raw.id,
+      soundId: raw.sid ?? raw.soundId,
+      start: raw.st ?? raw.start,
+      duration: raw.du ?? raw.duration,
+      track: raw.tr ?? raw.track
+    };
+    return mixNormalizeClip(converted);
+  }
+
+  function mixRoundSeconds(value){
+    if(!Number.isFinite(value)) return 0;
+    return Number(value.toFixed(3));
+  }
+
+  function mixGenerateClipId(){
+    return 'cp-' + Math.random().toString(36).slice(3,6) + Date.now().toString(36).slice(-2);
+  }
+
+  function mixRecalculateDuration(){
+    let max = 0;
+    mixState.tracks.forEach(track => track.forEach(clip => {
+      const end = clip.start + clip.duration;
+      if(end > max) max = end;
+    }));
+    mixState.contentDuration = max;
+    mixState.timelineDuration = Math.max(MIX_MIN_SECONDS, Math.ceil(max));
+    if(mixState.playhead > mixState.timelineDuration) mixState.playhead = mixState.timelineDuration;
+    return mixState.timelineDuration;
+  }
+
+  function mixGetTimelineWidth(){
+    return mixState.timelineDuration * mixState.pxPerSecond;
+  }
+
+  function mixResolveSoundColor(sound){
+    if(!sound || !Array.isArray(sound.tags)) return '#64748b';
+    for(const tag of sound.tags){
+      const t = state.tags[utils.slug(tag)];
+      if(t && t.color) return t.color;
+    }
+    return '#64748b';
+  }
+
+  function mixGetDurationForSound(sound){
+    if(!sound) return 2;
+    const cached = mixState.durationCache.get(sound.id);
+    if(typeof cached === 'number' && cached > 0) return cached;
+    return 2;
+  }
+
+  function mixApplyDurationToClips(soundId, duration){
+    let updated = false;
+    const rounded = mixRoundSeconds(duration);
+    mixState.tracks.forEach(track => {
+      track.forEach(clip => {
+        if(clip.soundId === soundId){
+          if(Math.abs(clip.duration - rounded) > 0.0001){
+            clip.duration = rounded;
+            updated = true;
+          }
+        }
+      });
+    });
+    if(updated){
+      mixRecalculateDuration();
+      mixRenderAll();
+      mixSaveToStorage();
+    }
+  }
+
+  function mixRequestDuration(sound, clip){
+    if(!sound) return;
+    const cached = mixState.durationCache.get(sound.id);
+    if(typeof cached === 'number' && cached > 0) return;
+    if(mixState.durationRequests.has(sound.id)) return;
+    const audio = new Audio();
+    audio.preload = 'metadata';
+    audio.src = sound.src;
+    const promise = new Promise((resolve) => {
+      const cleanup = () => {
+        audio.removeEventListener('loadedmetadata', onLoaded);
+        audio.removeEventListener('error', onError);
+        audio.src = '';
+      };
+      const onLoaded = () => {
+        const dur = Number(audio.duration);
+        cleanup();
+        if(isFinite(dur) && dur > 0){
+          const rounded = mixRoundSeconds(dur);
+          mixState.durationCache.set(sound.id, rounded);
+          mixApplyDurationToClips(sound.id, rounded);
+          if(clip){ clip.duration = rounded; }
+        }
+        resolve();
+      };
+      const onError = () => {
+        cleanup();
+        resolve();
+      };
+      audio.addEventListener('loadedmetadata', onLoaded, {once:true});
+      audio.addEventListener('error', onError, {once:true});
+      try { audio.load(); } catch(e){ cleanup(); resolve(); }
+    });
+    mixState.durationRequests.set(sound.id, promise);
+    promise.finally(() => mixState.durationRequests.delete(sound.id));
+  }
+
+  function mixHydrateClip(clip){
+    const snd = state.soundMap.get(clip.soundId);
+    if(!snd) return;
+    if(!mixState.durationCache.has(snd.id)){
+      mixRequestDuration(snd, clip);
+    }
+  }
+
+  function mixCreateClipElement(clip){
+    const snd = state.soundMap.get(clip.soundId);
+    const title = snd?.title || clip.soundId;
+    const width = Math.max(clip.duration * mixState.pxPerSecond, 36);
+    const left = clip.start * mixState.pxPerSecond;
+    const color = mixResolveSoundColor(snd);
+    const removeBtn = dom.el('button', {class:'mix-clip-remove', type:'button', 'data-clip-id': clip.id, 'aria-label':'移除音效'}, '×');
+    removeBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      mixRemoveClipById(clip.id);
+    });
+    const titleEl = dom.el('span', {class:'mix-clip-title'}, title);
+    const clipEl = dom.el('div', {
+      class:'mix-clip',
+      'data-clip-id': clip.id,
+      style:{left: `${left}px`, width: `${width}px`, background: color},
+      title
+    }, [
+      titleEl,
+      removeBtn
+    ]);
+    clipEl.dataset.start = String(clip.start);
+    clipEl.dataset.duration = String(clip.duration);
+    clipEl.dataset.track = String(clip.track);
+    return clipEl;
+  }
+
+  function mixRenderTracks(){
+    const lanes = els.mixTrackLanes;
+    if(!lanes) return;
+    const width = mixGetTimelineWidth();
+    const trackEls = lanes.querySelectorAll('.mix-track');
+    trackEls.forEach(trackEl => {
+      trackEl.style.width = width + 'px';
+      trackEl.innerHTML = '';
+    });
+    mixState.tracks.forEach((track, idx) => {
+      const trackEl = lanes.querySelector(`.mix-track[data-track="${idx}"]`);
+      if(!trackEl) return;
+      track.sort((a,b) => a.start - b.start || a.id.localeCompare(b.id));
+      track.forEach(clip => {
+        mixHydrateClip(clip);
+        const el = mixCreateClipElement(clip);
+        trackEl.appendChild(el);
+      });
+    });
+  }
+
+  function mixRenderPlayhead(){
+    const ph = els.mixPlayhead;
+    if(!ph) return;
+    const x = mixState.playhead * mixState.pxPerSecond;
+    ph.style.left = `${x}px`;
+  }
+
+  function mixUpdateScrollState(){
+    const host = els.mixScrollHost;
+    const range = els.mixScrollRange;
+    if(!host || !range) return;
+    const maxScroll = Math.max(0, host.scrollWidth - host.clientWidth);
+    if(maxScroll <= 1){
+      range.value = '0';
+      range.disabled = true;
+      mixState.scrollRatio = 0;
+      return;
+    }
+    range.disabled = false;
+    const ratio = host.scrollLeft / maxScroll;
+    mixState.scrollRatio = isFinite(ratio) ? ratio : 0;
+    range.value = String(Math.round(mixState.scrollRatio * 100));
+  }
+
+  function mixOnWheelZoom(event){
+    const host = els.mixScrollHost;
+    if(!host) return;
+    if(mixState.timelineDuration <= 0) return;
+    const deltaY = event.deltaY || 0;
+    const deltaX = event.deltaX || 0;
+    const primaryDelta = Math.abs(deltaY) >= Math.abs(deltaX) ? deltaY : deltaX;
+    if(primaryDelta === 0) return;
+    event.preventDefault();
+    const step = primaryDelta > 0 ? -5 : 5;
+    if(step === 0) return;
+    const rect = host.getBoundingClientRect();
+    const anchor = event.clientX - rect.left;
+    const before = mixState.pxPerSecond;
+    mixApplyZoom(mixState.pxPerSecond + step, {persist:false, anchorPixel: anchor});
+    if(before !== mixState.pxPerSecond){
+      if(mixZoomPersistTimer) clearTimeout(mixZoomPersistTimer);
+      mixZoomPersistTimer = setTimeout(() => {
+        mixSaveToStorage();
+        mixZoomPersistTimer = null;
+      }, 240);
+    }
+  }
+
+  function mixOnScrollRangeInput(){
+    const host = els.mixScrollHost;
+    const range = els.mixScrollRange;
+    if(!host || !range) return;
+    const maxScroll = Math.max(0, host.scrollWidth - host.clientWidth);
+    const ratio = Number(range.value) / 100;
+    host.scrollLeft = maxScroll * ratio;
+    mixState.scrollRatio = isFinite(ratio) ? ratio : 0;
+    mixUpdateScrollState();
+  }
+
+  function mixRenderAll(){
+    if(!els.mixPanel) return;
+    mixRecalculateDuration();
+    const contentWidth = mixGetTimelineWidth();
+    if(els.mixScrollContent) els.mixScrollContent.style.width = `${contentWidth}px`;
+    if(els.mixZoomRange){
+      const rounded = String(Math.round(mixState.pxPerSecond));
+      if(els.mixZoomRange.value !== rounded) els.mixZoomRange.value = rounded;
+    }
+    mixRenderTracks();
+    const host = els.mixScrollHost;
+    if(host){
+      const maxScroll = Math.max(0, host.scrollWidth - host.clientWidth);
+      host.scrollLeft = maxScroll * mixState.scrollRatio;
+    }
+    mixRenderPlayhead();
+    mixUpdateScrollState();
+    mixUpdateControlStates();
+  }
+
+  function mixScrollPlayheadIntoView(){
+    const host = els.mixScrollHost;
+    if(!host) return;
+    const x = mixState.playhead * mixState.pxPerSecond;
+    const padding = 40;
+    if(x < host.scrollLeft + padding){
+      host.scrollLeft = Math.max(0, x - padding);
+    }else if(x > host.scrollLeft + host.clientWidth - padding){
+      host.scrollLeft = Math.max(0, x - host.clientWidth + padding);
+    }
+    mixUpdateScrollState();
+  }
+
+  function mixScrollClipIntoView(clip){
+    const host = els.mixScrollHost;
+    if(!host) return;
+    const startX = clip.start * mixState.pxPerSecond;
+    const endX = (clip.start + clip.duration) * mixState.pxPerSecond;
+    const padding = 40;
+    if(startX < host.scrollLeft + padding){
+      host.scrollLeft = Math.max(0, startX - padding);
+    }else if(endX > host.scrollLeft + host.clientWidth - padding){
+      host.scrollLeft = Math.max(0, endX - host.clientWidth + padding);
+    }
+    mixUpdateScrollState();
+  }
+
+  function mixApplyZoom(pxPerSecond, {persist=true, maintainCenter=false, anchorPixel=null} = {}){
+    const host = els.mixScrollHost;
+    const previousPx = mixState.pxPerSecond;
+    const clamped = Math.min(MIX_ZOOM_MAX, Math.max(MIX_ZOOM_MIN, Number(pxPerSecond) || MIX_PX_PER_SEC_DEFAULT));
+    let targetScrollRatio = mixState.scrollRatio;
+    if(anchorPixel != null && host){
+      const anchorLocal = Math.max(0, Math.min(anchorPixel, host.clientWidth));
+      const currentWidth = mixState.timelineDuration * previousPx;
+      const anchorAbsolute = host.scrollLeft + anchorLocal;
+      const anchorRatio = currentWidth > 0 ? anchorAbsolute / currentWidth : 0;
+      const newWidth = mixState.timelineDuration * clamped;
+      const targetAnchor = newWidth * anchorRatio;
+      const targetScrollLeft = Math.max(0, targetAnchor - anchorLocal);
+      const maxScroll = Math.max(0, newWidth - host.clientWidth);
+      targetScrollRatio = maxScroll > 0 ? targetScrollLeft / maxScroll : 0;
+    } else if(maintainCenter && host){
+      const currentWidth = mixState.timelineDuration * previousPx;
+      const center = host.scrollLeft + host.clientWidth / 2;
+      const centerRatio = currentWidth > 0 ? center / currentWidth : 0;
+      const newWidth = mixState.timelineDuration * clamped;
+      const targetCenter = newWidth * centerRatio;
+      const targetScrollLeft = Math.max(0, targetCenter - host.clientWidth / 2);
+      const maxScroll = Math.max(0, newWidth - host.clientWidth);
+      targetScrollRatio = maxScroll > 0 ? targetScrollLeft / maxScroll : 0;
+    }
+    if(Math.abs(clamped - mixState.pxPerSecond) < 0.0001){
+      if(persist) mixSaveToStorage();
+      return;
+    }
+    mixState.pxPerSecond = clamped;
+    mixState.scrollRatio = Math.min(1, Math.max(0, targetScrollRatio));
+    mixRenderAll();
+    if(host && (maintainCenter || anchorPixel != null)){
+      const maxScroll = Math.max(0, host.scrollWidth - host.clientWidth);
+      host.scrollLeft = maxScroll * mixState.scrollRatio;
+      mixUpdateScrollState();
+    }
+    if(els.mixZoomRange){
+      const rounded = String(Math.round(mixState.pxPerSecond));
+      if(els.mixZoomRange.value !== rounded) els.mixZoomRange.value = rounded;
+    }
+    if(persist) mixSaveToStorage();
+  }
+
+  function mixSaveToStorage(){
+    try{
+      // 儲存時採用縮寫鍵以減少 metadata 體積：plh(playhead)、pps(pxPerSecond)、trs(tracks array)。
+      const payload = {
+        plh: mixRoundSeconds(mixState.playhead),
+        pps: mixState.pxPerSecond,
+        trs: mixState.tracks.map(track => track.map(clip => ({
+          id: clip.id,
+          sid: clip.soundId,       // sound id
+          st: mixRoundSeconds(clip.start),
+          du: mixRoundSeconds(clip.duration),
+          tr: clip.track
+        })))
+      };
+      localStorage.setItem(MIX_STORAGE_KEY, JSON.stringify(payload));
+    }catch(err){
+      console.warn('[mix] save failed', err);
+    }
+  }
+
+  function mixLoadFromStorage(){
+    try{
+      const raw = localStorage.getItem(MIX_STORAGE_KEY);
+      if(!raw){ mixState.tracks = mixResetTracks(); mixState.playhead = 0; mixState.pxPerSecond = MIX_PX_PER_SEC_DEFAULT; mixRecalculateDuration(); return; }
+      const parsed = JSON.parse(raw);
+      if(!parsed || typeof parsed !== 'object') throw new Error('invalid mix payload');
+      const tracks = mixResetTracks();
+      const rawTracks = Array.isArray(parsed.trs) ? parsed.trs : parsed.tracks;
+      for(let i=0;i<MIX_TRACK_COUNT;i++){
+        const arr = Array.isArray(rawTracks?.[i]) ? rawTracks[i] : [];
+        tracks[i] = arr.map(mixNormalizeClipFromStorage).filter(Boolean).sort((a,b) => a.start - b.start || a.id.localeCompare(b.id));
+      }
+      mixState.tracks = tracks;
+      const rawPlayhead = parsed.plh ?? parsed.playhead;
+      mixState.playhead = mixRoundSeconds(Math.max(0, Number(rawPlayhead) || 0));
+      const storedPx = Number(parsed.pps ?? parsed.pxPerSecond);
+      if(Number.isFinite(storedPx) && storedPx >= MIX_ZOOM_MIN && storedPx <= MIX_ZOOM_MAX){
+        mixState.pxPerSecond = storedPx;
+      } else {
+        mixState.pxPerSecond = MIX_PX_PER_SEC_DEFAULT;
+      }
+      mixRecalculateDuration();
+    }catch(err){
+      console.warn('[mix] load failed，已還原為預設值。', err);
+      localStorage.removeItem(MIX_STORAGE_KEY);
+      mixState.tracks = mixResetTracks();
+      mixState.playhead = 0;
+      mixState.pxPerSecond = MIX_PX_PER_SEC_DEFAULT;
+      mixRecalculateDuration();
+    }
+    mixState.history = [];
+    mixState.future = [];
+    mixState.scrollRatio = 0;
+  }
+
+  function mixHasClips(){
+    return mixState.tracks.some(track => track.length > 0);
+  }
+
+  function mixCloneState(){
+    return {
+      playhead: mixState.playhead,
+      tracks: mixState.tracks.map(track => track.map(clip => ({
+        ...clip,
+        start: mixRoundSeconds(clip.start),
+        duration: mixRoundSeconds(clip.duration)
+      })))
+    };
+  }
+
+  function mixStageHistory(){
+    mixState.history.push(mixCloneState());
+    if(mixState.history.length > MIX_HISTORY_LIMIT){
+      mixState.history.shift();
+    }
+    mixState.future = [];
+  }
+
+  function mixRestoreFromSnapshot(snapshot){
+    mixState.tracks = snapshot.tracks.map(track => track.map(clip => ({...clip})));
+    mixState.playhead = snapshot.playhead;
+    mixRecalculateDuration();
+    mixRenderAll();
+    mixSaveToStorage();
+  }
+
+  function mixUndo(){
+    if(mixState.isPlaying || mixState.history.length === 0) return;
+    const snapshot = mixState.history.pop();
+    if(!snapshot) return;
+    mixState.future.push(mixCloneState());
+    if(mixState.future.length > MIX_HISTORY_LIMIT) mixState.future.shift();
+    mixRestoreFromSnapshot(snapshot);
+  }
+
+  function mixRedo(){
+    if(mixState.isPlaying || mixState.future.length === 0) return;
+    const snapshot = mixState.future.pop();
+    if(!snapshot) return;
+    mixState.history.push(mixCloneState());
+    if(mixState.history.length > MIX_HISTORY_LIMIT) mixState.history.shift();
+    mixRestoreFromSnapshot(snapshot);
+  }
+
+  function mixUpdatePlayButton(){
+    if(!els.mixPlayPauseBtn) return;
+    els.mixPlayPauseBtn.textContent = mixState.isPlaying ? '⏸' : '▶';
+    els.mixPlayPauseBtn.setAttribute('aria-label', mixState.isPlaying ? '暫停混音' : '播放混音');
+  }
+
+  function mixUpdateControlStates(){
+    const playing = mixState.isPlaying;
+    const hasClips = mixHasClips();
+    if(els.mixUndoBtn) els.mixUndoBtn.disabled = playing || mixState.history.length === 0;
+    if(els.mixRedoBtn) els.mixRedoBtn.disabled = playing || mixState.future.length === 0;
+    if(els.mixPlayPauseBtn){
+      els.mixPlayPauseBtn.disabled = !hasClips;
+      mixUpdatePlayButton();
+    }
+    if(els.mixClearBtn) els.mixClearBtn.disabled = playing || !hasClips;
+    if(els.mixToStartBtn) els.mixToStartBtn.disabled = !hasClips;
+    if(els.mixToEndBtn) els.mixToEndBtn.disabled = !hasClips;
+  }
+
+  function mixFindClipById(id){
+    for(let trackIndex = 0; trackIndex < MIX_TRACK_COUNT; trackIndex++){
+      const track = mixState.tracks[trackIndex];
+      const index = track.findIndex(c => c.id === id);
+      if(index !== -1){
+        return {clip: track[index], trackIndex, index};
+      }
+    }
+    return null;
+  }
+
+  function mixRemoveClipById(clipId, {silent=false, recordHistory=true} = {}){
+    if(!clipId) return null;
+    if(mixState.isPlaying) return null;
+    const loc = mixFindClipById(clipId);
+    if(!loc) return null;
+    if(recordHistory) mixStageHistory();
+    const track = mixState.tracks[loc.trackIndex];
+    const [removed] = track.splice(loc.index, 1);
+    mixRecalculateDuration();
+    mixSaveToStorage();
+    mixRenderAll();
+    if(!silent) toast('已移除音效');
+    return removed;
+  }
+
+  function mixClearAllTracks({silent=false} = {}){
+    if(mixState.isPlaying || !mixHasClips()) return;
+    mixStageHistory();
+    mixState.tracks = mixResetTracks();
+    mixState.playhead = 0;
+    mixRecalculateDuration();
+    mixSaveToStorage();
+    mixRenderAll();
+    if(!silent) toast('已清除所有音效');
+  }
+
+  function mixSetPlayhead(seconds, {scroll=true, persist=true} = {}){
+    const clamped = mixRoundSeconds(Math.max(0, Math.min(seconds, mixState.timelineDuration)));
+    mixState.playhead = clamped;
+    mixRenderPlayhead();
+    if(scroll) mixScrollPlayheadIntoView();
+    if(persist && !mixState.isPlaying) mixSaveToStorage();
+  }
+
+  function mixJumpToStart(){
+    let earliest = Infinity;
+    mixState.tracks.forEach(track => track.forEach(clip => {
+      if(clip.start < earliest) earliest = clip.start;
+    }));
+    if(!isFinite(earliest)) earliest = 0;
+    const wasPlaying = mixState.isPlaying;
+    if(wasPlaying) mixStopPlayback(false);
+    mixSetPlayhead(earliest, {scroll:true, persist:!wasPlaying});
+    if(wasPlaying){
+      const upcoming = mixCollectPlayableClips();
+      if(upcoming.length) mixStartPlayback();
+      else mixUpdateControlStates();
+    }
+  }
+
+  function mixJumpToEnd(){
+    const end = Math.max(mixState.contentDuration, 0);
+    const wasPlaying = mixState.isPlaying;
+    if(wasPlaying) mixStopPlayback(false);
+    mixSetPlayhead(end, {scroll:true, persist:!wasPlaying});
+    if(wasPlaying){
+      const upcoming = mixCollectPlayableClips();
+      if(upcoming.length) mixStartPlayback();
+      else mixUpdateControlStates();
+    }
+  }
+
+  function mixFindAvailableTrack(start, duration){
+    for(let i=0; i<MIX_TRACK_COUNT; i++){
+      const track = mixState.tracks[i];
+      const conflict = track.some(clip => !(start + duration <= clip.start || start >= clip.start + clip.duration));
+      if(!conflict) return i;
+    }
+    return 0;
+  }
+
+  function mixOnLanesClick(event){
+    if(mixPanSuppressClick){
+      mixPanSuppressClick = false;
+      return;
+    }
+    if(event.target.closest('.mix-clip')) return;
+    const host = els.mixScrollHost;
+    if(!host) return;
+    const rect = host.getBoundingClientRect();
+    const x = event.clientX - rect.left + host.scrollLeft;
+    const seconds = x / mixState.pxPerSecond;
+    const wasPlaying = mixState.isPlaying;
+    if(wasPlaying) mixStopPlayback(false);
+    mixSetPlayhead(seconds, {scroll:true, persist:!wasPlaying});
+    if(wasPlaying){
+      const upcoming = mixCollectPlayableClips();
+      if(upcoming.length) mixStartPlayback();
+      else mixUpdateControlStates();
+    }
+  }
+
+  function mixOpenConfirmModal(){
+    if(!els.mixConfirmModal) return;
+    els.mixConfirmModal.classList.remove('hidden');
+    els.mixConfirmModal.setAttribute('aria-hidden','false');
+    if(els.mixConfirmAccept) try{ els.mixConfirmAccept.focus(); }catch(e){}
+  }
+
+  function mixCloseConfirmModal(){
+    if(!els.mixConfirmModal) return;
+    els.mixConfirmModal.classList.add('hidden');
+    els.mixConfirmModal.setAttribute('aria-hidden','true');
+    if(els.mixClearBtn) try{ els.mixClearBtn.focus(); }catch(e){}
+  }
+
+  function mixHandleGlobalKeydown(event){
+    if(event.key === 'Escape'){
+      if(els.mixConfirmModal && !els.mixConfirmModal.classList.contains('hidden')){
+        mixCloseConfirmModal();
+      }
+    }
+  }
+
+  // === Clip drag-and-drop ===
+  function mixOnClipPointerDown(event){
+    const clipEl = event.target.closest('.mix-clip');
+    if(!clipEl){
+      mixBeginPan(event);
+      return;
+    }
+    if(event.button !== undefined && event.button !== 0) return;
+    if(event.target.closest('.mix-clip-remove')) return;
+    if(mixState.isPlaying) return;
+    const clipId = clipEl.dataset.clipId || '';
+    const loc = mixFindClipById(clipId);
+    if(!loc) return;
+    const host = els.mixScrollHost;
+    const lanes = els.mixTrackLanes;
+    if(!host || !lanes) return;
+    const clipRect = clipEl.getBoundingClientRect();
+    const hostRect = host.getBoundingClientRect();
+    const lanesRect = lanes.getBoundingClientRect();
+    const pointerOffsetX = event.clientX - clipRect.left;
+    const pointerOffsetY = event.clientY - clipRect.top;
+    const placeholder = document.createElement('div');
+    placeholder.className = 'mix-clip-placeholder';
+    placeholder.style.width = clipRect.width + 'px';
+    placeholder.style.height = clipRect.height + 'px';
+    const originContainer = clipEl.parentElement;
+    if(originContainer){
+      const existingLeft = parseFloat(clipEl.style.left || '0');
+      const fallbackLeft = loc.clip.start * mixState.pxPerSecond;
+      const placeholderLeft = Number.isFinite(existingLeft) ? existingLeft : fallbackLeft;
+      placeholder.style.left = placeholderLeft + 'px';
+      originContainer.insertBefore(placeholder, clipEl);
+    }
+    lanes.appendChild(clipEl);
+    const clipWidth = clipRect.width;
+    const clipHeight = clipRect.height;
+    clipEl.classList.add('dragging');
+    clipEl.style.position = 'absolute';
+    clipEl.style.zIndex = '10';
+    clipEl.style.width = clipWidth + 'px';
+    clipEl.style.left = `${event.clientX - lanesRect.left - pointerOffsetX + host.scrollLeft}px`;
+    clipEl.style.top = `${clipRect.top - lanesRect.top}px`;
+
+    mixDrag = {
+      clip: loc.clip,
+      clipEl,
+      placeholder,
+      pointerId: event.pointerId,
+      pointerOffsetX,
+      pointerOffsetY,
+      clipWidth,
+      clipHeight,
+      hostRect,
+      lanesRect,
+      originTrack: loc.trackIndex,
+      originStart: loc.clip.start,
+      trackHeight: lanes.querySelector('.mix-track')?.offsetHeight || 36,
+      historyCaptured: false,
+      currentTrack: loc.trackIndex,
+      currentStart: loc.clip.start
+    };
+    try { clipEl.setPointerCapture(event.pointerId); } catch(e){}
+    clipEl.addEventListener('pointermove', mixOnClipPointerMove);
+    clipEl.addEventListener('pointerup', mixOnClipPointerUp);
+    clipEl.addEventListener('pointercancel', mixOnClipPointerCancel);
+    event.preventDefault();
+  }
+
+  function mixOnClipPointerMove(event){
+    if(!mixDrag || event.pointerId !== mixDrag.pointerId) return;
+    const host = els.mixScrollHost;
+    if(!host) return;
+    const lanes = els.mixTrackLanes;
+    if(!lanes) return;
+    const rawLeft = event.clientX - mixDrag.hostRect.left + host.scrollLeft - mixDrag.pointerOffsetX;
+    const maxLeft = Math.max(0, mixGetTimelineWidth() - mixDrag.clipWidth);
+    const newLeft = Math.min(Math.max(0, rawLeft), maxLeft);
+    mixDrag.clipEl.style.left = `${newLeft}px`;
+    const newStart = newLeft / mixState.pxPerSecond;
+    const pointerCenterY = event.clientY - mixDrag.lanesRect.top - mixDrag.pointerOffsetY + mixDrag.clipHeight / 2;
+    const trackHeight = mixDrag.trackHeight;
+    const newTrack = Math.min(MIX_TRACK_COUNT - 1, Math.max(0, Math.floor(pointerCenterY / trackHeight)));
+    const targetTop = newTrack * trackHeight + Math.max(0, (trackHeight - mixDrag.clipHeight) / 2);
+    mixDrag.clipEl.style.top = `${targetTop}px`;
+    mixDrag.currentTrack = newTrack;
+    mixDrag.currentStart = mixRoundSeconds(Math.max(0, newStart));
+    if(!mixDrag.historyCaptured){
+      if(Math.abs(newStart - mixDrag.originStart) > 0.0005 || newTrack !== mixDrag.originTrack){
+        mixStageHistory();
+        mixDrag.historyCaptured = true;
+      }
+    }
+    const threshold = 40;
+    const maxScroll = Math.max(0, host.scrollWidth - host.clientWidth);
+    if(event.clientX > mixDrag.hostRect.right - threshold){
+      host.scrollLeft = Math.min(host.scrollLeft + 14, maxScroll);
+    }else if(event.clientX < mixDrag.hostRect.left + threshold){
+      host.scrollLeft = Math.max(host.scrollLeft - 14, 0);
+    }
+    mixUpdateScrollState();
+  }
+
+  function mixCleanupDragElements(){
+    if(!mixDrag) return;
+    const {clipEl, placeholder} = mixDrag;
+    if(placeholder && placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
+    if(clipEl){
+      clipEl.classList.remove('dragging');
+      clipEl.style.position = '';
+      clipEl.style.zIndex = '';
+      clipEl.style.width = '';
+      clipEl.style.left = '';
+      clipEl.style.top = '';
+    }
+  }
+
+  /**
+   * 在空白軌道上拖曳以平移視窗（等同調整位置滑桿）。
+   */
+  function mixBeginPan(event){
+    const host = els.mixScrollHost;
+    const lanes = els.mixTrackLanes;
+    if(!host || !lanes) return;
+    if(event.button !== undefined && event.button !== 0) return;
+    mixPanSuppressClick = false;
+    mixPan = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startScroll: host.scrollLeft,
+      lanes
+    };
+    try{ lanes.setPointerCapture(event.pointerId); }catch(e){}
+    lanes.addEventListener('pointermove', mixOnPanPointerMove);
+    lanes.addEventListener('pointerup', mixEndPan);
+    lanes.addEventListener('pointercancel', mixCancelPan);
+  }
+
+  function mixOnPanPointerMove(event){
+    if(!mixPan || event.pointerId !== mixPan.pointerId) return;
+    const host = els.mixScrollHost;
+    if(!host) return;
+    const delta = event.clientX - mixPan.startX;
+    if(Math.abs(delta) > 2) mixPanSuppressClick = true;
+    const maxScroll = Math.max(0, host.scrollWidth - host.clientWidth);
+    const nextScroll = Math.min(Math.max(mixPan.startScroll - delta, 0), maxScroll);
+    host.scrollLeft = nextScroll;
+    mixUpdateScrollState();
+    event.preventDefault();
+  }
+
+  function mixEndPan(event){
+    mixFinalizePan(event, false);
+  }
+
+  function mixCancelPan(event){
+    mixFinalizePan(event, true);
+  }
+
+  function mixFinalizePan(event, canceled){
+    if(!mixPan || event.pointerId !== mixPan.pointerId) return;
+    const {lanes} = mixPan;
+    try{ lanes.releasePointerCapture(event.pointerId); }catch(e){}
+    lanes.removeEventListener('pointermove', mixOnPanPointerMove);
+    lanes.removeEventListener('pointerup', mixEndPan);
+    lanes.removeEventListener('pointercancel', mixCancelPan);
+    mixPan = null;
+    if(canceled) mixPanSuppressClick = false;
+  }
+
+  function mixFinalizeDrag(event, canceled){
+    if(!mixDrag || event.pointerId !== mixDrag.pointerId) return;
+    const {clip, clipEl, placeholder, originTrack, originStart, currentTrack, currentStart, historyCaptured} = mixDrag;
+    try { clipEl.releasePointerCapture(event.pointerId); } catch(e){}
+    clipEl.removeEventListener('pointermove', mixOnClipPointerMove);
+    clipEl.removeEventListener('pointerup', mixOnClipPointerUp);
+    clipEl.removeEventListener('pointercancel', mixOnClipPointerCancel);
+    const movedMeaningful = Math.abs(currentStart - originStart) > 0.0005 || currentTrack !== originTrack;
+    if(!historyCaptured || !movedMeaningful || canceled){
+      if(historyCaptured && mixState.history.length > 0) mixState.history.pop();
+      mixCleanupDragElements();
+      if(clipEl && clipEl.parentNode) clipEl.parentNode.removeChild(clipEl);
+      mixRenderAll();
+      mixDrag = null;
+      return;
+    }
+    const originArr = mixState.tracks[originTrack];
+    if(currentTrack !== originTrack){
+      const idx = originArr.indexOf(clip);
+      if(idx !== -1) originArr.splice(idx, 1);
+      mixState.tracks[currentTrack].push(clip);
+      clip.track = currentTrack;
+    }
+    clip.start = mixRoundSeconds(Math.max(0, currentStart));
+    mixState.tracks[currentTrack].sort((a,b) => a.start - b.start || a.id.localeCompare(b.id));
+    if(currentTrack !== originTrack){
+      originArr.sort((a,b) => a.start - b.start || a.id.localeCompare(b.id));
+    }
+    mixCleanupDragElements();
+    if(clipEl && clipEl.parentNode) clipEl.parentNode.removeChild(clipEl);
+    mixRecalculateDuration();
+    mixSaveToStorage();
+    mixRenderAll();
+    mixScrollClipIntoView(clip);
+    mixDrag = null;
+  }
+
+  function mixOnClipPointerUp(event){
+    mixFinalizeDrag(event, false);
+  }
+
+  function mixOnClipPointerCancel(event){
+    mixFinalizeDrag(event, true);
+  }
+
+  // === Tone.js playback helpers ===
+  function mixCollectPlayableClips(){
+    const start = mixState.playhead;
+    const clips = [];
+    mixState.tracks.forEach(track => {
+      track.forEach(clip => {
+        if(clip.start + clip.duration > start){
+          clips.push(clip);
+        }
+      });
+    });
+    clips.sort((a,b) => a.start - b.start || a.id.localeCompare(b.id));
+    return clips;
+  }
+
+  function isToneAvailable(){
+    return typeof window !== 'undefined' && typeof Tone !== 'undefined' && Tone && typeof Tone.Transport !== 'undefined';
+  }
+
+  async function mixEnsureToneStarted(){
+    if(!isToneAvailable()) throw new Error('Tone.js unavailable');
+    if(!mixAudio.toneStarted){
+      await Tone.start();
+      mixAudio.toneStarted = true;
+    }
+  }
+
+  function mixPlayerKey(soundId, track){
+    return `${soundId}::${track}`;
+  }
+
+  async function mixGetPlayer(sound, track){
+    const key = mixPlayerKey(sound.id, track);
+    if(mixAudio.players.has(key)) return mixAudio.players.get(key);
+    if(mixAudio.loading.has(key)) return mixAudio.loading.get(key);
+    if(!isToneAvailable()) throw new Error('Tone.js unavailable');
+    const promise = new Promise((resolve, reject) => {
+      let player;
+      try {
+        player = new Tone.Player({
+          url: sound.src,
+          autostart: false,
+          onload: () => {
+            mixAudio.players.set(key, player);
+            const dur = player.buffer?.duration;
+            if(isFinite(dur) && dur > 0){
+              const rounded = mixRoundSeconds(dur);
+              mixState.durationCache.set(sound.id, rounded);
+              mixApplyDurationToClips(sound.id, rounded);
+            }
+            resolve(player);
+          },
+          onerror: (err) => {
+            try{ player.dispose(); }catch(e){}
+            reject(err || new Error('load failed'));
+          }
+        }).toDestination();
+      } catch(err){
+        if(player) try{ player.dispose(); }catch(e){}
+        reject(err);
+      }
+    });
+    mixAudio.loading.set(key, promise);
+    return promise.finally(() => mixAudio.loading.delete(key));
+  }
+
+  async function mixEnsurePlayers(clips){
+    const tasks = clips.map(clip => {
+      const sound = state.soundMap.get(clip.soundId);
+      if(!sound) return Promise.resolve();
+      return mixGetPlayer(sound, clip.track);
+    });
+    await Promise.all(tasks);
+  }
+
+  function mixStartTransportMonitor(){
+    mixStopTransportMonitor();
+    const tick = () => {
+      if(!mixState.isPlaying || !isToneAvailable()) return;
+      const elapsed = Tone.now() - mixAudio.startTime;
+      const newPos = mixAudio.startPlayhead + elapsed;
+      mixState.playhead = Math.min(newPos, mixState.timelineDuration);
+      mixRenderPlayhead();
+      mixScrollPlayheadIntoView();
+      mixAudio.rafId = requestAnimationFrame(tick);
+    };
+    mixAudio.rafId = requestAnimationFrame(tick);
+  }
+
+  function mixStopTransportMonitor(){
+    if(mixAudio.rafId){
+      cancelAnimationFrame(mixAudio.rafId);
+      mixAudio.rafId = 0;
+    }
+  }
+
+  async function mixStartPlayback(){
+    if(mixState.isPlaying) return;
+    if(!mixHasClips()){ toast('沒有可播放的片段'); return; }
+    if(!isToneAvailable()){ toast('Tone.js 載入失敗，無法播放'); return; }
+    const clips = mixCollectPlayableClips();
+    if(!clips.length){ toast('播放位置之後沒有音效'); return; }
+    try {
+      await mixEnsureToneStarted();
+      await mixEnsurePlayers(clips);
+    } catch(err){
+      console.error('[mix] player load error', err);
+      toast('音訊載入失敗');
+      return;
+    }
+    try {
+      Tone.Transport.stop();
+      Tone.Transport.cancel();
+      mixAudio.scheduleIds.forEach(id => Tone.Transport.clear(id));
+      mixAudio.scheduleIds = [];
+    } catch(err){ console.warn('[mix] transport reset failed', err); }
+    clips.forEach(clip => {
+      const key = mixPlayerKey(clip.soundId, clip.track);
+      const player = mixAudio.players.get(key);
+      if(!player) return;
+      const startTime = Math.max(0, clip.start - mixState.playhead);
+      const offset = Math.max(0, mixState.playhead - clip.start);
+      const remaining = clip.duration - offset;
+      if(remaining <= 0) return;
+      const id = Tone.Transport.schedule(time => {
+        try{ player.start(time, offset, remaining); }catch(e){ console.warn('[mix] player start failed', e); }
+      }, startTime);
+      mixAudio.scheduleIds.push(id);
+    });
+    const totalRemaining = Math.max(0, mixState.contentDuration - mixState.playhead);
+    if(totalRemaining > 0){
+      const stopId = Tone.Transport.schedule(() => mixStopPlayback(true), totalRemaining + 0.05);
+      mixAudio.scheduleIds.push(stopId);
+    }
+    mixAudio.startPlayhead = mixState.playhead;
+    mixAudio.startTime = Tone.now();
+    mixState.isPlaying = true;
+    mixUpdateControlStates();
+    try {
+      Tone.Transport.start('+0.02');
+    } catch(err){
+      console.error('[mix] transport start error', err);
+      mixState.isPlaying = false;
+      mixUpdateControlStates();
+      toast('播放啟動失敗');
+      return;
+    }
+    mixStartTransportMonitor();
+  }
+
+  function mixStopPlayback(auto=false){
+    if(!isToneAvailable()){
+      mixState.isPlaying = false;
+      mixUpdateControlStates();
+      return;
+    }
+    try {
+      Tone.Transport.stop();
+      Tone.Transport.cancel();
+      mixAudio.scheduleIds.forEach(id => Tone.Transport.clear(id));
+      mixAudio.scheduleIds = [];
+    } catch(err){ console.warn('[mix] transport stop error', err); }
+    mixAudio.players.forEach(player => { try{ player.stop(); }catch(e){} });
+    mixStopTransportMonitor();
+    if(!mixState.isPlaying) return;
+    const elapsed = Tone.now() - mixAudio.startTime;
+    const newPos = mixAudio.startPlayhead + Math.max(0, elapsed);
+    mixState.isPlaying = false;
+    mixSetPlayhead(Math.min(newPos, mixState.contentDuration), {scroll:true, persist:true});
+    if(auto) toast('播放結束');
+    mixUpdateControlStates();
+  }
+
+  function mixTogglePlayback(){
+    if(mixState.isPlaying) mixStopPlayback(false);
+    else mixStartPlayback();
+  }
+
+  function mixShowPanel(scrollToPlayhead = true){
+    if(!els.mixPanel) return;
+    els.mixPanel.classList.remove('hidden');
+    els.mixPanel.setAttribute('aria-hidden','false');
+    mixState.isOpen = true;
+    mixRenderAll();
+    if(scrollToPlayhead) mixScrollPlayheadIntoView();
+  }
+
+  function mixHidePanel(){
+    if(!els.mixPanel) return;
+    els.mixPanel.classList.add('hidden');
+    els.mixPanel.setAttribute('aria-hidden','true');
+    mixState.isOpen = false;
+  }
+
+  function mixAddClipForSound(sound, opts = {}){
+    if(!sound) return null;
+    if(!mixState.initialized) ensureMixPanelReady();
+    mixStageHistory();
+    const duration = mixRoundSeconds(Math.max(0.5, Number(opts.duration) || mixGetDurationForSound(sound)));
+    const start = mixRoundSeconds(Math.max(0, Number.isFinite(opts.start) ? Number(opts.start) : mixState.playhead));
+    let track = Number.isInteger(opts.track) ? Number(opts.track) : mixFindAvailableTrack(start, duration);
+    if(track < 0 || track >= MIX_TRACK_COUNT) track = mixFindAvailableTrack(start, duration);
+    const clip = { id: mixGenerateClipId(), soundId: sound.id, start, duration, track };
+    mixState.tracks[track].push(clip);
+    mixState.tracks[track].sort((a,b) => a.start - b.start);
+    mixRecalculateDuration();
+    mixSaveToStorage();
+    mixRenderAll();
+    mixShowPanel(false);
+    mixScrollClipIntoView(clip);
+    mixRequestDuration(sound, clip);
+    return clip;
+  }
+
+  function handleAddSoundToMix(soundId){
+    const sound = state.soundMap.get(soundId) || state.sounds.find(s => s.id === soundId);
+    if(!sound){
+      toast('找不到音效');
+      return;
+    }
+    ensureMixPanelReady();
+    const clip = mixAddClipForSound(sound);
+    if(clip) toast('已加入混音軌道');
+  }
+
+  function ensureMixPanelReady(){
+    if(mixState.initialized) return;
+    mixState.initialized = true;
+    mixLoadFromStorage();
+    mixRenderAll();
+    if(els.mixScrollHost){
+      els.mixScrollHost.addEventListener('scroll', mixUpdateScrollState, {passive:true});
+      els.mixScrollHost.addEventListener('wheel', mixOnWheelZoom, {passive:false});
+    }
+    if(els.mixScrollRange){
+      els.mixScrollRange.addEventListener('input', mixOnScrollRangeInput);
+    }
+    if(els.mixZoomRange && !els.mixZoomRange.dataset.mixBound){
+      els.mixZoomRange.dataset.mixBound = '1';
+      els.mixZoomRange.setAttribute('min', String(MIX_ZOOM_MIN));
+      els.mixZoomRange.setAttribute('max', String(MIX_ZOOM_MAX));
+      els.mixZoomRange.setAttribute('step', '5');
+      els.mixZoomRange.value = String(Math.round(mixState.pxPerSecond));
+      els.mixZoomRange.addEventListener('input', (ev) => {
+        mixApplyZoom(Number(ev.target.value), {persist:false, maintainCenter:true});
+      });
+      els.mixZoomRange.addEventListener('change', (ev) => {
+        mixApplyZoom(Number(ev.target.value), {persist:true, maintainCenter:true});
+      });
+    } else if(els.mixZoomRange){
+      els.mixZoomRange.value = String(Math.round(mixState.pxPerSecond));
+    }
+    if(els.mixTrackLanes){
+      els.mixTrackLanes.addEventListener('click', mixOnLanesClick);
+      els.mixTrackLanes.addEventListener('pointerdown', mixOnClipPointerDown);
+    }
+    if(els.mixPlayPauseBtn) els.mixPlayPauseBtn.addEventListener('click', mixTogglePlayback);
+    if(els.mixToStartBtn) els.mixToStartBtn.addEventListener('click', mixJumpToStart);
+    if(els.mixToEndBtn) els.mixToEndBtn.addEventListener('click', mixJumpToEnd);
+    if(els.mixUndoBtn) els.mixUndoBtn.addEventListener('click', mixUndo);
+    if(els.mixRedoBtn) els.mixRedoBtn.addEventListener('click', mixRedo);
+    if(els.mixClearBtn) els.mixClearBtn.addEventListener('click', mixOpenConfirmModal);
+    if(els.mixCloseBtn) els.mixCloseBtn.addEventListener('click', () => { mixStopPlayback(false); mixHidePanel(); });
+    if(els.mixConfirmCancel) els.mixConfirmCancel.addEventListener('click', mixCloseConfirmModal);
+    if(els.mixConfirmAccept) els.mixConfirmAccept.addEventListener('click', () => { mixClearAllTracks({silent:false}); mixCloseConfirmModal(); });
+    if(els.mixConfirmModal){
+      els.mixConfirmModal.addEventListener('click', (ev) => {
+        if(ev.target === els.mixConfirmModal) mixCloseConfirmModal();
+      });
+    }
+    document.addEventListener('keydown', mixHandleGlobalKeydown);
+    if(els.openMixBtn && !els.openMixBtn.dataset.mixBound){
+      els.openMixBtn.dataset.mixBound = '1';
+      els.openMixBtn.addEventListener('click', () => {
+        ensureMixPanelReady();
+        mixShowPanel(true);
+      });
+    }
+    mixUpdateControlStates();
+  }
 
   /**
    * URL 同步工具：將當前搜尋條件封裝為 URLSearchParams
@@ -1048,9 +2412,9 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
   /** Toast 提示顯示小資訊
    * 可傳入顯示時間（毫秒）；若為 0 則不會自動隱藏
    * @param {string} msg
-   * @param {number} [duration=1400]
+   * @param {number} [duration=2200]
    */
-  function toast(msg, duration = 3000){
+  function toast(msg, duration = 2200){
     const t = els.toast;
     if(!t) return;
     // 清除舊的計時器
@@ -1079,13 +2443,18 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
       toast('已複製分享連結');
       const card = utils.byId('snd-'+snd.id);
     });
+    const addToMix = dom.el('div', {class:'menu-item', role:'menuitem', tabindex:'0'}, '加入軌道');
+    addToMix.addEventListener('click', () => {
+      closeMenu();
+      handleAddSoundToMix(snd.id);
+    });
     // 下載音檔項目
     const dl = dom.el('div', {class:'menu-item', role:'menuitem', tabindex:'0'}, '下載音檔');
     dl.addEventListener('click', () => {
       closeMenu();
       utils.download(snd.src, snd.file);
     });
-    m.append(share, dl);
+    m.append(share, addToMix, dl);
     m.classList.remove('hidden');
     // 定位選單：確保元素有尺寸後再計算
     requestAnimationFrame(() => positionMenu(x, y));
@@ -1297,6 +2666,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
       const id = s.id || s.file.replace(/^.*[\\\/]/, '');
       return { id, src: withV(`sounds/${s.file}`),file: s.file, title: s.title, tags: s.tags.slice() };
     });
+    state.soundMap = new Map(state.sounds.map(s => [s.id, s]));
     // 保存一份原始載入順序的淺拷貝，供「預設順序」還原使用
     state.defaultSoundsSnapshot = state.sounds.map(s => ({ ...s }));
     // 計算哪些標籤被使用到，以供標籤一覽
@@ -1413,7 +2783,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
   function toggleFavorite(id, btn){
     // 在最愛排序（編輯）模式中禁止新增或移除最愛，增加robust性
     if(state.isSorting){
-      if (typeof toast === 'function') toast('正在編輯最愛排序，無法變更最愛', 1200);
+      if (typeof toast === 'function') toast('正在編輯最愛排序，無法變更最愛');
       return;
     }
     if(state.favSet.has(id)){
@@ -1604,6 +2974,7 @@ if(els.shareFavBtn){
   loadConfig().then(() => {
     applyURLToState();
     renderTagList();
+    ensureMixPanelReady();
     showPage(state.page);
     render();
     focusSoundFromURL();
@@ -1803,7 +3174,7 @@ function setupConcentrationGame() {
       // 若提供 avatar 則顯示圖片，否則以安全方式顯示名字的縮寫字母
       const backContent = card.avatar
         ? `<img src="${withV(card.avatar)}" alt="${card.streamerName}">`
-        : `<div style="font-weight:700;color:var(--muted);font-size:12px">${escapeHtmlInitials(card.streamerName)}</div>`;
+        : `<div style="font-weight:700;color:var(--muted);font-size:12px">${card.streamerName}</div>`;
       cardEl.innerHTML = `
         <div class="cg-card-inner">
           <div class="cg-card-front"></div>
@@ -1822,14 +3193,6 @@ function setupConcentrationGame() {
       });
       boardEl.appendChild(cardEl);
     });
-  }
-
-  // 小工具：安全地產生名字縮寫（避免 HTML 注入）
-  function escapeHtmlInitials(name){
-    if(!name) return '';
-    // 取出名字中前兩個非空白字元作為縮寫
-    const chars = name.replace(/\s+/g,'').slice(0,2);
-    return String(chars).replace(/[&<>\"]/g, '');
   }
 
   let currentAudio = null;
@@ -1980,7 +3343,10 @@ function setupConcentrationGame() {
       timerEl.textContent = formatTime(timer);
     }, 1000);
   }
-  function stopTimer() { if (timerId) clearInterval(timerId); timerId = null; }
+  function stopTimer() { 
+    if (timerId) clearInterval(timerId);
+    timerId = null;
+  }
 
   function endGame() {
     running = false;

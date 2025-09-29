@@ -2,16 +2,11 @@
 # -*- coding: utf-8 -*-
 
 """
-轉音檔_v2.py
-改進項目：
-1) 兩段式 EBU R128 loudnorm（分析->套用），目標 I / TP / LRA 可調，預設 I=-14 LUFS, TP=-1.5 dB, LRA=11。
-2) tqdm 進度條 + ProcessPoolExecutor 並行處理（自動偵測 CPU 核心，或用 --workers 自訂）。
-3) 更完整錯誤輸出：彙總每個檔案的 ffmpeg/ffprobe 錯誤訊息。
-4) MP3 取樣率判斷：若輸入 MP3 的取樣率已是 32 kHz（或 --sample-rate 指定值），則不更改取樣率；否則才重設取樣率。
-   另外「不需要重新更改取樣率與比特率」的檔案仍會做音量標準化（會重新編碼，但維持原取樣率與平均位元率）。
-5) 預設輸入/輸出資料夾未指定時，改為以「這支 .py 腳本所在路徑」為基準：
-   - 預設 input_dir = 腳本所在資料夾
-   - 預設 output_dir = input_dir / 已轉換
+轉音檔_v2_fallback.py
+在原 v2 基礎上增加：
+- 當兩段式 EBU R128 loudnorm（分析→套用）失敗時，針對該檔自動改用「單段式 loudnorm」作為後備方案，
+  以提高穩健性；成功時會於訊息中標註（fallback）。
+- 其餘行為與參數維持一致（I/TP/LRA、取樣率、聲道/編碼策略等）。
 
 支援副檔名：.mp4 .mp3 .m4a .wav .flac
 需要：系統可執行 ffmpeg/ffprobe。
@@ -58,7 +53,6 @@ def run_cmd(cmd: list) -> Tuple[int, str, str]:
             stderr=subprocess.PIPE,
             check=False,
         )
-        # ffmpeg/ffprobe 的訊息多半在 stderr，保留原樣（含換行與轉義）
         out = p.stdout.decode(errors="replace")
         err = p.stderr.decode(errors="replace")
         return p.returncode, out, err
@@ -86,9 +80,8 @@ def ffprobe_audio_info(path: Path) -> Dict:
     if not streams:
         raise RuntimeError("找不到音訊串流（可能是損毀檔或不支援格式）")
     s = streams[0]
-    # 轉型
     sample_rate = int(s.get("sample_rate") or 0)
-    bit_rate = int(s.get("bit_rate") or 0)  # 平均位元率（含 VBR 時之平均）
+    bit_rate = int(s.get("bit_rate") or 0)
     channels = int(s.get("channels") or 0)
     codec_name = s.get("codec_name") or ""
     return {
@@ -116,7 +109,6 @@ def build_measure_cmd(in_path: Path, target: LoudnormTarget) -> list:
 
 def parse_measurement(stderr_text: str) -> Dict[str, float]:
     """從 ffmpeg loudnorm stderr 擷取 JSON 區塊並回傳 dict。"""
-    # ffmpeg 會把 JSON 印在 stderr，找第一個 JSON 區塊
     start = stderr_text.find("{")
     end = stderr_text.rfind("}")
     if start == -1 or end == -1 or end <= start:
@@ -133,6 +125,38 @@ def parse_measurement(stderr_text: str) -> Dict[str, float]:
     return needed
 
 
+def _encode_args_for(src_info: Dict, keep_channels: bool, target_sr: int) -> list:
+    """依來源資訊決定 mp3 編碼參數與取樣率/聲道設定。"""
+    audio_args = ["-c:a", "libmp3lame"]
+
+    # 取樣率策略（與原版相同）：
+    # - 若輸入是 mp3 且取樣率 == target_sr -> 不更改取樣率（維持原值）
+    # - 否則 -> 設定為 target_sr
+    set_ar = None
+    if src_info.get("codec_name") == "mp3" and src_info.get("sample_rate") == target_sr:
+        set_ar = None
+    else:
+        set_ar = target_sr
+
+    # 位元率策略：
+    # - 若是 mp3 並且未更改取樣率 -> 儘量維持原平均位元率（-b:a 指定 kbps）
+    # - 其他情況 -> 採用 VBR V4（-q:a 4）
+    if set_ar is None:
+        if src_info.get("codec_name") == "mp3" and src_info.get("bit_rate", 0) > 0:
+            kbps = max(32, int(math.floor(src_info["bit_rate"] / 1000)))
+            audio_args += ["-b:a", f"{kbps}k"]
+        else:
+            audio_args += ["-q:a", "4"]
+    else:
+        audio_args += ["-q:a", "4", "-ar", str(set_ar)]
+
+    if not keep_channels:
+        audio_args += ["-ac", "1"]
+
+    audio_args += ["-id3v2_version", "3"]
+    return audio_args
+
+
 def build_apply_cmd(
     in_path: Path,
     out_path: Path,
@@ -142,10 +166,7 @@ def build_apply_cmd(
     target: LoudnormTarget,
     force_overwrite: bool,
 ) -> list:
-    """建立套用階段指令：根據輸入檔資訊決定是否重設取樣率/位元率。"""
-    # 兩段式 loudnorm 需要把第一段的量測值帶入第二段
-    # 注意：實際的 measured_* 值會以 -filter:a loudnorm=...:measured_*:... 帶入
-    # 先用一個 placeholder，稍後再用實值替換（由 process_one() 負責）
+    """建立兩段式 loudnorm 套用階段指令；measured_* 由外層補上。"""
     loudnorm_apply = (
         "loudnorm=I={I}:TP={TP}:LRA={LRA}:"
         "measured_I={mI}:measured_TP={mTP}:measured_LRA={mLRA}:"
@@ -158,39 +179,55 @@ def build_apply_cmd(
     cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error"]
     cmd += ["-y" if force_overwrite else "-n"]
     cmd += ["-i", str(in_path), "-vn", "-map_metadata", "0"]
-
-    # 取樣率策略：
-    # - 若輸入是 mp3 且取樣率 == target_sr -> 不更改取樣率（維持原值）
-    # - 否則 -> 設定為 target_sr
-    set_ar = None
-    if src_info.get("codec_name") == "mp3" and src_info.get("sample_rate") == target_sr:
-        set_ar = None  # 不指定 -ar，維持原取樣率（已符合目標）
-    else:
-        set_ar = target_sr
-
-    # 位元率策略：
-    # - 若是 mp3 且「不需更改取樣率」-> 儘量維持原平均位元率（用 -b:a 指定 kbps）
-    # - 其他情況 -> 採用 VBR V4（-q:a 4）
-    audio_args = ["-c:a", "libmp3lame"]
-    if set_ar is None:
-        # 維持原取樣率
-        if src_info.get("codec_name") == "mp3" and src_info.get("bit_rate", 0) > 0:
-            kbps = max(32, int(math.floor(src_info["bit_rate"] / 1000)))
-            audio_args += ["-b:a", f"{kbps}k"]
-        else:
-            audio_args += ["-q:a", "4"]  # 不保證有 bit_rate 可用，退回 VBR V4
-    else:
-        audio_args += ["-q:a", "4", "-ar", str(set_ar)]
-
-    if not keep_channels:
-        audio_args += ["-ac", "1"]
-
-    audio_args += ["-id3v2_version", "3"]
-
     cmd += ["-af", loudnorm_apply]
-    cmd += audio_args
+    cmd += _encode_args_for(src_info, keep_channels, target_sr)
     cmd += [str(out_path)]
     return cmd
+
+
+def build_singlepass_cmd(
+    in_path: Path,
+    out_path: Path,
+    keep_channels: bool,
+    target_sr: int,
+    src_info: Dict,
+    target: LoudnormTarget,
+    force_overwrite: bool,
+) -> list:
+    """建立單段式 loudnorm 後備方案指令（不需分析 JSON）。"""
+    loudnorm_single = f"loudnorm=I={target.I}:TP={target.TP}:LRA={target.LRA}"
+    cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error"]
+    cmd += ["-y" if force_overwrite else "-n"]
+    cmd += ["-i", str(in_path), "-vn", "-map_metadata", "0"]
+    cmd += ["-af", loudnorm_single]
+    cmd += _encode_args_for(src_info, keep_channels, target_sr)
+    cmd += [str(out_path)]
+    return cmd
+
+
+def _try_fallback_singlepass(
+    in_path: Path,
+    out_path: Path,
+    keep_channels: bool,
+    target_sr: int,
+    src_info: Dict,
+    target: LoudnormTarget,
+) -> Tuple[bool, str]:
+    """執行單段式 loudnorm 後備方案；回傳 (ok, detail_message)。"""
+    fallback_cmd = build_singlepass_cmd(
+        in_path=in_path,
+        out_path=out_path,
+        keep_channels=keep_channels,
+        target_sr=target_sr,
+        src_info=src_info,
+        target=target,
+        force_overwrite=True,  # 後備重試時強制覆寫，避免殘留不完整輸出擋住
+    )
+    rc, fo, fe = run_cmd(fallback_cmd)
+    if rc == 0:
+        return True, f"(已使用單段式 loudnorm 後備方案)\n指令：{' '.join(fallback_cmd)}"
+    else:
+        return False, f"(後備方案失敗)\n指令：{' '.join(fallback_cmd)}\n錯誤：\n{fe.strip()}"
 
 
 def process_one(
@@ -210,11 +247,15 @@ def process_one(
     # Pass 1: 測量 loudnorm
     rc1, m_out, m_err = run_cmd(build_measure_cmd(in_path, target))
     if rc1 != 0:
-        return (str(out_path), False, f"loudnorm 量測失敗\n{m_err.strip()}")
+        # 直接嘗試後備方案
+        ok, detail = _try_fallback_singlepass(in_path, out_path, keep_channels, target_sr, src, target)
+        return (str(out_path), ok, f"兩段式 loudnorm 量測失敗\n{m_err.strip()}\n{detail}")
+
     try:
         m = parse_measurement(m_err)
     except Exception as e:
-        return (str(out_path), False, f"解析 loudnorm 量測輸出失敗：{e}\n原始輸出：\n{m_err.strip()}")
+        ok, detail = _try_fallback_singlepass(in_path, out_path, keep_channels, target_sr, src, target)
+        return (str(out_path), ok, f"解析 loudnorm 量測輸出失敗：{e}\n原始輸出：\n{m_err.strip()}\n{detail}")
 
     # Pass 2: 套用 loudnorm（帶入量測值）
     apply_cmd = build_apply_cmd(
@@ -226,7 +267,6 @@ def process_one(
         target=target,
         force_overwrite=force_overwrite,
     )
-    # 將 placeholder 替換成實際值（避免在 build 時就組字串過長不易讀）
     for i, token in enumerate(apply_cmd):
         if isinstance(token, str) and token.startswith("loudnorm="):
             apply_cmd[i] = token.format(
@@ -237,7 +277,8 @@ def process_one(
 
     rc2, a_out, a_err = run_cmd(apply_cmd)
     if rc2 != 0:
-        return (str(out_path), False, f"loudnorm 套用/轉檔失敗\n指令：{' '.join(apply_cmd)}\n錯誤：\n{a_err.strip()}")
+        ok, detail = _try_fallback_singlepass(in_path, out_path, keep_channels, target_sr, src, target)
+        return (str(out_path), ok, f"兩段式 loudnorm 套用/轉檔失敗\n指令：{' '.join(apply_cmd)}\n錯誤：\n{a_err.strip()}\n{detail}")
 
     return (str(out_path), True, "OK")
 
@@ -250,7 +291,6 @@ def collect_inputs(input_dir: Path, output_dir: Path) -> Tuple[list, int]:
     """收集需處理的檔案清單 (in_path, out_path) ，並建立對應資料夾。"""
     pairs = []
     for root, dirs, files in os.walk(input_dir):
-        # 過濾：不要走進輸出資料夾以及任何名為 DEFAULT_OUT_DIR_NAME 的資料夾
         dirs[:] = [
             d for d in dirs
             if d != DEFAULT_OUT_DIR_NAME and (Path(root) / d).resolve() != output_dir.resolve()
@@ -279,33 +319,32 @@ def main():
     script_dir = Path(__file__).resolve().parent
 
     parser = argparse.ArgumentParser(
-        prog="轉音檔_v2.py",
+        prog="轉音檔_v2_fallback.py",
         formatter_class=argparse.RawTextHelpFormatter,
         description=(
-            "將資料夾內 mp4/mp3/m4a/wav/flac 批次轉為 MP3，並以兩段式 loudnorm 正規化。\n"
-            "MP3 取樣率若已符合目標，則不更改取樣率與平均位元率（仍會做 loudnorm）。"
+            "將資料夾內 mp4/mp3/m4a/wav/flac 批次轉為 MP3，先試兩段式 loudnorm，若失敗則自動改用單段式 loudnorm。\n"
+            "MP3 取樣率若已符合目標，則不更改取樣率與平均位元率（仍會做標準化）。"
         ),
         epilog=(
             "範例：\n"
             "  # 1) 預設：處理腳本所在資料夾，輸出到 ./已轉換/\n"
-            "  python 轉音檔_v2.py\n\n"
+            "  python 轉檔v2_fallback.py\n\n"
             "  # 2) 指定輸入與輸出資料夾\n"
-            "  python 轉音檔_v2.py /path/to/in -o /path/to/out\n\n"
+            "  python 轉檔v2_fallback.py /path/to/in -o /path/to/out\n\n"
             "  # 3) 保留原聲道（預設會 downmix 單聲道）\n"
-            "  python 轉音檔_v2.py --stereo\n\n"
+            "  python 轉檔v2_fallback.py --stereo\n\n"
             "  # 4) 自訂目標取樣率（預設 32000 Hz）\n"
-            "  python 轉音檔_v2.py --sample-rate 44100\n\n"
+            "  python 轉檔v2_fallback.py --sample-rate 44100\n\n"
             "  # 5) 指定並行工作數（預設為 CPU 核心數）\n"
-            "  python 轉音檔_v2.py --workers 8\n\n"
+            "  python 轉檔v2_fallback.py --workers 8\n\n"
             "  # 6) 乾跑（僅列出分析與轉檔指令）\n"
-            "  python 轉音檔_v2.py --dry-run\n"
+            "  python 轉檔v2_fallback.py --dry-run\n"
         ),
     )
 
     parser.add_argument("input_dir", nargs="?", default=str(script_dir), help="輸入資料夾（預設：腳本所在資料夾）")
     parser.add_argument("-o", "--output", default=None, help=f"輸出資料夾（預設：<input_dir>/{DEFAULT_OUT_DIR_NAME}）")
     parser.add_argument("--stereo", "--keep-channels", dest="keep_channels", action="store_true", help="保留原有聲道（預設：單聲道 downmix）")
-    parser.add_argument("--no-normalize", dest="normalize", action="store_false", help="停用 loudness 正規化（不建議）")
     parser.add_argument("--force", action="store_true", help="若輸出檔已存在，強制覆寫（預設：略過已存在檔案）")
     parser.add_argument("--dry-run", action="store_true", help="僅顯示將執行的指令，不實際進行轉檔")
     parser.add_argument("--sample-rate", type=int, default=32000, help="目標取樣率（Hz），預設 32000")
@@ -342,16 +381,18 @@ def main():
     print(f"模式：{'乾跑' if args.dry_run else '實際轉檔'}\n")
 
     if args.dry_run:
-        # 僅展示將會跑的兩階段指令（以第一個檔案示意）
+        # 僅展示將會跑的指令（以第一個檔案示意）
         sample = pairs[0]
         try:
             info = ffprobe_audio_info(sample[0])
         except Exception as e:
             print(f"[DRY-RUN] ffprobe 失敗：{e}")
             return
-        print("[DRY-RUN] 量測指令：", " ".join(build_measure_cmd(sample[0], target)))
+        print("[DRY-RUN] 兩段式量測指令：", " ".join(build_measure_cmd(sample[0], target)))
         dummy_apply = build_apply_cmd(sample[0], sample[1], args.keep_channels, args.sample_rate, info, target, True)
-        print("[DRY-RUN] 套用指令（值將以量測結果替換）：", " ".join(dummy_apply))
+        print("[DRY-RUN] 兩段式套用指令（值將以量測結果替換）：", " ".join(dummy_apply))
+        dummy_fallback = build_singlepass_cmd(sample[0], sample[1], args.keep_channels, args.sample_rate, info, target, True)
+        print("[DRY-RUN] 後備（單段式 loudnorm）指令：", " ".join(dummy_fallback))
         return
 
     # 去除已存在且不覆寫的項目
@@ -404,7 +445,6 @@ def main():
     if error_logs:
         print("\n=== 失敗/錯誤詳細 ===")
         for log in error_logs:
-            # 直接印出完整錯誤（包含 ffmpeg/ffprobe 回傳）
             print(log)
 
 
