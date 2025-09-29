@@ -357,6 +357,16 @@ body::before {
   }
   .mix-clip:active{cursor:grabbing;}
   .mix-clip.dragging{opacity:0.85; box-shadow:0 2px 5px rgba(0,0,0,0.55); cursor:grabbing;}
+  /* Touch / selection tweaks to ensure mobile can drag clips instead of opening native menus */
+  .mix-scroll-host, .mix-track-lanes, .mix-clip {
+    -webkit-touch-callout: none; /* iOS: disable callout on long press */
+    -webkit-user-select: none;   /* Safari */
+    user-select: none;          /* Prevent text selection while dragging */
+  }
+  /* For pointer-based dragging we disable default touch actions inside the timeline
+     and implement panning/dragging via pointer events. This prevents long-press
+     context menus on many mobile browsers. */
+  .mix-scroll-host, .mix-track-lanes, .mix-clip { touch-action: none; }
   .mix-clip-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;}
   .mix-clip-remove{
     position:absolute;
@@ -890,7 +900,7 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
   /**
    * 檔案版本字串：每次部署變更此值，可確保抓取最新資料並強制 CDN/瀏覽器重新載入。
    */
-  const VERSION = 'ver2025-09-29-1';
+  const VERSION = 'ver2025-09-29-2';
 
   /**
    * 為給定的 URL 附加版本字串 (?v=<VERSION>)。如果已有查詢參數則加 &。
@@ -2181,6 +2191,11 @@ header h1 { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
     if(els.mixTrackLanes){
       els.mixTrackLanes.addEventListener('click', mixOnLanesClick);
       els.mixTrackLanes.addEventListener('pointerdown', mixOnClipPointerDown);
+      // Prevent native context menu and text selection on mobile long-press so pointer drag works
+      try{
+        els.mixTrackLanes.addEventListener('contextmenu', (e) => { e.preventDefault(); });
+        els.mixTrackLanes.addEventListener('selectstart', (e) => { e.preventDefault(); });
+      }catch(e){ /* ignore */ }
     }
     if(els.mixPlayPauseBtn) els.mixPlayPauseBtn.addEventListener('click', mixTogglePlayback);
     if(els.mixToStartBtn) els.mixToStartBtn.addEventListener('click', mixJumpToStart);
