@@ -287,10 +287,12 @@ def should_process_file(p: Path) -> bool:
     return p.is_file() and p.suffix.lower() in SUPPORTED_EXTS
 
 
-def collect_inputs(input_dir: Path, output_dir: Path) -> Tuple[list, int]:
+def collect_inputs(input_dir: Path, output_dir: Path, recursive: bool = False) -> Tuple[list, int]:
     """收集需處理的檔案清單 (in_path, out_path) ，並建立對應資料夾。"""
     pairs = []
     for root, dirs, files in os.walk(input_dir):
+        if not recursive:
+            dirs[:] = []  # 只處理第一層
         dirs[:] = [
             d for d in dirs
             if d != DEFAULT_OUT_DIR_NAME and (Path(root) / d).resolve() != output_dir.resolve()
@@ -325,25 +327,15 @@ def main():
             "將資料夾內 mp4/mp3/m4a/wav/flac 批次轉為 MP3，先試兩段式 loudnorm，若失敗則自動改用單段式 loudnorm。\n"
             "MP3 取樣率若已符合目標，則不更改取樣率與平均位元率（仍會做標準化）。"
         ),
-        epilog=(
-            "範例：\n"
-            "  # 1) 預設：處理腳本所在資料夾，輸出到 ./已轉換/\n"
-            "  python 轉檔v2_fallback.py\n\n"
-            "  # 2) 指定輸入與輸出資料夾\n"
-            "  python 轉檔v2_fallback.py /path/to/in -o /path/to/out\n\n"
-            "  # 3) 保留原聲道（預設會 downmix 單聲道）\n"
-            "  python 轉檔v2_fallback.py --stereo\n\n"
-            "  # 4) 自訂目標取樣率（預設 32000 Hz）\n"
-            "  python 轉檔v2_fallback.py --sample-rate 44100\n\n"
-            "  # 5) 指定並行工作數（預設為 CPU 核心數）\n"
-            "  python 轉檔v2_fallback.py --workers 8\n\n"
-            "  # 6) 乾跑（僅列出分析與轉檔指令）\n"
-            "  python 轉檔v2_fallback.py --dry-run\n"
-        ),
+        epilog=("使用說明：python 轉檔v3.py -i <輸入> -o <輸出> [選項]")
     )
+    # === 統一 CLI ===
+    parser.add_argument("input_dir_pos", nargs="?", default=None, help="輸入資料夾（無旗標位置參數）")
+    parser.add_argument("-i","--input", dest="input_dir_cli", default=None, help="輸入資料夾")
+    parser.add_argument("-o","--output", required=True, help="輸出資料夾（必填）")
+    parser.add_argument("--recursive", action="store_true", help="遞迴處理子目錄（預設：否）")
 
     parser.add_argument("input_dir", nargs="?", default=str(script_dir), help="輸入資料夾（預設：腳本所在資料夾）")
-    parser.add_argument("-o", "--output", default=None, help=f"輸出資料夾（預設：<input_dir>/{DEFAULT_OUT_DIR_NAME}）")
     parser.add_argument("--stereo", "--keep-channels", dest="keep_channels", action="store_true", help="保留原有聲道（預設：單聲道 downmix）")
     parser.add_argument("--force", action="store_true", help="若輸出檔已存在，強制覆寫（預設：略過已存在檔案）")
     parser.add_argument("--dry-run", action="store_true", help="僅顯示將執行的指令，不實際進行轉檔")
@@ -355,17 +347,17 @@ def main():
 
     args = parser.parse_args()
 
-    input_dir = Path(args.input_dir).resolve()
+    input_dir = Path(getattr(args, "input_dir_cli", None) or getattr(args, "input_dir_pos", None) or os.getcwd()).resolve()
     if not input_dir.exists() or not input_dir.is_dir():
         print(f"錯誤：輸入路徑不存在或不是資料夾：{input_dir}", file=sys.stderr)
         sys.exit(1)
 
-    output_dir = Path(args.output).resolve() if args.output else (input_dir / DEFAULT_OUT_DIR_NAME).resolve()
+    output_dir = Path(args.output).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
     target = LoudnormTarget(I=args.I, TP=args.TP, LRA=args.LRA)
 
-    pairs, total = collect_inputs(input_dir, output_dir)
+    pairs, total = collect_inputs(input_dir, output_dir, args.recursive)
     if total == 0:
         print("沒有可處理的檔案。支援：.mp4 .mp3 .m4a .wav .flac")
         return

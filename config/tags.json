@@ -6,6 +6,7 @@
   { "key": "瓦哈",    "name": "瓦哈",     "color": "#36c7b3", "role": "streamer", "avatar": "avatars/wahaha.png" },
   { "key": "花雕雞",  "name": "花雕雞",   "color": "#c9c9c9", "role": "streamer", "avatar": "avatars/huadiaog.png" },
   { "key": "鼠ki雅",  "name": "鼠ki雅",   "color": "#ba8e54", "role": "streamer", "avatar": "avatars/shukiya.png" },
+  { "key": "馬鈴鼠",  "name": "馬鈴鼠",   "color": "#a5b3b8", "role": "streamer", "avatar": "avatars/malingshu.png" },
 
   { "key": "髒話",    "name": "髒話",   "color": "#e5595a", "role": "category" },
   { "key": "罵",      "name": "罵",     "color": "#e16144", "role": "category" },

@@ -191,6 +191,14 @@ def main(argv=None) -> None:
     )
     args = parser.parse_args(argv)
 
+    # 允許位置參數作為輸入根目錄別名
+    try:
+        import sys as _sys
+        extra_pos = [a for a in _sys.argv[1:] if not a.startswith("-")]
+        if extra_pos and hasattr(args, "input_root"):
+            args.input_root = extra_pos[0]
+    except Exception:
+        pass
     data = build_index(args.input_root)
     write_output(data, args.output_path)
 
