@@ -61,12 +61,22 @@ def transform_filename(original_name: str) -> str:
     # 先處理方括弧與其空白
     base = normalize_brackets_whitespace(base)
 
-    # "_" → "-"
-    base = base.replace("_", "-")
+    # dash統一化
     base = base.replace("－", "-")
     base = base.replace("╴", "-")
     base = base.replace("–", "-")
     base = base.replace("—", "-")
+    
+    base = base.replace("萬_", "萬-")
+    base = base.replace("狗_", "狗-")
+    base = base.replace("豹_", "豹-")
+    base = base.replace("貓_", "貓-")
+    base = base.replace("瓦_", "瓦-")
+    base = base.replace("鼠_", "鼠-")
+    base = base.replace("雞_", "雞-")
+    
+    # 統一SUS大小寫
+    base = base.replace("[sus]", "[SUS]")
 
     # "-" 左右不保留空白
     base = re.sub(r"\s*-\s*", "-", base)
