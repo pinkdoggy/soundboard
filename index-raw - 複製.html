@@ -823,7 +823,7 @@
       background: var(--bg);
       border: 1px solid var(--glass-border);
       border-radius: 12px;
-      padding: 12px 12px;
+      padding: 18px 20px;
       max-width: 320px;
       box-shadow: var(--shadow);
     }
@@ -1052,9 +1052,8 @@
         <button class="tab active" data-page="home">主頁</button>
         <button class="tab" data-page="game">小遊戲</button>
         <!-- <button class="tab" data-page="bg" id="tab-bg">背景</button> -->
-  <button class="tab" data-page="about">關於</button>
-  <button class="tab" data-page="awards">票選結果</button>
-  <button id="settingsBtn" class="tab" aria-label="設定">設定</button>
+        <button class="tab" data-page="about">關於</button>
+        <button id="themeBtn" class="theme-toggle" aria-label="切換主題">電燈開關</button>
       </nav>
 
     </header>
@@ -1392,8 +1391,8 @@
     </div>
     -->
 
-  <!-- 關於分頁 -->
-  <div id="page-about" class="hidden">
+    <!-- 關於分頁 -->
+    <div id="page-about" class="hidden">
       <div class="about-content">
         <p>本站由粉肝製作，並非由厭世醫師阿萬官方經營。音效內容皆是粉肝去脈絡式、斷章取義的剪輯，僅供娛樂。最後更新時間：2025/10/4。</p>
 
@@ -1416,60 +1415,7 @@
       <div class="bg-credit"><a href="https://x.com/jiauwu_0730" target="_blank" rel="noopener">背景插畫由 Jia 繪製</a></div>
 
     </div>
-
-    <!-- 票選結果分頁 -->
-    <div id="page-awards" class="hidden">
-    
-      <style>
-        #page-awards .awards-grid {
-          display: grid;
-          gap: 4px;
-          grid-template-columns: repeat(4, minmax(120px, 240px));
-          align-items: center;
-          justify-items: center;
-          justify-content: center; /* center the grid tracks when total width is less than container */
-        }
-        @media (max-width: 700px) {
-          #page-awards .awards-grid {
-            grid-template-columns: repeat(2, minmax(120px, 240px));
-            justify-content: center;
-          }
-        }
-        #page-awards .awards-grid img { width: 100%; height: auto; display: block; max-width: 100%; object-fit: cover; }
-        /* ensure sound card titles inside awards page keep left alignment (override parent text-align:center) */
-        #page-awards .grid .title { text-align: left; }
-      </style>
-      <div style="max-width:1100px;margin:0 auto;padding:18px;">
-        <h2 style="text-align:center">第一屆音效板爭霸戰</h2>
-        <div style="text-align:center;margin:12px 0">
-          <div class="awards-grid">
-            <img src="/assets/awards/1-1.jpg" alt="第一屆貓下去" />
-            <img src="/assets/awards/1-2.jpg" alt="第一屆Matsuko" />
-            <img src="/assets/awards/1-3.jpg" alt="第一屆豹子頭" />
-            <img src="/assets/awards/1-4.jpg" alt="第一屆瓦哈" />
-          </div>
-        <h3>獲獎區（前十名）</h3>
-        <div id="awards-top10" class="grid"></div>
-        <h3 style="margin-top:18px">入圍獎（後20名）</h3>
-        <div id="awards-next20" class="grid"></div>
-      </div>
-    </div>
   </div>
-
-    <!-- 設定 Modal（站內所有設定：音量 / 主題開關 等） -->
-    <div id="settingsModal" class="mix-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
-      <div class="mix-modal">
-        <h3 id="settingsTitle" style="margin-top: 0px;margin-bottom: 12px;">設定</h3>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <button id="themeBtn" class="mix-btn" type="button">電燈開關</button>
-          <label for="settingsVolume">播放音量： <span id="settingsVolumeValue">100%</span></label>
-          <input id="settingsVolume" type="range" min="0" max="100" step="1" value="100" />
-          <div style="display:flex;justify-content:flex-end;margin-top:6px;gap:8px;">
-            <button id="settingsClose" class="mix-btn" type="button">關閉</button>
-          </div>
-        </div>
-      </div>
-    </div>
 
   <!-- 混音軌道面板 -->
   <div id="mixPanel" class="mix-panel hidden" aria-hidden="true" role="region" aria-label="混音軌道控制">
@@ -1573,8 +1519,7 @@
         favGrid: document.getElementById('favGrid'),
         empty: document.getElementById('empty'),
         favEmpty: document.getElementById('favEmpty'),
-  settingsBtn: document.getElementById('settingsBtn'),
-  themeBtn: document.getElementById('themeBtn'),
+        themeBtn: document.getElementById('themeBtn'),
         stage: document.getElementById('stage'),
         clearBtn: document.getElementById('clearBtn'),
         get menu() { return document.getElementById('menu'); },
@@ -1600,14 +1545,8 @@
         // 分頁容器
         pageHome: document.getElementById('page-home'),
         pageGame: document.getElementById('page-game'),
-    pageAbout: document.getElementById('page-about'),
-  pageawards: document.getElementById('page-awards'),
-  pageBg: document.getElementById('page-bg'),
-    // settings modal elements (added)
-    settingsModal: document.getElementById('settingsModal'),
-    settingsClose: document.getElementById('settingsClose'),
-    settingsVolume: document.getElementById('settingsVolume'),
-    settingsVolumeValue: document.getElementById('settingsVolumeValue'),
+        pageAbout: document.getElementById('page-about'),
+        pageBg: document.getElementById('page-bg'),
         navToggle: document.getElementById('navToggle'),
         // 導覽標籤（動態抓取）
         get navTabs() { return document.querySelectorAll('.tab'); },
@@ -1617,8 +1556,6 @@
         receivedSection: document.getElementById('receivedSection'),
         receivedGrid: document.getElementById('receivedGrid'),
         receivedHeader: document.getElementById('receivedHeader'),
-  awardsTop10: document.getElementById('awards-top10'),
-  awardsNext20: document.getElementById('awards-next20'),
         // 最愛排序/分享與洗牌按鈕
         sortFavBtn: document.getElementById('sortFavBtn'),
         doneSortBtn: document.getElementById('doneSortBtn'),
@@ -1661,54 +1598,6 @@
 
       // 初始同步 favorites Set 供快速查詢
       state.favSet = new Set(state.favorites);
-
-      // 全域音量（0.0 - 1.0），從 localStorage 載入，預設 1.0（100%）
-      state.globalVolume = (function () {
-        try {
-          const v = localStorage.getItem('globalVolume');
-          if (v !== null) {
-            const n = Number(v);
-            if (!isNaN(n) && n >= 0 && n <= 1) return n;
-          }
-        } catch (e) { }
-        return 1.0;
-      })();
-
-      function applyVolumeToAudio(a) {
-        try { if (a && typeof a.volume === 'number') a.volume = state.globalVolume; } catch (e) { }
-      }
-
-      /**
-       * 建立一個 Audio 播放器並啟動播放。會自動套用全域音量並綁定常用 callback。
-       * @param {string} src 音檔 URL
-       * @param {{snd?:object, onPlay?:function, onEnded?:function, preload?:string, loop?:boolean}} opts
-       * @returns {HTMLAudioElement}
-       */
-      function createPlayer(src, opts = {}) {
-        try {
-          const { snd = null, onPlay = null, onEnded = null, preload = 'auto', loop = false, autoplay = true } = opts;
-          const audio = new Audio(src);
-          if (preload) audio.preload = preload;
-          audio.loop = !!loop;
-          if (onPlay && typeof onPlay === 'function') audio.addEventListener('play', () => onPlay(snd, audio));
-          if (onEnded && typeof onEnded === 'function') audio.addEventListener('ended', () => onEnded(snd, audio));
-          applyVolumeToAudio(audio);
-          if (autoplay) {
-            try { audio.play().catch(() => { }); } catch (e) { }
-          }
-          return audio;
-        } catch (e) { console.warn('[createPlayer] failed', e); return null; }
-      }
-
-      /**
-       * 以 sound 物件（具有 id/src/title/tags）播放，並連結 onPlayStart/onPlayEnd 以保留舞台顯示行為。
-       * @param {{id:string,src:string,title?:string,tags?:string[]}} snd
-       * @returns {HTMLAudioElement|null}
-       */
-      function playSoundObject(snd) {
-        if (!snd || !snd.src) return null;
-        return createPlayer(snd.src, { snd, onPlay: onPlayStart, onEnded: onPlayEnd, preload: 'auto' });
-      }
 
       // Concentration game cleanup hook (set when game initialized)
       let cgCleanup = null;
@@ -1825,7 +1714,6 @@
         startTime: 0,
         startPlayhead: 0,
         scheduleIds: [],
-        masterGain: null,
         toneStarted: false
       };
 
@@ -1937,7 +1825,6 @@
         const audio = new Audio();
         audio.preload = 'metadata';
         audio.src = sound.src;
-  applyVolumeToAudio(audio);
         const promise = new Promise((resolve) => {
           const cleanup = () => {
             audio.removeEventListener('loadedmetadata', onLoaded);
@@ -2659,12 +2546,6 @@
         if (!isToneAvailable()) throw new Error('Tone.js unavailable');
         if (!mixAudio.toneStarted) {
           await Tone.start();
-          // create a master gain node so we can control mix volume from settings
-          try {
-            mixAudio.masterGain = new Tone.Gain(state.globalVolume || 1).toDestination();
-          } catch (e) {
-            mixAudio.masterGain = null;
-          }
           mixAudio.toneStarted = true;
         }
       }
@@ -2698,17 +2579,7 @@
                 try { player.dispose(); } catch (e) { }
                 reject(err || new Error('load failed'));
               }
-            });
-            // route player output to masterGain when available so global volume can control mix playback
-            try {
-              if (mixAudio.masterGain && typeof mixAudio.masterGain.connect === 'function') {
-                player.connect(mixAudio.masterGain);
-              } else {
-                player.toDestination();
-              }
-            } catch (e) {
-              try { player.toDestination(); } catch (ee) { }
-            }
+            }).toDestination();
           } catch (err) {
             if (player) try { player.dispose(); } catch (e) { }
             reject(err);
@@ -2985,7 +2856,7 @@
 
         // 分頁：讀取 page 參數
         const pageParam = params.get('page');
-  if (pageParam === 'game' || pageParam === 'about' || pageParam === 'bg' || pageParam === 'awards') state.page = pageParam;
+        if (pageParam === 'game' || pageParam === 'about' || pageParam === 'bg') state.page = pageParam;
         else state.page = 'home';
         // 分享列表：讀取 list 參數，逗號分隔
         const listParam = params.get('list');
@@ -3070,7 +2941,11 @@
       function playSoundById(id) {
         const snd = state.sounds.find(s => s.id === id);
         if (!snd) return;
-        playSoundObject(snd);
+        const audio = new Audio(snd.src);
+        audio.preload = 'auto';
+        audio.addEventListener('play', () => onPlayStart(snd, audio));
+        audio.addEventListener('ended', () => onPlayEnd(snd, audio));
+        audio.play().catch(() => { });
       }
 
 
@@ -3089,16 +2964,14 @@
           );
         } catch (e) { }
         state.page = pg;
-  els.pageHome.classList.add('hidden');
-  els.pageGame.classList.add('hidden');
-  els.pageAbout.classList.add('hidden');
-  if (els.pageawards) els.pageawards.classList.add('hidden');
+        els.pageHome.classList.add('hidden');
+        els.pageGame.classList.add('hidden');
+        els.pageAbout.classList.add('hidden');
         if (els.pageBg) els.pageBg.classList.add('hidden');
         if (pg === 'home') els.pageHome.classList.remove('hidden');
         else if (pg === 'game') els.pageGame.classList.remove('hidden');
-  else if (pg === 'about') els.pageAbout.classList.remove('hidden');
-  else if (pg === 'awards' && els.pageawards) els.pageawards.classList.remove('hidden');
-  else if (pg === 'bg' && els.pageBg) els.pageBg.classList.remove('hidden');
+        else if (pg === 'about') els.pageAbout.classList.remove('hidden');
+        else if (pg === 'bg' && els.pageBg) els.pageBg.classList.remove('hidden');
         // 更新導覽標籤 active 樣式
         els.navTabs.forEach(tab => {
           if (tab.getAttribute('data-page') === pg) tab.classList.add('active');
@@ -3251,67 +3124,6 @@
         localStorage.setItem('theme', next);
         applyTheme(next);
       });
-
-      // 設定 Modal 行為（開啟 / 關閉 / 音量綁定）
-      try {
-        if (els.settingsBtn) {
-          els.settingsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (!els.settingsModal) return;
-            els.settingsModal.classList.remove('hidden');
-            els.settingsModal.setAttribute('aria-hidden', 'false');
-            // initialize slider
-            if (els.settingsVolume) {
-              els.settingsVolume.value = String(Math.round((state.globalVolume || 1) * 100));
-            }
-            if (els.settingsVolumeValue) {
-              els.settingsVolumeValue.textContent = `${Math.round((state.globalVolume || 1) * 100)}%`;
-            }
-          });
-        }
-        if (els.settingsClose) {
-          els.settingsClose.addEventListener('click', () => {
-            if (!els.settingsModal) return;
-            els.settingsModal.classList.add('hidden');
-            els.settingsModal.setAttribute('aria-hidden', 'true');
-          });
-        }
-        // backdrop click closes
-        document.addEventListener('click', (ev) => {
-          if (!els.settingsModal) return;
-          if (els.settingsModal.classList.contains('hidden')) return;
-          if (ev.target === els.settingsModal) {
-            els.settingsModal.classList.add('hidden');
-            els.settingsModal.setAttribute('aria-hidden', 'true');
-          }
-        });
-        // Escape closes
-        document.addEventListener('keydown', (ev) => {
-          if (ev.key === 'Escape' && els.settingsModal && !els.settingsModal.classList.contains('hidden')) {
-            els.settingsModal.classList.add('hidden');
-            els.settingsModal.setAttribute('aria-hidden', 'true');
-          }
-        });
-        // volume slider binding
-        if (els.settingsVolume) {
-          els.settingsVolume.addEventListener('input', (ev) => {
-            const v = Number(els.settingsVolume.value) || 0;
-            const norm = Math.max(0, Math.min(100, v)) / 100;
-            state.globalVolume = norm;
-            try { localStorage.setItem('globalVolume', String(norm)); } catch (e) { }
-            if (els.settingsVolumeValue) els.settingsVolumeValue.textContent = `${Math.round(norm * 100)}%`;
-            // apply to mix master gain if Tone is started
-            try {
-              if (mixAudio && mixAudio.masterGain && mixAudio.masterGain.gain) {
-                // Tone.Gain.gain is a Signal; set value safely
-                try { mixAudio.masterGain.gain.value = norm; } catch (e) {
-                  try { mixAudio.masterGain.gain.rampTo(norm, 0.02); } catch (ee) { }
-                }
-              }
-            } catch (e) { }
-          });
-        }
-      } catch (e) { console.warn('[settings] init failed', e); }
 
       /** 播放彩蛋：當音效播放時顯示頭像，播放結束後彈跳離場 */
       const activeGroups = new Set();
@@ -3535,32 +3347,23 @@
                 // 依照 CSV 的順序把存在的音效移到前面
                 const seen = new Set();
                 const ordered = [];
-                const matchedList = [];
                 for (const rawId of topIds) {
                   // 先嘗試直接 match id，否則用 normalize map
                   let s = state.soundMap.get(rawId);
                   if (!s) s = normMap.get(normalize(rawId));
-                  if (s && !seen.has(s.id)) { ordered.push(s); seen.add(s.id); matchedList.push(s); }
+                  if (s && !seen.has(s.id)) { ordered.push(s); seen.add(s.id); }
                 }
                 for (const s of state.sounds) {
                   if (!seen.has(s.id)) ordered.push(s);
                 }
                 // 更新順序與索引；輸出 debug 日誌便於確認匹配情形
-                const matchedCount = matchedList.length;
+                const matchedCount = seen.size;
                 state.sounds = ordered;
                 state.soundMap = new Map(state.sounds.map(s => [s.id, s]));
                 state.defaultSoundsSnapshot = state.sounds.map(s => ({ ...s }));
                 console.info('[csv reorder] applied ordering from', csvUrl, 'csvIds=', topIds.length, 'matched=', matchedCount);
                 console.debug('[csv reorder] csv topIds sample:', topIds.slice(0, top_rank_select));
                 if (matchedCount === 0) console.warn('[csv reorder] no ids matched; check csv id column vs sounds.json ids');
-                // 保存票選結果供頁面使用
-                state.voteResults = {
-                  topIds,
-                  matchedList,
-                  top10: matchedList.slice(0, 10),
-                  next20: matchedList.slice(10, 30)
-                };
-                try { if (els.awardsBanner) els.awardsBanner.src = withV('misc/第一屆貓下去.png'); } catch (e) {}
               }
             }
           }
@@ -3599,19 +3402,6 @@
           if (els.receivedSection) { els.receivedSection.classList.add('hidden'); }
         }
         renderActiveChips();
-      }
-
-      // 渲染票選頁面（重複使用 renderGrid / renderSoundCard）
-      function renderawardsPage() {
-        try {
-          if (!state.voteResults) {
-            if (els.awardsTop10) els.awardsTop10.innerHTML = '';
-            if (els.awardsNext20) els.awardsNext20.innerHTML = '';
-            return;
-          }
-          if (els.awardsTop10) renderGrid(els.awardsTop10, state.voteResults.top10 || []);
-          if (els.awardsNext20) renderGrid(els.awardsNext20, state.voteResults.next20 || []);
-        } catch (e) { console.warn('[renderawardsPage] error', e); }
       }
       /** 渲染單一區塊的音效列表 */
       function renderGrid(container, list, opts = { inFav: false }) {
@@ -3655,7 +3445,11 @@
         ]);
         // 播放功能
         const play = async () => {
-          try { playSoundObject(snd); } catch (e) { console.error(e); }
+          const audio = new Audio(snd.src);
+          audio.preload = 'auto';
+          audio.addEventListener('play', () => onPlayStart(snd, audio));
+          audio.addEventListener('ended', () => onPlayEnd(snd, audio));
+          try { await audio.play(); } catch (e) { console.error(e); }
         };
         if (!(state.isSorting && opts.inFav)) {
           card.addEventListener('click', play);
@@ -4146,7 +3940,8 @@
             first = card;
             // 播放該卡的音效並顯示標題；避免音訊重疊
             stopCurrentAudio();
-            currentAudio = createPlayer(card.audio, { preload: 'auto' });
+            currentAudio = new Audio(card.audio);
+            currentAudio.play().catch(() => { });
             if (typeof toast === 'function' && card.title) toast(card.title, 3000);
           } else if (!second) {
             // 第二張卡的處理：同樣標記是否先前看過並播放音效
@@ -4154,7 +3949,8 @@
             card.seen = true;
             second = card;
             stopCurrentAudio();
-            currentAudio = createPlayer(card.audio, { preload: 'auto' });
+            currentAudio = new Audio(card.audio);
+            currentAudio.play().catch(() => { });
             if (typeof toast === 'function' && card.title) toast(card.title, 3000);
             tries++;
             allowClick = false;
@@ -4285,7 +4081,8 @@
               if (reward && reward.src) {
                 // 停掉現有音訊並播放獎勵音效
                 stopCurrentAudio();
-                currentAudio = createPlayer(reward.src, { preload: 'auto' });
+                currentAudio = new Audio(reward.src);
+                currentAudio.play().catch(() => { });
                 if (typeof toast === 'function') toast('你是記憶猛肝', 3000);
               }
             }
@@ -4316,9 +4113,8 @@
             try { cgCleanup(); } catch (e) { /* ignore cleanup errors */ }
           }
           // 在 page 顯示之後（after），執行初始化
-          if (phase === 'after') {
-            if (pg === 'game' && typeof setupConcentrationGame === 'function') setupConcentrationGame();
-            if (pg === 'awards') renderawardsPage();
+          if (phase === 'after' && pg === 'game' && typeof setupConcentrationGame === 'function') {
+            setupConcentrationGame();
           }
         } catch (e) { /* swallow to avoid breaking page flow */ }
       });
