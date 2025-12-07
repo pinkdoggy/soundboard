@@ -1,0 +1,2940 @@
+<!doctype html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" href="assets/favicon.png" type="image/png">
+
+  <title>阿萬與動物朋友按鈕</title>
+  <style>
+    /* =============================================================================
+       1. CSS 變數系統（CSS Custom Properties）
+       
+       定義全站使用的設計 Token，包含：
+       - 色彩系統（亮色/暗色主題）
+       - 間距系統（4px 基礎單位）
+       - 圓角系統
+       - 陰影系統
+       - 動畫時間系統
+       ============================================================================= */
+
+    /* -----------------------------------------------------------------------------
+       1.1 暗色主題變數（預設）
+       ----------------------------------------------------------------------------- */
+    :root {
+      /* --- 色彩：基礎 --- */
+      --bg: #0b0d10;
+      /* 頁面背景色 */
+      --search: #0b0d1000;
+      /* 搜尋列背景（透明） */
+      --fg: #e9eef5;
+      /* 主要文字色 */
+      --muted: #a8b3c7;
+      /* 次要/輔助文字色 */
+      --card: #141821;
+      /* 卡片背景色 */
+      --card-2: #212832;
+      /* 次級卡片/按鈕背景色 */
+      --border: #202636;
+      /* 邊框色 */
+
+      /* --- 色彩：強調色 --- */
+      --accent: #6aa9ff;
+      /* 主強調色（藍） */
+      --accent-2: #ff9e6a;
+      /* 次強調色（橘） */
+      --heart: #ff5a7a;
+      /* 愛心/收藏色 */
+      --chip-fg: #0b0d10;
+      /* 標籤文字色（深色背景用） */
+
+      /* --- 色彩：互動狀態 --- */
+      --hover-overlay: rgba(96, 150, 255, 0.20);
+      /* 懸停覆蓋層 */
+
+      /* --- 玻璃擬態 --- */
+      --glass-bg: rgba(20, 24, 33, 0.8);
+      /* 玻璃背景 */
+      --glass-border: rgba(255, 255, 255, 0.12);
+      /* 玻璃邊框 */
+
+      /* --- 背景圖層 --- */
+      --bg-blend-mode: normal;
+      /* 背景混合模式 */
+      --bg-opacity: 0.25;
+      /* 背景透明度 */
+
+      /* --- 間距系統（4px 基礎單位） --- */
+      --space-xs: 4px;
+      /* 極小間距 */
+      --space-sm: 8px;
+      /* 小間距 */
+      --space-md: 12px;
+      /* 中間距 */
+      --space-lg: 16px;
+      /* 大間距 */
+      --space-xl: 20px;
+      /* 特大間距 */
+      --space-2xl: 24px;
+      /* 超大間距 */
+
+      /* --- 圓角系統 --- */
+      --radius-sm: 8px;
+      /* 小圓角（小按鈕） */
+      --radius-md: 10px;
+      /* 中圓角（按鈕、Toast） */
+      --radius-lg: 12px;
+      /* 大圓角（卡片、選單） */
+      --radius-xl: 16px;
+      /* 特大圓角（面板） */
+      --radius-pill: 999px;
+      /* 膠囊圓角 */
+
+      /* --- 陰影系統 --- */
+      --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.18);
+      /* 小陰影（標籤） */
+      --shadow-md: 0 6px 24px rgba(0, 0, 0, 0.25);
+      /* 中陰影（卡片） */
+      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.35);
+      /* 大陰影（頭像） */
+      --shadow: var(--shadow-md);
+      /* 預設陰影（相容舊代碼） */
+
+      /* --- 動畫時間 --- */
+      --duration-fast: 0.06s;
+      /* 快速動畫（點擊回饋） */
+      --duration-normal: 0.15s;
+      /* 正常動畫（hover） */
+      --duration-slow: 0.3s;
+      /* 慢速動畫（轉場） */
+
+      /* --- 控制項尺寸 --- */
+      --control-h: 44px;
+      /* 控制項高度（觸控友善） */
+    }
+
+    /* -----------------------------------------------------------------------------
+       1.2 亮色主題變數
+       ----------------------------------------------------------------------------- */
+    :root.light {
+      /* --- 色彩：基礎 --- */
+      --bg: #f8fafc;
+      --search: #f8fafc00;
+      --fg: #0d1320;
+      --muted: #4b5563;
+      --card: #ffffff;
+      --card-2: #f3f6fb;
+      --border: #e5e7eb;
+
+      /* --- 色彩：強調色 --- */
+      --accent: #2563eb;
+      --accent-2: #eb7b25;
+      --heart: #e11d48;
+      --chip-fg: #ffffff;
+
+      /* --- 玻璃擬態 --- */
+      --glass-bg: rgba(255, 255, 255, 0.6);
+      --glass-border: rgba(15, 23, 42, 0.12);
+
+      /* --- 背景圖層 --- */
+      --bg-blend-mode: normal;
+      --bg-opacity: 0.35;
+
+      /* --- 陰影系統（亮色主題較淺） --- */
+      --shadow-sm: 0 2px 6px rgba(2, 6, 23, 0.06);
+      --shadow-md: 0 4px 18px rgba(2, 6, 23, 0.08);
+      --shadow-lg: 0 6px 24px rgba(2, 6, 23, 0.12);
+      --shadow: var(--shadow-md);
+    }
+
+    /* =============================================================================
+       2. CSS Reset / 基礎樣式
+       
+       包含：
+       - Box-sizing 重設
+       - Body 基礎樣式
+       - 背景圖層
+       - 基礎元素樣式
+       ============================================================================= */
+
+    /* --- 全域 Box-sizing --- */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    /* --- HTML/Body 基礎 --- */
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--fg);
+      font: medium ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Noto Sans, "Helvetica Neue", Arial;
+      position: relative;
+      z-index: 1;
+      /* 將所有內容提升到背景圖之上 */
+    }
+
+    /* --- 自訂捲軸樣式 (Webkit) --- */
+    ::-webkit-scrollbar {
+      width: 14px;
+      height: 14px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--muted);
+      border-radius: var(--radius-pill);
+      border: 3px solid var(--bg); /* 創造間距感 */
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+      border-width: 2px; /* hover 時讓捲軸看起來更粗一點 */
+    }
+
+    ::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+
+    /* --- 背景圖層（偽元素實現固定背景） --- */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('assets/background-by-jia.avif');
+      background-size: auto 90%;
+      background-repeat: repeat;
+      background-attachment: fixed;
+      mix-blend-mode: var(--bg-blend-mode);
+      opacity: var(--bg-opacity);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* --- 連結基礎 --- */
+    a {
+      color: inherit;
+    }
+
+    /* =============================================================================
+       3. 共用元件樣式
+       
+       可重用的 UI 元件，包含：
+       - .glass：玻璃擬態基礎
+       - .btn：按鈕系列
+       - .chip：標籤膠囊
+       - .tag：音效標籤
+       - .grid：響應式網格
+       ============================================================================= */
+
+    /* -----------------------------------------------------------------------------
+       3.1 玻璃擬態樣式
+       
+       統一套用半透明模糊背景效果的元件
+       ----------------------------------------------------------------------------- */
+
+    /* 套用玻璃樣式的元件 */
+    .searchbar,
+    .sound,
+    .menu,
+    #page-about .about-content,
+    .bg-credit,
+    .cg-header,
+    .cg-board,
+    .cg-result,
+    .cg-rules {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: saturate(1.8) blur(12px);
+      -webkit-backdrop-filter: saturate(1.8) blur(12px);
+      box-shadow: var(--shadow);
+    }
+
+    /* -----------------------------------------------------------------------------
+       3.2 按鈕系統
+       ----------------------------------------------------------------------------- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      padding: var(--space-sm) var(--space-md);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: linear-gradient(to bottom, var(--card), var(--card-2));
+      color: var(--fg);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--duration-normal) ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn:hover {
+      background: linear-gradient(to bottom, var(--card-2), var(--border));
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* 小型按鈕變體 */
+    .btn--small,
+    .small-btn {
+      padding: var(--space-xs) var(--space-sm);
+      font-size: 12px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* 圖示按鈕變體 */
+    .btn--icon {
+      min-width: 32px;
+      padding: 6px;
+    }
+
+    /* -----------------------------------------------------------------------------
+       3.3 標籤膠囊（Chip）
+       
+       用於搜尋列中的已選標籤
+       ----------------------------------------------------------------------------- */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      color: var(--chip-fg);
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+    }
+
+    .chip button {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0 0 0 2px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      margin-top: var(--space-xs);
+    }
+
+    /* -----------------------------------------------------------------------------
+       3.4 音效標籤（Tag）
+       
+       用於音效卡片上的分類標籤
+       ----------------------------------------------------------------------------- */
+    .tag {
+      display: inline-block;
+      padding: 3px 6px;
+      border-radius: var(--radius-pill);
+      font-size: small;
+      color: var(--chip-fg);
+      white-space: nowrap;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    /* 標籤一覽區域 */
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px var(--space-sm);
+      margin: var(--space-sm) 0;
+    }
+
+    /* -----------------------------------------------------------------------------
+       3.5 響應式網格系統
+       
+       音效卡片的網格佈局，根據螢幕寬度自動調整欄數
+       ----------------------------------------------------------------------------- */
+    .grid {
+      display: grid;
+      gap: var(--space-xs);
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    /* =============================================================================
+       4. 佈局元件
+       
+       頁面結構相關的佈局元件：
+       - .wrap：主容器
+       - header：頁首
+       - .section-header：區塊標題列
+       ============================================================================= */
+
+    /* -----------------------------------------------------------------------------
+       4.1 主容器
+       ----------------------------------------------------------------------------- */
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: var(--space-xl);
+    }
+
+    /* -----------------------------------------------------------------------------
+       4.2 頁首（Header）
+       ----------------------------------------------------------------------------- */
+    header {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      /* 保持標題與選單在同一行 */
+      gap: var(--space-md);
+      margin-bottom: 14px;
+    }
+
+    header h1 {
+      white-space: normal;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      margin-right: auto;
+      /* 將後方元素推到右側 */
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      margin: 0 var(--space-sm) 0 0;
+      letter-spacing: 0.5px;
+    }
+
+    /* 主題切換按鈕（使用通用按鈕樣式） */
+    .theme-toggle {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--fg);
+      border-radius: var(--radius-md);
+      padding: var(--space-sm) var(--space-md);
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+
+    /* -----------------------------------------------------------------------------
+       4.3 導覽分頁（Tabs）
+       ----------------------------------------------------------------------------- */
+    .tabs {
+      display: flex;
+      gap: var(--space-sm);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      display: inline-block;
+      padding: 6px var(--space-lg);
+      font-size: 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      background: var(--card-2);
+      color: var(--fg);
+      cursor: pointer;
+      transition: background var(--duration-normal) ease, color var(--duration-normal) ease;
+    }
+
+    .tab:hover {
+      background: var(--card);
+    }
+
+    .tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--chip-fg);
+    }
+
+    /* 手機版漢堡選單按鈕 */
+    .nav-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--fg);
+      border-radius: var(--radius-md);
+      padding: var(--space-sm);
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+
+    /* -----------------------------------------------------------------------------
+       4.4 區塊標題列（Section Header）
+       ----------------------------------------------------------------------------- */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 14px 0 var(--space-sm);
+    }
+
+    .section-header h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+
+    .section-header .actions {
+      display: flex;
+      gap: 3px;
+    }
+
+    .section-title {
+      margin: 18px 0 10px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    /* =============================================================================
+       5. 功能模組樣式
+       
+       各功能區塊的專屬樣式
+       ============================================================================= */
+
+    /* -----------------------------------------------------------------------------
+       5.1 搜尋列模組
+       ----------------------------------------------------------------------------- */
+    .search-row {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 0;
+      align-items: stretch;
+      position: sticky;
+      top: 0;
+      background: var(--search);
+      padding: var(--space-sm) 0 var(--space-md);
+      z-index: 5;
+    }
+
+    .searchbar {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+      border-right: 0;
+      padding: 6px var(--space-sm);
+      position: relative;
+      height: var(--control-h);
+      transition: box-shadow var(--duration-normal) ease, border-color var(--duration-normal) ease;
+    }
+
+    .searchbar:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(106, 169, 255, 0.25);
+      z-index: 1;
+    }
+
+    .searchbar input {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+      border: 0;
+      outline: 0;
+      color: var(--fg);
+      font-size: 16px;
+      height: 100%;
+      line-height: var(--control-h);
+      padding: 0 6px;
+    }
+
+    /* 清除按鈕（搜尋列右側） */
+    .search-row #clearBtn {
+      flex: 0 0 auto;
+      white-space: nowrap;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      border-left: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+      backdrop-filter: saturate(1.5) blur(8px);
+      -webkit-backdrop-filter: saturate(1.5) blur(8px);
+      height: var(--control-h);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 14px;
+
+      /* 覆蓋 .btn 的預設互動樣式 */
+      box-shadow: none;
+      transition: color var(--duration-normal) ease;
+    }
+
+    .search-row #clearBtn:hover {
+      background: var(--glass-bg);
+      /* 保持原邊框色，不隨 .btn:hover 變色 */
+      border-top-color: var(--border);
+      border-right-color: var(--border);
+      border-bottom-color: var(--border);
+      border-left-color: var(--glass-border);
+      transform: none;
+      box-shadow: none;
+      color: var(--accent);
+    }
+
+    .search-row #clearBtn:active {
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* -----------------------------------------------------------------------------
+       5.2 音效卡片模組
+       ----------------------------------------------------------------------------- */
+    .sound {
+      border-radius: var(--radius-lg);
+      padding: var(--space-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 5px 2px;
+      user-select: none;
+      cursor: pointer;
+      transition: transform var(--duration-normal) cubic-bezier(0.34, 1.56, 0.64, 1), 
+                  box-shadow var(--duration-normal) ease,
+                  border-color var(--duration-normal) ease;
+    }
+
+    .sound:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--accent);
+      z-index: 10;
+    }
+
+    .sound:active {
+      transform: scale(0.98);
+      transition: transform var(--duration-fast) ease;
+    }
+
+    .sound-top {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    .title {
+      font-weight: 600;
+      font-size: smaller;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* 愛心按鈕 */
+    .heart {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      background: var(--card-2);
+      cursor: pointer;
+      flex: 0 0 auto;
+      padding: 0;
+    }
+
+    .heart svg {
+      width: 14px;
+      height: 14px;
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .heart[aria-pressed="true"] svg path {
+      fill: var(--heart);
+    }
+
+    /* -----------------------------------------------------------------------------
+       5.3 播放舞台模組（頭像動畫）
+       ----------------------------------------------------------------------------- */
+    .stage {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: var(--space-md);
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md) 14px;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 40;
+      padding: 0 var(--space-md);
+    }
+
+    .group {
+      display: inline-flex;
+      gap: var(--space-sm);
+      align-items: flex-end;
+    }
+
+    .avatar {
+      width: 75px;
+      height: 75px;
+      border-radius: var(--radius-pill);
+      background: transparent;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.8);
+      box-shadow: var(--shadow-lg);
+      transform-origin: 50% 100%;
+    }
+
+    .avatar>img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* -----------------------------------------------------------------------------
+       5.4 右鍵選單模組
+       ----------------------------------------------------------------------------- */
+    .menu {
+      position: fixed;
+      z-index: 9999;
+      min-width: 180px;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .menu.hidden {
+      display: none;
+    }
+
+    .menu-item {
+      padding: 10px var(--space-md);
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background var(--duration-normal) ease;
+    }
+
+    .menu-item:last-child {
+      border-bottom: 0;
+    }
+
+    .menu-item:hover {
+      background: var(--hover-overlay);
+    }
+
+    /* -----------------------------------------------------------------------------
+       5.5 Toast 通知模組
+       ----------------------------------------------------------------------------- */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 80px;
+      transform: translateX(-50%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
+      z-index: 70;
+    }
+
+    .toast.hidden {
+      display: none;
+    }
+
+    /* -----------------------------------------------------------------------------
+       5.6 Modal 對話框模組
+       ----------------------------------------------------------------------------- */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 120;
+    }
+
+    .modal-backdrop.hidden {
+      display: none;
+    }
+
+    .modal {
+      background: var(--bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md);
+      max-width: 320px;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: var(--space-lg);
+    }
+
+    /* =============================================================================
+       6. 頁面專屬樣式
+       ============================================================================= */
+
+    /* -----------------------------------------------------------------------------
+       6.1 關於頁面
+       ----------------------------------------------------------------------------- */
+    #page-about .about-content {
+      border-radius: 14px;
+      padding: 14px var(--space-lg);
+    }
+
+    /* 背景圖署名 */
+    .bg-credit {
+      position: fixed;
+      right: var(--space-lg);
+      bottom: var(--space-lg);
+      font-size: large;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-md);
+      font-weight: 800;
+      z-index: 60;
+    }
+
+    .bg-credit a {
+      text-decoration: underline;
+    }
+
+    /* 背景滿版模式 */
+    body.bg-full {
+      --bg-opacity: 1 !important;
+    }
+
+    /* =============================================================================
+       7. 動畫系統（Keyframes）
+       ============================================================================= */
+
+    /* 彈入動畫：用於頭像進場 */
+    @keyframes popIn {
+      0% {
+        transform: translateY(20px) scale(0.7);
+        opacity: 0;
+      }
+
+      100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* 抖動動畫：用於播放中的頭像 */
+    @keyframes jitter {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      20% {
+        transform: translateY(-2px) rotate(-1deg);
+      }
+
+      40% {
+        transform: translateY(1px) rotate(1deg);
+      }
+
+      60% {
+        transform: translateY(-1px) rotate(0.6deg);
+      }
+
+      80% {
+        transform: translateY(1px) rotate(-0.6deg);
+      }
+    }
+
+    /* 跳出動畫：用於頭像離場 */
+    @keyframes hopOut {
+      0% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      22% {
+        transform: translateY(-12px);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(60px);
+        opacity: 0;
+      }
+    }
+
+    /* 動畫類別 */
+    .pop-in {
+      animation: popIn 0.28s cubic-bezier(0.2, 0.9, 0.18, 1) both;
+    }
+
+    .jit {
+      animation: jitter 0.9s ease-in-out infinite;
+    }
+
+    .hop-out {
+      animation: hopOut 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    /* =============================================================================
+       8. 響應式樣式（Media Queries）
+       
+       統一管理所有斷點調整，從大到小排列
+       ============================================================================= */
+
+    /* --- 中等螢幕（≤1000px）：5欄網格 --- */
+    @media (max-width: 1000px) {
+      .grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+    }
+
+    /* --- 平板（≤800px）：4欄網格 --- */
+    @media (max-width: 800px) {
+      .grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+
+    /* --- 小型平板/手機橫向（≤760px）：漢堡選單 --- */
+    @media (max-width: 760px) {
+      .nav-toggle {
+        display: inline-flex;
+      }
+
+      header .tabs {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        padding: var(--space-sm);
+        border-radius: var(--radius-lg);
+        gap: 6px;
+        flex-direction: column;
+        align-items: stretch;
+        min-width: 180px;
+        z-index: 120;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        backdrop-filter: saturate(1.8) blur(12px);
+        -webkit-backdrop-filter: saturate(1.8) blur(12px);
+        box-shadow: var(--shadow);
+      }
+
+      body.nav-open header .tabs {
+        display: flex;
+      }
+    }
+
+    /* --- 大型手機（≤600px）：3欄網格 --- */
+    @media (max-width: 600px) {
+      .grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      header .tabs {
+        margin-top: var(--space-sm);
+      }
+
+      header .theme-toggle {
+        margin-top: var(--space-sm);
+      }
+    }
+
+    /* --- 小型手機（≤400px）：2欄網格 --- */
+    @media (max-width: 400px) {
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    /* =============================================================================
+       9. 工具類別（Utility Classes）
+       ============================================================================= */
+
+    /* 隱藏元素 */
+    .hidden {
+      display: none;
+    }
+
+    /* 停用過渡動畫（用於主題切換時避免 lag） */
+    .no-transition,
+    .no-transition * {
+      transition: none !important;
+    }
+
+    /* 描述文字 */
+    .desc {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 6px;
+    }
+
+    /* 空狀態提示 */
+    .empty {
+      color: var(--muted);
+      padding: var(--space-md) 0;
+    }
+
+    /* 持續發光效果（用於高亮卡片、儲存按鈕等） */
+    .glow-persistent {
+      box-shadow: 0 0 0 4px rgba(106, 169, 255, 0.5), 0 0 12px rgba(106, 169, 255, 0.75);
+      transition: box-shadow var(--duration-slow) ease;
+    }
+
+    /* SortableJS 拖放樣式 */
+    .drag-ghost {
+      opacity: 0.6;
+      transform: scale(0.98);
+    }
+
+    .drag-chosen {
+      outline: 2px dashed var(--accent);
+    }
+
+    .dragging {
+      cursor: grabbing;
+    }
+
+    body.sorting #favGrid .card {
+      cursor: grab;
+    }
+
+    /* Header 相對定位（用於下拉選單） */
+    header {
+      position: relative;
+    }
+
+    /* -----------------------------------------------------------------------------
+       6.3 記憶遊戲頁面
+       ----------------------------------------------------------------------------- */
+    .cg-board {
+      display: grid;
+      grid-template-columns: repeat(4, 70px);
+      grid-template-rows: repeat(4, 70px);
+      gap: var(--space-sm);
+      justify-content: center;
+      margin: 12px auto;
+      width: min(720px, 96%);
+      padding: 12px;
+      border-radius: var(--radius-lg);
+      justify-items: center;
+    }
+
+    .cg-card {
+      width: 70px;
+      height: 70px;
+      background: #888;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      perspective: 600px;
+      will-change: transform;
+      transition: transform var(--duration-normal) ease, box-shadow var(--duration-normal) ease;
+      user-select: none;
+    }
+
+    .cg-card.matched {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .cg-card-inner {
+      width: 100%;
+      height: 100%;
+      transition: transform 0.4s cubic-bezier(.4, 2, .6, 1);
+      transform-style: preserve-3d;
+      position: relative;
+    }
+
+    .cg-card.flipped .cg-card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .cg-card-front,
+    .cg-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cg-card-front {
+      background: #888;
+    }
+
+    .cg-card:active,
+    .cg-card.clicked {
+      transform: scale(1.06);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+    }
+
+    .cg-card-back {
+      background: #fff;
+      transform: rotateY(180deg);
+      overflow: hidden;
+    }
+
+    .cg-card-back img {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+      border-radius: var(--radius-sm);
+    }
+
+    .cg-lock {
+      position: absolute;
+      right: 6px;
+      top: 6px;
+      background: rgba(0, 0, 0, 0.4);
+      color: white;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-pill);
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .cg-header {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      justify-content: space-between;
+      margin: var(--space-xs) auto;
+      padding: var(--space-sm) 12px;
+      width: min(720px, 96%);
+      border-radius: var(--radius-lg);
+      position: sticky;
+      top: 12px;
+      z-index: 60;
+      flex-wrap: wrap;
+    }
+
+    #cg-timer {
+      font-size: 1.0rem;
+      font-weight: 700;
+      color: var(--fg);
+      letter-spacing: 0.6px;
+      min-width: 25px;
+      text-align: left;
+    }
+
+    #cg-timer.cg-running {
+      color: #34d399;
+    }
+
+    #cg-accuracy {
+      color: var(--muted);
+      font-weight: 600;
+      margin-left: var(--space-sm);
+    }
+
+    .cg-stats {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .cg-controls {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex: 0 0 auto;
+    }
+
+    .cg-header button {
+      margin-left: var(--space-sm);
+      flex: 0 0 auto;
+    }
+
+    .cg-result {
+      text-align: center;
+      font-size: 1.05rem;
+      border-radius: 14px;
+      padding: 14px var(--space-lg);
+      max-width: 480px;
+      margin: 18px auto 0;
+    }
+
+    .cg-result h3 {
+      margin: 0 0 6px;
+      font-size: 1.15rem;
+    }
+
+    .cg-result .stats {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .cg-result .big-num {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--fg);
+    }
+
+    .cg-rules {
+      width: min(720px, 96%);
+      margin: 14px auto 28px;
+      border-radius: var(--radius-lg);
+      padding: 12px var(--space-lg);
+      color: var(--fg);
+    }
+
+    .cg-rules h4 {
+      margin: 0 0 var(--space-sm);
+      font-size: 1.05rem;
+    }
+
+    .cg-rules ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+
+    /* 遊戲頁面響應式調整 */
+    @media (max-width: 420px) {
+      .cg-header {
+        gap: var(--space-sm);
+        padding: var(--space-sm);
+      }
+
+      #cg-timer {
+        font-size: 1rem;
+      }
+
+      .cg-board {
+        grid-template-columns: repeat(4, 56px);
+        grid-template-rows: repeat(4, 56px);
+        gap: var(--space-xs);
+        padding: 10px;
+      }
+
+      .cg-card {
+        width: 56px;
+        height: 56px;
+      }
+    }
+
+    /* -----------------------------------------------------------------------------
+       6.4 票選結果頁面
+       ----------------------------------------------------------------------------- */
+    #page-awards .awards-grid {
+      display: grid;
+      gap: var(--space-xs);
+      grid-template-columns: repeat(4, minmax(120px, 240px));
+      align-items: center;
+      justify-items: center;
+      justify-content: center;
+    }
+
+    #page-awards .awards-grid img {
+      width: 100%;
+      height: auto;
+      display: block;
+      max-width: 100%;
+      object-fit: cover;
+    }
+
+    #page-awards .grid .title {
+      text-align: left;
+    }
+
+    @media (max-width: 700px) {
+      #page-awards .awards-grid {
+        grid-template-columns: repeat(2, minmax(120px, 240px));
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <h1>阿萬與動物朋友按鈕2365</h1>
+      <button id="navToggle" class="nav-toggle" aria-label="打開選單" aria-expanded="false" aria-controls="primaryNav"
+        title="選單">
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
+
+      <!-- 導覽分頁：放置於標題與主題切換按鈕之間，靠右排版 -->
+      <nav id="primaryNav" class="tabs" role="tablist" aria-label="主選單">
+        <button id="tab-home" class="tab active" data-page="home" role="tab" aria-selected="true"
+          aria-controls="page-home">主頁</button>
+        <button id="tab-game" class="tab" data-page="game" role="tab" aria-selected="false"
+          aria-controls="page-game">小遊戲</button>
+        <button id="tab-about" class="tab" data-page="about" role="tab" aria-selected="false"
+          aria-controls="page-about">關於</button>
+        <button id="tab-awards" class="tab" data-page="awards" role="tab" aria-selected="false"
+          aria-controls="page-awards">票選結果</button>
+        <button id="settingsBtn" class="tab" aria-label="開啟設定面板" aria-haspopup="dialog">設定</button>
+      </nav>
+
+    </header>
+
+    <!-- 首頁內容：音效列表 -->
+    <main id="page-home" role="tabpanel" aria-labelledby="tab-home">
+      <!-- 搜尋列（獨立成 row） -->
+      <div class="search-row">
+        <div class="searchbar" role="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor"
+              d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.471 6.471 0 0 0 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14" />
+          </svg>
+          <input id="q" placeholder="搜尋標題或 #標籤（可多個，用空白分隔）" autocomplete="off" aria-label="搜尋音效" />
+          <div id="activeChips" class="chips" role="list" aria-label="已選取的搜尋標籤"></div>
+        </div>
+        <button id="clearBtn" class="btn" aria-label="清除搜尋">清除</button>
+      </div>
+      <!-- 標籤一覽 -->
+      <div id="tagList" class="tag-list" role="list" aria-label="可點選的音效標籤"></div>
+      <!-- 最愛區 -->
+      <section aria-labelledby="fav-section-title">
+        <div class="section-header">
+          <h3 id="fav-section-title">最愛音效</h3>
+          <div class="actions">
+            <button id="sortFavBtn" class="btn small-btn" aria-label="開啟手動排列模式">手動排列</button>
+            <button id="doneSortBtn" class="btn small-btn glow-persistent hidden" aria-label="儲存目前排列順序">儲存排列</button>
+            <button id="shareFavBtn" class="btn small-btn" aria-label="分享最愛列表">分享</button>
+          </div>
+        </div>
+        <div id="favGrid" class="grid" role="list" aria-label="最愛音效列表"></div>
+        <div id="favEmpty" class="empty hidden" role="status">還沒有最愛。點音效右上的 ❤️ 加入最愛。</div>
+      </section>
+      <!-- 收到的列表：僅當 URL 包含 list 參數時顯示 -->
+      <section id="receivedSection" class="hidden" aria-labelledby="received-section-title">
+        <div id="receivedHeader" class="section-header">
+          <h3 id="received-section-title">收到的列表</h3>
+        </div>
+        <div id="receivedGrid" class="grid" role="list" aria-label="收到的音效列表"></div>
+      </section>
+      <!-- 全部音效 -->
+      <section aria-labelledby="all-sounds-title">
+        <div class="section-header">
+          <h3 id="all-sounds-title">全部音效</h3>
+          <div class="actions">
+            <button id="shuffleBtn" class="btn small-btn" aria-label="隨機排列音效順序">洗牌</button>
+            <button id="resetOrderBtn" class="btn small-btn" aria-label="恢復預設排列順序">預設順序</button>
+          </div>
+        </div>
+        <p class="desc">提示：點音效即可播放；右鍵（或行動裝置長按）可分享/下載。</p>
+        <div id="grid" class="grid" role="list" aria-label="全部音效列表"></div>
+        <div id="empty" class="empty hidden" role="status">沒有符合搜尋的音效。</div>
+      </section>
+    </main>
+    <!-- 小遊戲分頁 -->
+    <div id="page-game" class="hidden" role="tabpanel" aria-labelledby="tab-game">
+      <div id="concentration-game" role="application" aria-label="記憶小遊戲">
+        <div class="cg-header">
+          <div class="cg-stats" aria-live="polite">
+            <span id="cg-timer" aria-label="遊戲時間">00:00</span>
+            <span id="cg-accuracy" aria-label="準確率">準確率：--%</span>
+          </div>
+          <div class="cg-controls">
+            <button id="cg-restart" class="btn small-btn" aria-label="重新開始遊戲">重開一局</button>
+          </div>
+        </div>
+        <div id="cg-board" class="cg-board" role="grid" aria-label="記憶卡牌面板"></div>
+        <div id="cg-result" class="cg-result hidden" role="alert" aria-live="assertive"></div>
+        <!-- 規則說明卡：與其他遊戲區塊同寬並置於下方 -->
+        <div id="cg-rules" class="cg-rules" aria-labelledby="cg-rules-title">
+          <h4 id="cg-rules-title">記憶小遊戲規則</h4>
+          <ul>
+            <li>第一次翻開的牌不對計分造成影響，屬於記憶提示。</li>
+            <li>每翻開兩張卡，若為相同主播的相同音效即為配對，共有 8 對配對。</li>
+            <li>（不會出現帶有「髒話」或「SUS」標籤的語音，但是會有尖叫，請小心耳膜。）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 關於分頁 -->
+    <div id="page-about" class="hidden" role="tabpanel" aria-labelledby="tab-about">
+      <div class="about-content">
+        <p>本站由粉肝製作，並非由厭世醫師阿萬官方經營。音效內容皆是粉肝去脈絡式、斷章取義的剪輯，僅供娛樂。最後更新時間：2025/11/5。</p>
+
+        <p>阿萬本家→ <a href="https://x.com/drlifesucks" target="_blank">厭世醫師阿萬X</a>、<a
+            href="https://www.youtube.com/@Dr.lifesucks" target="_blank">厭世醫師阿萬Youtube</a> </p>
+        <p><a href="https://discord.gg/e6ch4VbRB4" target="_blank">音效板問題回報與建議區</a></p>
+        <img src="assets/art-by-sigh.png" alt=""
+          style="margin: 0 auto; max-width:100%; max-height: 250px; display: block; object-fit: cover;" />
+        <p style="text-align: right;">插畫：<a href="https://x.com/sigh121212" target="_blank">Minie(Sigh)</a></p>
+        <h2>大德芳名錄</h2>
+        <p>感謝53、Kie在DC弄了一堆音效，讓南想到可以做這個網站，並在提出這個想法的一開始就弄了一堆音效過來。還有同樣感謝在原型階段就幫忙收集音效的米糕跟薰薰草。
+          <br />感謝Jia繪製超可愛的背景圖跟收集了很多音效。
+          <br />
+          <br />感謝粉肝們收集很多音效，豐富了這個網站（Word筆劃順）：
+          <br />AmBinBong、CZ、HUI、Lococco de
+          suzuran、Nokimi07、Sigh、TENN、Yichen沉沉、🌙🐰月桂葉香包♏🎵、布丁(25:00)、幸福柴柴、青末枝、凌伊LingYi（01）、夏白衫、澐▽米粉 肉干、貓貓雨。
+          以及其他回報問題、提出建議的粉肝們，你們讓這個網站的功能更完善。
+        </p>
+      </div>
+      <div class="bg-credit"><a href="https://x.com/jiauwu_0730" target="_blank" rel="noopener">背景插畫由 Jia 繪製</a></div>
+
+    </div>
+
+    <!-- 票選結果分頁 -->
+    <div id="page-awards" class="hidden" role="tabpanel" aria-labelledby="tab-awards">
+      <div style="max-width:1100px;margin:0 auto;padding:18px;">
+        <h2 style="text-align:center">第一屆音效板爭霸戰</h2>
+        <div style="text-align:center;margin:12px 0">
+          <div class="awards-grid" role="img" aria-label="第一屆獲獎者圖片">
+            <img src="assets/award1-1.jpg" alt="第一屆貓下去" />
+            <img src="assets/award1-2.jpg" alt="第一屆Matsuko" />
+            <img src="assets/award1-3.jpg" alt="第一屆豹子頭" />
+            <img src="assets/award1-4.jpg" alt="第一屆瓦哈" />
+          </div>
+          <h3 id="awards-top10-title">獲獎區（前十名）</h3>
+          <div id="awards-top10" class="grid" role="list" aria-labelledby="awards-top10-title"></div>
+          <h3 id="awards-next20-title" style="margin-top:18px">入圍獎（後20名）</h3>
+          <div id="awards-next20" class="grid" role="list" aria-labelledby="awards-next20-title"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 設定 Modal（站內所有設定：音量 / 主題開關 等） -->
+    <div id="settingsModal" class="modal-backdrop hidden" role="dialog" aria-modal="true"
+      aria-labelledby="settingsTitle">
+      <div class="modal">
+        <h3 id="settingsTitle" style="margin-top: 0px;margin-bottom: 12px;">設定</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button id="themeBtn" class="btn" type="button" aria-label="切換亮色/暗色主題">電燈開關</button>
+          <label for="settingsVolume">播放音量： <span id="settingsVolumeValue" aria-live="polite">100%</span></label>
+          <input id="settingsVolume" type="range" min="0" max="100" step="1" value="100"
+            aria-describedby="settingsVolumeValue" />
+          <div style="display:flex;justify-content:flex-end;margin-top:6px;gap:8px;">
+            <button id="settingsClose" class="btn" type="button" aria-label="關閉設定面板">關閉</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 播放彩蛋舞台 -->
+    <div id="stage" class="stage" aria-hidden="true"></div>
+    <!-- 右鍵/長按選單 -->
+    <div id="menu" class="menu hidden" role="menu" aria-label="音效選單"></div>
+    <!-- Toast提示 -->
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+    <script src="scripts/Sortable.min.js"></script>
+    <script>
+      /**
+       * =============================================================================
+       * 阿萬與動物朋友按鈕 - 主應用程式
+       * =============================================================================
+       * 
+       * 單檔案應用架構，使用 IIFE 模式封裝以避免全域命名空間污染。
+       * 主要功能：音效搜尋與播放、最愛收藏、記憶小遊戲。
+       * 
+       * 相依套件：
+       * - SortableJS：最愛排序拖放功能
+       * 
+       * 模組結構索引：
+       * 1. 常數與設定
+       * 2. 型別定義 (JSDoc)
+       * 3. DOM 元素引用
+       * 4. 應用程式狀態
+       * 5. 工具函式
+       * 6. 音頻播放核心
+       * 7. 混音軌道系統
+       * 8. UI 渲染函式
+       * 9. 搜尋與過濾
+       * 10. 路由與 URL 管理
+       * 11. 事件處理
+       * 12. 初始化流程
+       * 13. 記憶小遊戲
+       * =============================================================================
+       */
+      (function () {
+        'use strict';
+
+        /* =======================================================================
+           1. 常數與設定
+           ======================================================================= */
+
+        /**
+         * 檔案版本字串：每次部署變更此值，可確保抓取最新資料並強制 CDN/瀏覽器重新載入。
+         * @const {string}
+         */
+        const VERSION = 'ver2025-12-5';
+
+        /**
+         * 應用程式設定：集中管理可調整的設定值。
+         * @const {Object}
+         */
+        const CONFIG = {
+          // 資料來源路徑
+          paths: {
+            tags: 'config/tags.json',
+            sounds: 'config/sounds.json',
+            voteResults: 'config/vote-results.json'
+          },
+
+          // localStorage 鍵名
+          storage: {
+            favorites: 'favorites',
+            favoritesVersion: 'favorites_version',
+            favoritesBackup: 'favorites_legacy_backup',
+            theme: 'theme',
+            globalVolume: 'globalVolume'
+          },
+
+          // UI 時間設定（毫秒）
+          timing: {
+            toastDuration: 2500,           // Toast 顯示時長
+            longPressDelay: 650,           // 長按觸發選單延遲
+            searchDebounce: 180,           // 搜尋防抖延遲
+            animationDelay: 60,            // 頭像動畫延遲間隔
+            hopOutDelay: 90                // 頭像離場動畫延遲
+          },
+
+          // UI 渲染設定
+          ui: {
+            batchSize: 72                  // 每次渲染的卡片數量 (6欄 x 12列)
+          },
+
+          // 票選相關
+          awards: {
+            topRankCount: 30,              // 讀取前 N 名
+            top10Count: 10,                // 顯示為前 10 名
+            next20Count: 20                // 顯示為入圍獎
+          },
+
+          // 記憶遊戲相關
+          game: {
+            pairCount: 8,                  // 配對數量
+            cardFlipDelay: 500,            // 翻牌檢查延遲
+            rewardAccuracy: 90,            // 觸發獎勵的準確率門檻
+            rewardSoundIds: ['c4B1fg', 'Hv3yFA', 'JkJ9-A', '5VHtAg']
+          },
+
+          // 預設顏色
+          colors: {
+            defaultTag: '#94a3b8'          // 預設標籤色
+          }
+        };
+
+        /**
+         * UI 訊息文字：集中管理顯示給使用者的文字。
+         * @const {Object}
+         */
+        const MESSAGES = {
+          // Toast 訊息
+          toast: {
+            linkCopied: '已複製分享連結',
+            listLinkCopied: '已複製分享最愛列表連結',
+            noFavorites: '沒有最愛可分享',
+            sortingSaved: '已儲存最愛排序',
+            sortingBlocked: '正在編輯最愛排序，無法變更最愛',
+            favMigrated: (count, missing) => `已升級最愛格式，共 ${count} 筆${missing ? `；未匹配 ${missing} 筆` : ''}。`,
+            gameReward: '你是記憶猛肝'
+          },
+
+          // 錯誤訊息
+          errors: {
+            configLoadFailed: '載入設定檔失敗，請確認 <code>config/</code> 路徑是否正確。',
+            gameNoSounds: '目前沒有足夠的音效可供配對（需至少 1 組）。請回到主頁或稍後再試。'
+          },
+
+          // 空狀態提示
+          empty: {
+            noFavorites: '還沒有最愛。點音效右上的 ❤️ 加入最愛。',
+            noResults: '沒有符合搜尋的音效。'
+          }
+        };
+
+        /* =======================================================================
+           2. 工具函式
+           ======================================================================= */
+
+        /** 為 URL 附加版本字串 */
+        const withV = url => url + (url.includes('?') ? '&' : '?') + 'v=' + encodeURIComponent(VERSION);
+
+        /** Fisher-Yates 洗牌演算法 */
+        function shuffleInPlace(arr, rng = Math.random) {
+          for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(rng() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+          }
+          return arr;
+        }
+
+        /* =======================================================================
+           3. DOM 元素引用
+           ======================================================================= */
+
+        /** DOM 元素快取物件 */
+        const els = {
+          q: document.getElementById('q'),
+          activeChips: document.getElementById('activeChips'),
+          clearBtn: document.getElementById('clearBtn'),
+          tagList: document.getElementById('tagList'),
+          grid: document.getElementById('grid'),
+          favGrid: document.getElementById('favGrid'),
+          empty: document.getElementById('empty'),
+          favEmpty: document.getElementById('favEmpty'),
+          settingsBtn: document.getElementById('settingsBtn'),
+          themeBtn: document.getElementById('themeBtn'),
+          stage: document.getElementById('stage'),
+          navToggle: document.getElementById('navToggle'),
+          get menu() { return document.getElementById('menu'); },
+          get toast() { return document.getElementById('toast'); },
+          get navTabs() { return document.querySelectorAll('.tab[data-page]'); },
+          // 分頁與設定
+          pageHome: document.getElementById('page-home'),
+          pageGame: document.getElementById('page-game'),
+          pageAbout: document.getElementById('page-about'),
+          pageawards: document.getElementById('page-awards'),
+          settingsModal: document.getElementById('settingsModal'),
+          settingsClose: document.getElementById('settingsClose'),
+          settingsVolume: document.getElementById('settingsVolume'),
+          settingsVolumeValue: document.getElementById('settingsVolumeValue'),
+          receivedSection: document.getElementById('receivedSection'),
+          receivedGrid: document.getElementById('receivedGrid'),
+          awardsTop10: document.getElementById('awards-top10'),
+          awardsNext20: document.getElementById('awards-next20'),
+          sortFavBtn: document.getElementById('sortFavBtn'),
+          doneSortBtn: document.getElementById('doneSortBtn'),
+          shareFavBtn: document.getElementById('shareFavBtn'),
+          shuffleBtn: document.getElementById('shuffleBtn'),
+          resetOrderBtn: document.getElementById('resetOrderBtn')
+        };
+
+        /* =======================================================================
+           4. 應用程式狀態
+           ======================================================================= */
+
+        /** 全域應用程式狀態物件 */
+        const state = {
+          tags: {},
+          tagList: [],
+          usedTagList: [],
+          sounds: [],
+          soundMap: new Map(),
+          defaultSoundsSnapshot: [],
+          favorites: JSON.parse(localStorage.getItem(CONFIG.storage.favorites) || '[]'),
+          favSet: new Set(),
+          isSorting: false,
+          sortable: null,
+          queryText: '',
+          queryTags: new Set(),
+          page: 'home',
+          contextTimer: null,
+          toastTimer: null,
+          highlightedCardId: '',
+          receivedList: [],
+          cgRunning: false,
+          // 虛擬滾動/分批渲染狀態
+          displayList: [],
+          renderedCount: 0,
+          observer: null
+        };
+
+        state.favSet = new Set(state.favorites);
+        state.globalVolume = (() => {
+          const v = localStorage.getItem(CONFIG.storage.globalVolume);
+          const n = Number(v);
+          return (v !== null && !isNaN(n) && n >= 0 && n <= 1) ? n : 1.0;
+        })();
+
+        let cgCleanup = null;
+
+        /* =======================================================================
+           5. 音頻播放核心
+           ======================================================================= */
+
+        /** 將全域音量設定套用到 Audio 元素 */
+        const applyVolumeToAudio = a => { try { a && (a.volume = state.globalVolume); } catch { } };
+
+        /** 建立 Audio 播放器並啟動播放 */
+        function createPlayer(src, opts = {}) {
+          const { snd, onPlay, onEnded, preload = 'auto', loop = false, autoplay = true } = opts;
+          try {
+            const audio = new Audio(src);
+            Object.assign(audio, { preload, loop });
+            onPlay && audio.addEventListener('play', () => onPlay(snd, audio));
+            onEnded && audio.addEventListener('ended', () => onEnded(snd, audio));
+            applyVolumeToAudio(audio);
+            autoplay && audio.play().catch(() => { });
+            return audio;
+          } catch (e) {
+            console.warn('[createPlayer] failed', e);
+            return null;
+          }
+        }
+
+        /** 以 Sound 物件播放音效，同時觸發舞台頭像動畫 */
+        const playSoundObject = snd => snd?.src ? createPlayer(snd.src, { snd, onPlay: onPlayStart, onEnded: onPlayEnd }) : null;
+
+        /* =======================================================================
+           7. DOM 建構工具
+           ======================================================================= */
+
+        /**
+         * DOM 元素建構工具集
+         */
+        const dom = {
+          /**
+           * 建立 DOM 元素。
+           * @param {string} tag - 標籤名稱
+           * @param {Object} attrs - 屬性物件
+           * @param {Array|string} children - 子節點
+           * @returns {HTMLElement}
+           */
+          el(tag, attrs = {}, children = []) {
+            const e = document.createElement(tag);
+            for (const [k, v] of Object.entries(attrs)) {
+              if (k === 'class') e.className = v;
+              else if (k === 'style') Object.assign(e.style, v);
+              else if (k.startsWith('on') && typeof v === 'function') e.addEventListener(k.slice(2), v);
+              else if (v != null) e.setAttribute(k, v);
+            }
+            for (const c of [].concat(children).filter(Boolean)) {
+              e.append(c);
+            }
+            return e;
+          },
+
+          /** 建立愛心 SVG 圖示 */
+          svgHeart() {
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            svg.innerHTML = '<path d="M12 21s-6.716-4.438-9.428-7.15C.59 11.868.59 8.608 2.57 6.627 4.55 4.647 7.81 4.647 9.79 6.627L12 8.838l2.21-2.21c1.98-1.98 5.24-1.98 7.22 0 1.98 1.98 1.98 5.24 0 7.223C18.716 16.562 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="1.5"/>';
+            return svg;
+          }
+        };
+
+        /* =======================================================================
+           8. 通用工具函式
+           ======================================================================= */
+
+        /**
+         * 通用工具函式集合
+         */
+        const utils = {
+          /** 正規化字串：Unicode NFKC */
+          slug: s => s.normalize('NFKC').trim(),
+
+          /** 根據 ID 取得 DOM 元素 */
+          byId: id => document.getElementById(id),
+
+          /** 儲存最愛列表到 localStorage */
+          saveFav: () => localStorage.setItem(CONFIG.storage.favorites, JSON.stringify(state.favorites)),
+
+          /** 檢查音效是否在最愛列表中 */
+          inFav: id => state.favSet.has(id),
+
+          /** 觸發檔案下載 */
+          download(url, filename) {
+            const a = Object.assign(document.createElement('a'), { href: url, download: filename || '' });
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          },
+
+          /**
+           * 解析搜尋查詢字串為結構化物件。
+           * 
+           * @returns {Object} { terms: Array<string>, tags: Set<string> }
+           */
+          parseQuery() {
+            const parts = state.queryText.trim().split(/\s+/).filter(Boolean);
+            const tags = new Set([...state.queryTags]); // 保留已選標籤
+            const terms = [];
+            for (const p of parts) {
+              if (p.startsWith('#')) {
+                // 提取 #符號後的標籤 key，並 slug 化
+                tags.add(utils.slug(p.slice(1)));
+              } else {
+                // 一般搜尋詞
+                terms.push(utils.slug(p));
+              }
+            }
+            return { terms, tags };
+          },
+
+          /**
+           * 判斷單個音效是否符合搜尋條件。
+           * 
+           * 規則：
+           * 1. tags 過濾：音效必須包含所有已選標籤（subset check）
+           * 2. text 過濾：音效標題或標籤必須包含所有搜尋詞（case-insensitive）
+           * 
+           * @param {Object} sound - 音效物件
+           * @param {Array<string>} terms - 搜尋詞陣列（已提取的文字部份）
+           * @param {Set<string>} tags - 已選標籤的 key（已 slug 化）
+           * @returns {boolean} 是否符合條件
+           */
+          match(sound, terms, tags) {
+            const lowerTitle = sound.title.toLowerCase();
+            const sluggedTags = sound.tags.map(t => utils.slug(t));
+            // tags 過濾：檢查所有已選標籤是否都在音效的標籤清單中
+            for (const t of tags) if (!sluggedTags.includes(t)) return false;
+            // terms 過濾：檢查所有搜尋詞是否都能在標題或標籤中找到
+            for (const term of terms) {
+              const lower = term.toLowerCase();
+              if (!lowerTitle.includes(lower) && !sound.tags.some(t => t.toLowerCase().includes(lower))) return false;
+            }
+            return true;
+          },
+
+          /** 建立防抖函式 */
+          debounce(fn, wait = 200) {
+            let t;
+            return (...args) => {
+              clearTimeout(t);
+              t = setTimeout(() => fn(...args), wait);
+            };
+          }
+        };
+
+        /* =======================================================================
+           10. 路由與 URL 管理
+           
+           處理瀏覽器歷史、深連結分享、搜尋條件同步。
+           ======================================================================= */
+
+        /**
+         * 將當前搜尋條件封裝為 URLSearchParams。
+         * @returns {URLSearchParams}
+         */
+        function buildSearchParams() {
+          const { terms, tags } = utils.parseQuery();
+          const params = new URLSearchParams(window.location.search);
+          if (terms.length) params.set('q', terms.join(' ')); else params.delete('q');
+          if (tags.size) params.set('tags', [...tags].join(',')); else params.delete('tags');
+          params.delete('sound'); // 修改搜尋時清除音效深連結
+          return params;
+        }
+
+        /**
+         * 將狀態寫回 URL。
+         * @param {boolean} push - 若為 true 則使用 history.pushState，否則使用 replaceState
+         */
+        function updateURLFromState(push = false) {
+          const params = buildSearchParams();
+          // 保留 list 參數（分享收到的列表）若存在
+          const current = new URLSearchParams(location.search);
+          if (current.has('list')) params.set('list', current.get('list'));
+          // 保留 sound 參數以確保分享連結正常運作
+          if (current.has('sound')) params.set('sound', current.get('sound'));
+          // 加上 page 參數（非首頁才寫入）
+          if (state.page && state.page !== 'home') params.set('page', state.page); else params.delete('page');
+          const qs = params.toString();
+          const url = `${location.pathname}${qs ? '?' + qs : ''}`;
+          (push ? history.pushState : history.replaceState).call(history, null, '', url);
+        }
+
+        /**
+         * 從現有 URL 讀取搜尋條件並套用到狀態與輸入框。
+         */
+        function applyURLToState() {
+          const params = new URLSearchParams(location.search);
+          const q = params.get('q') || '';
+          const tagsParam = params.get('tags') || '';
+          state.queryTags.clear();
+          const keys = tagsParam.split(',').map(k => utils.slug(k)).filter(Boolean);
+          keys.forEach(k => state.queryTags.add(k));
+          state.queryText = q;
+          // 同步輸入框文字
+          const tagTokens = keys.map(k => '#' + (state.tags[k]?.name || k));
+          els.q.value = [q, ...tagTokens].filter(Boolean).join(' ');
+          // 分頁：讀取 page 參數
+          const pageParam = params.get('page');
+          state.page = ['game', 'about', 'awards'].includes(pageParam) ? pageParam : 'home';
+          // 分享列表：讀取 list 參數
+          state.receivedList = params.get('list')?.split(',').filter(Boolean) ?? [];
+        }
+
+        /**
+         * 若 URL 有 ?sound=<id>，則聚焦並高亮該卡片。
+         */
+        function focusSoundFromURL() {
+          const id = new URLSearchParams(location.search).get('sound');
+          if (!id) return;
+          const card = utils.byId('snd-' + id);
+          if (!card) return;
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // 移除舊的高亮
+          if (state.highlightedCardId) utils.byId('snd-' + state.highlightedCardId)?.classList.remove('glow-persistent');
+          state.highlightedCardId = id;
+          card.classList.add('glow-persistent');
+        }
+
+        // popstate 事件：返回/前進時載入 URL 條件
+        window.addEventListener('popstate', () => {
+          applyURLToState();
+          render();
+          focusSoundFromURL();
+        });
+
+        /** 建立僅包含 sound id 的分享連結 */
+        function buildSoundURL(id) {
+          const base = location.href.replace(/[?#].*$/, '');
+          return `${base}?sound=${encodeURIComponent(id)}`;
+        }
+
+        /** 建立分享列表的 URL：加入 list 參數，使用逗號分隔的 id 列表。 */
+        function buildListURL(ids) {
+          const params = buildSearchParams();
+          ids?.length ? params.set('list', ids.join(',')) : params.delete('list');
+          params.delete('sound');
+          const qs = params.toString();
+          return `${location.origin}${location.pathname}${qs ? '?' + qs : ''}`;
+        }
+        /** 根據 id 自動播放音效 */
+        /** 根據 ID 播放音效 */
+        const playSoundById = id => { const snd = state.soundMap.get(id); snd && playSoundObject(snd); };
+
+
+        /**
+         * 切換頁面：根據 page 名稱顯示不同內容，並更新網址參數與導覽樣式
+         * @param {'home'|'game'|'about'} pg
+         */
+        const pageMap = { home: 'pageHome', game: 'pageGame', about: 'pageAbout', awards: 'pageawards' };
+        /** 觸發頁面切換事件 */
+        const dispatchPageEvent = (pg, prevPage, phase) => { try { document.dispatchEvent(new CustomEvent('pageChange', { detail: { page: pg, prevPage, phase } })); } catch (e) { } };
+        function showPage(pg) {
+          const prevPage = state.page;
+          dispatchPageEvent(pg, prevPage, 'before');
+          state.page = pg;
+          // 隱藏所有分頁，顯示目標分頁
+          for (const [key, elKey] of Object.entries(pageMap)) els[elKey]?.classList.toggle('hidden', key !== pg);
+          // 更新導覽標籤 active 樣式與 ARIA 狀態
+          els.navTabs.forEach(tab => {
+            const isActive = tab.getAttribute('data-page') === pg;
+            tab.classList.toggle('active', isActive);
+            if (tab.getAttribute('role') === 'tab') tab.setAttribute('aria-selected', String(isActive));
+          });
+          document.body.classList.toggle('bg-full', pg === 'about');
+          document.body.classList.remove('nav-open');
+          els.navToggle?.setAttribute('aria-expanded', 'false');
+          updateURLFromState(true);
+          dispatchPageEvent(pg, prevPage, 'after');
+        }
+
+        /**
+         * 渲染標籤一覽：列出所有使用到的標籤
+         */
+        function renderTagList() {
+          const container = els.tagList;
+          if (!container) return;
+          container.innerHTML = '';
+          state.usedTagList.forEach(t => {
+            const el = dom.el('span', { class: 'tag', style: { background: t.color || '#94a3b8' } }, t.name);
+            el.addEventListener('click', () => addTagToQuery(t.key));
+            container.appendChild(el);
+          });
+        }
+
+        /** 複製文字到剪貼簿 */
+        const copyToClipboard = text => navigator.clipboard?.writeText(text).catch(() => legacyCopy(text)) ?? legacyCopy(text);
+        function legacyCopy(text) {
+          const ta = Object.assign(document.createElement('textarea'), { value: text, style: 'position:fixed;left:-9999px' });
+          document.body.appendChild(ta); ta.select();
+          try { document.execCommand('copy'); } catch (e) { }
+          ta.remove();
+          return Promise.resolve();
+        }
+
+        /** Toast 提示顯示小資訊 */
+        function toast(msg, duration = CONFIG.timing.toastDuration) {
+          const t = els.toast;
+          if (!t) return;
+          clearTimeout(state.toastTimer);
+          t.textContent = msg;
+          t.classList.remove('hidden');
+          if (duration > 0) state.toastTimer = setTimeout(() => t.classList.add('hidden'), duration);
+        }
+
+        /** 打開音效的右鍵/長按選單 */
+        function openMenuForSound(snd, x, y) {
+          const m = els.menu;
+          if (!m) return;
+          m.innerHTML = '';
+          // 分享網址項目
+          const share = dom.el('div', { class: 'menu-item', role: 'menuitem', tabindex: '0' }, '分享網址');
+          share.addEventListener('click', async () => {
+            await copyToClipboard(buildSoundURL(snd.id));
+            closeMenu();
+            toast(MESSAGES.toast.linkCopied);
+          });
+          // 下載音檔項目
+          const dl = dom.el('div', { class: 'menu-item', role: 'menuitem', tabindex: '0' }, '下載音檔');
+          dl.addEventListener('click', () => { closeMenu(); utils.download(snd.src, snd.file); });
+          m.append(share, dl);
+          m.classList.remove('hidden');
+          // 定位選單：確保元素有尺寸後再計算
+          requestAnimationFrame(() => positionMenu(x, y));
+        }
+
+        /** 定位選單在視窗內 */
+        function positionMenu(x, y) {
+          const m = els.menu;
+          if (!m) return;
+          const pad = 6;
+          const w = m.offsetWidth || 180;
+          const h = m.offsetHeight || 100;
+          const vw = window.innerWidth, vh = window.innerHeight;
+          m.style.left = Math.min(Math.max(0, x), vw - w - pad) + 'px';
+          m.style.top = Math.min(Math.max(0, y), vh - h - pad) + 'px';
+        }
+
+        /** 關閉選單 */
+        const closeMenu = () => { const m = els.menu; if (m) { m.classList.add('hidden'); m.innerHTML = ''; } };
+        // 點擊外部或按 ESC 關閉選單
+        document.addEventListener('click', e => { if (els.menu && !els.menu.classList.contains('hidden') && !els.menu.contains(e.target)) closeMenu(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+        window.addEventListener('resize', closeMenu);
+
+        /** 切換主題 */
+        /** 套用主題樣式，暫時停用 transition 以避免切換時的 lag */
+        const applyTheme = theme => {
+          document.body.classList.add('no-transition');
+          document.documentElement.classList.toggle('light', theme === 'light');
+          // 強制 reflow 後恢復 transition
+          document.body.offsetHeight;
+          document.body.classList.remove('no-transition');
+        };
+        const savedTheme = localStorage.getItem(CONFIG.storage.theme) || (matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark');
+        applyTheme(savedTheme);
+        els.themeBtn.addEventListener('click', () => {
+          const next = document.documentElement.classList.contains('light') ? 'dark' : 'light';
+          if (next === 'dark') playSoundById('oNTWqg'); // 瓦哈音效：開燈啊
+          localStorage.setItem(CONFIG.storage.theme, next);
+          applyTheme(next);
+        });
+
+        // 設定 Modal 行為
+        
+        /** 顯示/隱藏 Modal 並設定焦點 */
+        const setModalVisible = (modal, visible, focusEl) => {
+          if (!modal) return;
+          modal.classList.toggle('hidden', !visible);
+          modal.setAttribute('aria-hidden', String(!visible));
+          if (focusEl) try { focusEl.focus(); } catch (e) { }
+        };
+
+        /** 隱藏設定面板 */
+        const hideSettings = () => setModalVisible(els.settingsModal, false);
+        /** 檢查設定面板是否開啟 */
+        const isSettingsOpen = () => els.settingsModal && !els.settingsModal.classList.contains('hidden');
+
+        /** 更新混音主音量 */
+        const updateMixMasterGain = norm => {
+          const gain = mixAudio?.masterGain?.gain;
+          if (!gain) return;
+          try { gain.value = norm; } catch { gain.rampTo?.(norm, 0.02); }
+        };
+
+        els.settingsBtn?.addEventListener('click', e => {
+          e.preventDefault();
+          setModalVisible(els.settingsModal, true);
+          const vol = Math.round((state.globalVolume ?? 1) * 100);
+          if (els.settingsVolume) els.settingsVolume.value = String(vol);
+          if (els.settingsVolumeValue) els.settingsVolumeValue.textContent = `${vol}%`;
+        });
+
+        els.settingsClose?.addEventListener('click', hideSettings);
+        document.addEventListener('click', e => { if (isSettingsOpen() && e.target === els.settingsModal) hideSettings(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && isSettingsOpen()) hideSettings(); });
+
+        els.settingsVolume?.addEventListener('input', () => {
+          const norm = Math.max(0, Math.min(100, Number(els.settingsVolume.value) || 0)) / 100;
+          state.globalVolume = norm;
+          try { localStorage.setItem(CONFIG.storage.globalVolume, String(norm)); } catch { }
+          if (els.settingsVolumeValue) els.settingsVolumeValue.textContent = `${Math.round(norm * 100)}%`;
+          updateMixMasterGain(norm);
+        });
+
+        /** 播放彩蛋：音效開始時顯示主播頭像 */
+        const activeGroups = new Set();
+        function onPlayStart(snd, audio) {
+          const streamerTags = snd.tags.map(k => state.tags[utils.slug(k)]).filter(t => t?.role === 'streamer' && t.avatar);
+          if (!streamerTags.length) return;
+          const group = dom.el('div', { class: 'group' });
+          activeGroups.add(group);
+          streamerTags.forEach((t, i) => {
+            const avatar = dom.el('div', { class: 'avatar pop-in jit', style: { animationDelay: `${i * 60}ms` } }, [
+              dom.el('img', { src: withV(t.avatar), alt: t.name })
+            ]);
+            group.appendChild(avatar);
+          });
+          els.stage.appendChild(group);
+          audio.__group = group;
+        }
+        /** 播放彩蛋：音效結束時播放頭像離場動畫 */
+        function onPlayEnd(_snd, audio) {
+          const group = audio.__group;
+          if (!group) return;
+          [...group.children].forEach((av, i) => {
+            av.classList.remove('jit');
+            setTimeout(() => {
+              av.classList.add('hop-out');
+              av.onanimationend = () => { av.remove(); group.childElementCount === 0 && (group.remove(), activeGroups.delete(group)); };
+            }, i * CONFIG.timing.hopOutDelay);
+          });
+        }
+
+        /** ===== Favorites schema migration: file -> id (v1 -> v2) ===== */
+        const ID_REGEX = /^[A-Za-z0-9_-]{6}$/;
+
+        /** 解析舊版最愛資料為字串陣列 */
+        function parseLegacyFavorites(raw) {
+          if (!raw) return [];
+          try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) return parsed.map(String);
+            if (parsed && typeof parsed === 'object') return Object.keys(parsed).filter(k => parsed[k]).map(String);
+          } catch {
+            // 非 JSON：支援用逗號/空白分隔的舊格式
+            return typeof raw === 'string' ? raw.split(/[,\s]+/).map(s => s.trim()).filter(Boolean) : [];
+          }
+          return [];
+        }
+
+        /** 正規化檔案路徑作為查找鍵值 */
+        const canonFileKey = s => {
+          if (!s) return '';
+          let k = String(s).split('?')[0].replace(/^\.?\//, '');
+          try { k = decodeURIComponent(k); } catch { }
+          return k;
+        };
+
+        /** 由 sounds.json 建立對照表：file/basename/大小寫鬆弛 -> id */
+        /**
+         * 從 sounds.json 建立對照表用於檔案名稱轉 ID 的對應。
+         * 
+         * 支援多種輸入格式並進行正規化：
+         * 1. 完整路徑（e.g. `sounds/subfolder/file.mp3`）
+         * 2. 基礎檔名（e.g. `file.mp3`）
+         * 3. 大小寫不敏感查詢
+         * 
+         * 返回兩張 Map：
+         * - exact：精確配對（區分大小寫）
+         * - lower：寬鬆配對（不區分大小寫）
+         * 
+         * @param {Array} soundsJson - sounds.json 陣列，每項包含 file 與 id
+         * @returns {Object} { exact: Map, lower: Map }
+         */
+        function buildFileMapsFromConfig(soundsJson) {
+          const exact = new Map(), lower = new Map();
+          for (const s of soundsJson) {
+            // 提取檔案路徑的基本形式
+            const file = canonFileKey(s.file), base = file.split('/').pop(), id = s.id || base;
+            // 針對多種路徑變體建立對應：完整路徑、基檔名、帶/不帶 sounds 前綴
+            [file, base, `sounds/${file}`, `sounds/${base}`].forEach(k => { 
+              exact.set(k, id); 
+              lower.set(k.toLowerCase(), id); 
+            });
+          }
+          return { exact, lower };
+        }
+
+        /** 檢查最愛是否需要遷移 */
+        const favoritesNeedMigration = raw => {
+          const list = parseLegacyFavorites(raw);
+          return list.length > 0 && !list.every(x => ID_REGEX.test(x));
+        };
+
+        /** 執行最愛從檔名到 ID 的遷移 */
+        function migrateFavoritesFromFilesToIds(soundsJson) {
+          try {
+            const raw = localStorage.getItem(CONFIG.storage.favorites);
+            if (!favoritesNeedMigration(raw)) {
+              localStorage.setItem(CONFIG.storage.favoritesVersion, '2');
+              return;
+            }
+            const legacy = parseLegacyFavorites(raw);
+            const { exact, lower } = buildFileMapsFromConfig(soundsJson);
+
+            const out = [];
+            const seen = new Set();
+            const missing = [];
+
+            legacy.forEach(k => {
+              const c = canonFileKey(k);
+              const base = c.split('/').pop();
+              const candidates = [c, c.replace(/^sounds\//, ''), base, 'sounds/' + c, 'sounds/' + base];
+              const id = candidates.map(cand => exact.get(cand) || lower.get(cand.toLowerCase())).find(Boolean);
+              if (!id) { missing.push(k); return; }
+              if (!seen.has(id)) { seen.add(id); out.push(id); }
+            });
+
+            // 寫入新版 + 備份舊版
+            localStorage.setItem(CONFIG.storage.favoritesBackup, raw);
+            localStorage.setItem(CONFIG.storage.favorites, JSON.stringify(out));
+            localStorage.setItem(CONFIG.storage.favoritesVersion, '2');
+
+            // 同步到 runtime（本次載入立即生效）
+            state.favorites = out;
+            state.favSet = new Set(out);
+            toast(`已升級最愛格式，共 ${out.length} 筆${missing.length ? `；未匹配 ${missing.length} 筆` : ''}。`);
+            console.info('[favorites migration] done:', { converted: out.length, missing });
+          } catch (err) {
+            console.warn('[favorites migration] error:', err);
+          }
+        }
+
+        /** 從票選結果重新排序音效列表 */
+        async function applyVoteResultsOrdering() {
+          try {
+            const resp = await fetch(withV(CONFIG.paths.voteResults), { cache: 'no-store' });
+            if (!resp.ok) { console.warn('[vote load] resp not ok', resp.status); return false; }
+            const voteData = await resp.json();
+            const topIds = voteData.slice(0, CONFIG.awards.topRankCount).map(v => v.id).filter(Boolean);
+            if (!topIds.length) return false;
+            // 依票選順序收集已匹配的音效
+            const seen = new Set();
+            const matchedList = topIds.map(id => state.soundMap.get(id)).filter(s => s && !seen.has(s.id) && (seen.add(s.id), true));
+            // 重組：已匹配的優先，其餘保持原序
+            state.sounds = [...matchedList, ...state.sounds.filter(s => !seen.has(s.id))];
+            state.soundMap = new Map(state.sounds.map(s => [s.id, s]));
+            state.defaultSoundsSnapshot = state.sounds.map(s => ({ ...s }));
+            state.voteResults = {
+              matchedList,
+              top10: matchedList.slice(0, CONFIG.awards.top10Count),
+              next20: matchedList.slice(CONFIG.awards.top10Count, CONFIG.awards.topRankCount)
+            };
+            console.info('[vote reorder] applied ordering, matched:', matchedList.length, '/', topIds.length);
+            return true;
+          } catch (e) { console.warn('[vote load] failed', e); return false; }
+        }
+
+        /** 載入設定檔並初始化狀態 */
+        async function loadConfig() {
+          const [tagsJson, soundsJson] = await Promise.all([
+            fetch(withV(CONFIG.paths.tags), { cache: 'no-store' }).then(r => r.json()),
+            fetch(withV(CONFIG.paths.sounds), { cache: 'no-store' }).then(r => r.json())
+          ]);
+          // 讀取標籤
+          migrateFavoritesFromFilesToIds(soundsJson);
+          state.tags = {};
+          state.tagList = tagsJson.map(t => ({ key: utils.slug(t.key), name: t.name, color: t.color, role: t.role, avatar: t.avatar }));
+          state.tagList.forEach(t => { state.tags[t.key] = t; });
+          // 讀取音效。若配置檔中包含 id，則使用該 id；否則 fallback 到檔名。加上版本字串。
+          state.sounds = soundsJson.map(s => {
+            const id = s.id || s.file.replace(/^.*[\\\/]/, '');
+            return { id, src: withV(`sounds/${s.file}`), file: s.file, title: s.title, tags: s.tags.slice() };
+          });
+          state.soundMap = new Map(state.sounds.map(s => [s.id, s]));
+          // 保存一份原始載入順序的淺拷貝，供「預設順序」還原使用
+          state.defaultSoundsSnapshot = state.sounds.map(s => ({ ...s }));
+          // 載入票選結果 JSON，將前 N 名依票選順序移到最前面
+          await applyVoteResultsOrdering();
+          // 計算哪些標籤被使用到，以供標籤一覽
+          const usedKeys = new Set();
+          state.sounds.forEach(snd => snd.tags.forEach(t => usedKeys.add(utils.slug(t))));
+          state.usedTagList = state.tagList.filter(t => usedKeys.has(t.key));
+        }
+
+        /** 渲染介面：依據搜尋條件篩選音效，區分最愛與其他 */
+        /**
+         * 主渲染函式：根據搜尋條件篩選、分類、排序音效，並更新 UI。
+         * 
+         * 邏輯流程：
+         * 1. 解析搜尋條件（詞彙 + 標籤）
+         * 2. 篩選符合條件的音效
+         * 3. 分類至三個區塊（按優先級）：
+         *    - 最愛區（收藏的音效）
+         *    - 收到的列表（分享連結含有的音效，非最愛）
+         *    - 一般區（其他篩選結果）
+         * 4. 更新 UI：渲染卡片網格、空狀態提示、活躍搜尋標籤
+         */
+        function render() {
+          const { terms, tags } = utils.parseQuery();
+          // 步驟 1 & 2：篩選符合條件的音效
+          const filtered = state.sounds.filter(s => utils.match(s, terms, tags));
+          // 解析分享列表參數（從 URL）
+          const received = state.receivedList.map(id => state.soundMap.get(id)).filter(Boolean);
+          const allowedIds = new Set(filtered.map(s => s.id)); // 篩選結果的 ID 集合
+          
+          // 步驟 3：分類區塊
+          // 最愛區：在篩選結果中的收藏音效
+          const fav = state.favorites.map(id => state.soundMap.get(id)).filter(s => s && allowedIds.has(s.id));
+          // 收到的列表：在篩選結果中、非最愛的分享音效
+          const rec = received.filter(s => allowedIds.has(s.id) && !state.favSet.has(s.id));
+          // 一般區：篩選結果中既非最愛也未在分享列表的音效
+          const rest = filtered.filter(s => !state.favSet.has(s.id) && !rec.includes(s));
+          
+          // 步驟 4：更新 UI
+          // 最愛區只在非編輯模式下渲染（避免拖放時重新排序卡片）
+          if (!state.isSorting) renderGrid(els.favGrid, fav, { inFav: true });
+          renderGrid(els.receivedGrid, rec);
+          
+          // 一般區改用分批渲染（虛擬滾動優化）
+          state.displayList = rest;
+          state.renderedCount = 0;
+          els.grid.innerHTML = ''; // 清空容器
+          
+          // 初始化 IntersectionObserver（如果尚未建立）
+          if (!state.observer) {
+            state.observer = new IntersectionObserver(entries => {
+              if (entries[0].isIntersecting) renderNextBatch();
+            }, { rootMargin: '400px' }); // 提早 400px 觸發載入
+          } else {
+            state.observer.disconnect();
+          }
+          
+          renderNextBatch();
+
+          // 空狀態提示
+          els.favEmpty.classList.toggle('hidden', fav.length > 0);
+          els.empty.classList.toggle('hidden', filtered.length > 0);
+          els.receivedSection?.classList.toggle('hidden', rec.length === 0);
+          // 更新搜尋標籤列（chips）
+          renderActiveChips();
+        }
+
+        /** 渲染下一批次音效卡片 */
+        function renderNextBatch() {
+          const { displayList, renderedCount } = state;
+          if (renderedCount >= displayList.length) return;
+
+          const batch = displayList.slice(renderedCount, renderedCount + CONFIG.ui.batchSize);
+          if (batch.length === 0) return;
+
+          // 移除舊的哨兵元素
+          const oldSentinel = document.getElementById('grid-sentinel');
+          if (oldSentinel) oldSentinel.remove();
+
+          const fragment = document.createDocumentFragment();
+          for (const s of batch) {
+            fragment.appendChild(renderSoundCard(s));
+          }
+          els.grid.appendChild(fragment);
+          state.renderedCount += batch.length;
+
+          // 若還有剩餘項目，加入哨兵元素以觸發下一次載入
+          if (state.renderedCount < displayList.length) {
+            const sentinel = dom.el('div', { id: 'grid-sentinel', style: { gridColumn: '1 / -1', height: '20px', pointerEvents: 'none' } });
+            els.grid.appendChild(sentinel);
+            state.observer.observe(sentinel);
+          }
+        }
+
+        /** 渲染票選頁面 */
+        function renderawardsPage() {
+          if (!state.voteResults) {
+            els.awardsTop10?.replaceChildren();
+            els.awardsNext20?.replaceChildren();
+            return;
+          }
+          if (els.awardsTop10) renderGrid(els.awardsTop10, state.voteResults.top10 ?? []);
+          if (els.awardsNext20) renderGrid(els.awardsNext20, state.voteResults.next20 ?? []);
+        }
+        /** 渲染音效卡片列表到容器 */
+        function renderGrid(container, list, opts = { inFav: false }) {
+          container.innerHTML = '';
+          for (const s of list) { container.appendChild(renderSoundCard(s, opts)); }
+        }
+        /** 建立單一音效卡片元素 */
+        function renderSoundCard(snd, opts = { inFav: false }) {
+          const interactive = !(state.isSorting && opts.inFav);
+          const heartAttrs = {
+            class: 'heart',
+            'aria-pressed': String(utils.inFav(snd.id)),
+            'aria-label': '加入/移除最愛',
+            ...(!interactive && { disabled: 'true', 'aria-disabled': 'true', title: '正在編輯最愛排序，無法變更最愛' })
+          };
+          const heartBtn = dom.el('button', heartAttrs, dom.svgHeart());
+          if (interactive) heartBtn.onclick = e => { e.stopPropagation(); toggleFavorite(snd.id, heartBtn); };
+          const tagWrap = dom.el('div', { class: 'tags' });
+          for (const t of snd.tags) {
+            const tagKey = utils.slug(t);
+            const color = state.tags[tagKey]?.color || '#94a3b8';
+            const el = dom.el('span', { class: 'tag', style: { background: color } }, t);
+            el.addEventListener('click', e => { e.stopPropagation(); addTagToQuery(tagKey); });
+            tagWrap.appendChild(el);
+          }
+          const card = dom.el('div', { id: 'snd-' + snd.id, 'data-id': snd.id, class: 'sound', role: 'button', tabindex: '0', 'aria-label': `播放音效：${snd.title}` }, [
+            dom.el('div', { class: 'sound-top' }, [
+              dom.el('div', { class: 'title', title: snd.title }, snd.title),
+              heartBtn
+            ]),
+            tagWrap
+          ]);
+          const play = () => { try { playSoundObject(snd); } catch (e) { console.error(e); } };
+          const endHold = () => clearTimeout(state.contextTimer);
+          if (interactive) {
+            card.addEventListener('click', play);
+            card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); play(); } });
+            card.addEventListener('contextmenu', e => { e.preventDefault(); closeMenu(); openMenuForSound(snd, e.clientX, e.clientY); });
+            card.addEventListener('pointerdown', e => {
+              clearTimeout(state.contextTimer);
+              const { clientX, clientY } = e;
+              state.contextTimer = setTimeout(() => {
+                closeMenu();
+                openMenuForSound(snd, clientX || window.innerWidth / 2, clientY || window.innerHeight / 2);
+              }, CONFIG.timing.longPressDelay);
+            });
+            card.addEventListener('pointerup', endHold);
+            card.addEventListener('pointerleave', endHold);
+          }
+          card.addEventListener('pointercancel', endHold);
+          return card;
+        }
+
+        /** 切換音效的最愛狀態 */
+        function toggleFavorite(id, btn) {
+          if (state.isSorting) { toast(MESSAGES.toast.sortingBlocked); return; }
+          if (state.favSet.has(id)) {
+            state.favorites = state.favorites.filter(x => x !== id);
+          } else {
+            state.favorites.push(id);
+          }
+          state.favSet = new Set(state.favorites);
+          utils.saveFav();
+          if (btn) btn.setAttribute('aria-pressed', String(state.favSet.has(id)));
+          render();
+        }
+
+        /** 渲染已選標籤 chips */
+        function renderActiveChips() {
+          els.activeChips.innerHTML = '';
+          for (const key of state.queryTags) {
+            const tag = state.tags[key];
+            const color = tag?.color || '#94a3b8';
+            const chip = dom.el('span', { class: 'chip', style: { background: color }, onclick: () => { state.queryTags.delete(key); render(); updateURLFromState(true); } }, [
+              `#${tag?.name || key}`,
+              dom.el('button', { title: '移除', onclick: () => { state.queryTags.delete(key); render(); updateURLFromState(true); } }, '×')
+            ],
+            );
+            els.activeChips.appendChild(chip);
+          }
+        }
+
+        /** 將標籤加入搜尋條件 */
+        function addTagToQuery(tagKey) {
+          state.queryTags.add(tagKey);
+          render();
+          updateURLFromState(true);
+        }
+
+        /** 初始化事件綁定 */
+        function initEvents() {
+          // 搜尋框輸入（使用 debounce 降低 render 頻率）
+          const handleSearchInput = () => {
+            state.queryText = els.q.value;
+            render();
+            updateURLFromState(false);
+          };
+          els.q.addEventListener('input', utils.debounce(handleSearchInput, CONFIG.timing.searchDebounce));
+
+          // 清除搜尋
+          els.clearBtn.addEventListener('click', () => {
+            els.q.value = '';
+            state.queryText = '';
+            state.queryTags.clear();
+            render();
+            updateURLFromState(true);
+          });
+
+          // 導覽切換
+          els.navTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+              const pg = tab.getAttribute('data-page');
+              showPage(pg || 'home');
+            });
+          });
+          // 手機選單開關
+          if (els.navToggle) {
+            els.navToggle.addEventListener('click', () => {
+              const open = !document.body.classList.contains('nav-open');
+              document.body.classList.toggle('nav-open', open);
+              els.navToggle.setAttribute('aria-expanded', String(open));
+            });
+          }
+
+          const closeNavMenu = () => {
+            document.body.classList.remove('nav-open');
+            els.navToggle?.setAttribute('aria-expanded', 'false');
+          };
+          // 點擊頁面其他地方關閉手機選單
+          document.addEventListener('click', e => {
+            if (!document.body.classList.contains('nav-open')) return;
+            const headerEl = document.querySelector('header');
+            if (headerEl && !headerEl.contains(e.target)) closeNavMenu();
+          });
+          // 點擊導覽後在小螢幕自動收合
+          els.navTabs.forEach(t => t.addEventListener('click', closeNavMenu));
+
+          // 洗牌按鈕
+          if (els.shuffleBtn) {
+            els.shuffleBtn.addEventListener('click', () => {
+              // 只洗牌「非最愛」音效，不影響最愛區的排列
+              const nf = [];
+              const idxs = [];
+              state.sounds.forEach((s, i) => {
+                if (!state.favSet.has(s.id)) { nf.push(s); idxs.push(i); }
+              });
+              shuffleInPlace(nf);
+              idxs.forEach((i, k) => { state.sounds[i] = nf[k]; });
+              render();
+            });
+          }
+          // 預設順序按鈕：將非最愛區塊恢復為載入時的順序
+          if (els.resetOrderBtn) {
+            els.resetOrderBtn.addEventListener('click', () => {
+              if (!state.defaultSoundsSnapshot || !state.defaultSoundsSnapshot.length) return;
+              // 我們只恢復非最愛（rest）區段的順序，同 shuffleBtn 的行為相對應
+              const snapshot = state.defaultSoundsSnapshot;
+              const idIndex = new Map(snapshot.map((s, i) => [s.id, i]));
+              state.sounds.sort((a, b) => (idIndex.get(a.id) ?? Infinity) - (idIndex.get(b.id) ?? Infinity));
+              render();
+            });
+          }
+          // 分享最愛列表
+
+          // 手動排序（檢查點A）：啟用/停用 SortableJS 僅針對最愛清單
+          if (els.sortFavBtn && els.doneSortBtn) {
+            els.sortFavBtn.addEventListener('click', () => {
+              state.isSorting = true;
+              document.body.classList.add('sorting');
+              els.sortFavBtn.classList.add('hidden');
+              els.doneSortBtn.classList.remove('hidden');
+              // 重新渲染最愛區塊
+              const { terms, tags } = utils.parseQuery();
+              const allowedIds = new Set(state.sounds.filter(s => utils.match(s, terms, tags)).map(s => s.id));
+              const fav = state.favorites.map(id => state.soundMap.get(id)).filter(s => s && allowedIds.has(s.id));
+              renderGrid(els.favGrid, fav, { inFav: true });
+              // 啟用 SortableJS
+              typeof Sortable !== 'undefined'
+                ? state.sortable = Sortable.create(els.favGrid, {
+                  dataIdAttr: 'data-id', animation: 150, delay: 150, delayOnTouchOnly: true,
+                  ghostClass: 'drag-ghost', chosenClass: 'drag-chosen', dragClass: 'dragging',
+                  filter: '.heart', preventOnFilter: false
+                })
+                : console.warn('SortableJS 未載入');
+            });
+            els.doneSortBtn.addEventListener('click', () => {
+              const orderedIds = [...els.favGrid.children].map(el => el.dataset.id).filter(Boolean);
+              if (orderedIds.length) {
+                state.favorites = orderedIds.concat(state.favorites.filter(id => !orderedIds.includes(id)));
+                state.favSet = new Set(state.favorites);
+                utils.saveFav();
+                toast(MESSAGES.toast.sortingSaved);
+              }
+              state.sortable?.destroy(); state.sortable = null;
+              state.isSorting = false;
+              document.body.classList.remove('sorting');
+              els.doneSortBtn.classList.add('hidden');
+              els.sortFavBtn.classList.remove('hidden');
+              render();
+            });
+          }
+          if (els.shareFavBtn) {
+            els.shareFavBtn.addEventListener('click', async () => {
+              const ids = [...state.favorites];
+              if (ids.length === 0) { toast(MESSAGES.toast.noFavorites); return; }
+              const url = buildListURL(ids);
+              await copyToClipboard(url);
+              toast(MESSAGES.toast.listLinkCopied);
+            });
+          }
+        }
+
+        // 入口：載入設定後初始化狀態、渲染並套用 URL 查詢
+        loadConfig().then(() => {
+          applyURLToState();
+          renderTagList();
+          showPage(state.page);
+          render();
+          focusSoundFromURL();
+          initEvents();
+          // 點擊標題時回到主頁並清除搜尋（阻止預設的全頁導向），然後重新渲染與更新 URL
+          try {
+            const titleLink = document.querySelector('header h1');
+            if (titleLink) {
+              titleLink.addEventListener('click', (e) => {
+                // 如果使用者使用 Ctrl/Cmd + click 或 想要在新分頁開啟，保留原行為
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                // 若已在主頁，則強制重新整理頁面
+                if (state.page === 'home') {
+                  // 允許瀏覽器做完整 reload
+                  return location.reload();
+                }
+                e.preventDefault();
+                // 清除搜尋狀態並回首頁
+                state.queryText = '';
+                state.queryTags.clear();
+                if (els.q) els.q.value = '';
+                showPage('home');
+                render();
+                updateURLFromState(true);
+                // 平滑滾回頂部
+                try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { }
+              });
+            }
+          } catch (e) {/* ignore */ }
+        }).catch(err => {
+          console.error(err);
+          els.grid.innerHTML = `<div class="empty">${MESSAGES.errors.configLoadFailed}</div>`;
+        });
+
+        /** 初始化配對記憶遊戲 */
+        function setupConcentrationGame() {
+          const gameEl = document.getElementById('concentration-game');
+          const boardEl = document.getElementById('cg-board');
+          const timerEl = document.getElementById('cg-timer');
+          const accEl = document.getElementById('cg-accuracy');
+          const resultEl = document.getElementById('cg-result');
+          const restartBtn = document.getElementById('cg-restart');
+          if (!gameEl) return;
+
+          // 注意：不要在此處重新宣告 cgCleanup —— 請使用外層作用域的 cgCleanup，
+          // 以便在切換頁面時（由 showPage 呼叫）能正確執行清理工作。
+
+          // --- 遊戲狀態 ---
+          let cards = [];
+          let first = null, second = null;
+          // scoring: correct = 正確數 (每配對 +2), wrong = 錯解數 (可 +0/+1/+2)
+          let correct = 0, wrong = 0;
+          // matchedPairs counts how many pairs have been solved (0..pairCount)
+          let matchedPairs = 0, tries = 0;
+          let timer = 0, timerId = null, running = false;
+          let allowClick = true;
+          let pairs = [];
+          // pending pair / timeout 用於延遲檢查配對；若使用者在等待期間點擊其他卡，會立刻結算這對。
+          let pendingTimeout = null;
+          let pendingPair = null; // {f, s}
+          let timerStarted = false; // only start timer on first card flip
+
+          /**
+           * 從篩選過的有效音效中選出最多 8 筆作為配對來源。
+           * 
+           * 選擇策略（優先順序）：
+           * 1. 已知主播（有配額）：按優先順序選取直到配額滿或無存量
+           * 2. 未知主播：最多選 2 筆作為補充
+           * 
+           * 配額分配：
+           * - 地基主阿萬：2 筆
+           * - 瓦哈/Matsuko/豹子頭/貓下去：各 1 筆
+           * - 其他動物朋友：2 筆
+           * 
+           * @param {Array} validSounds - 已篩選的音效清單（已移除髒話/SUS、只有一個 streamer 標籤）
+           * @returns {Array} 最多 8 筆選中的音效
+           */
+          function selectSounds(validSounds) {
+            const quotas = { '阿萬': 2, '瓦哈': 1, 'Matsuko': 1, '豹子頭': 1, '貓下去': 1 };
+            const knownTags = new Set(Object.keys(quotas));
+            const counts = Object.fromEntries(Object.keys(quotas).map(k => [k, 0]));
+            let others = 0; // 其他動物朋友的計數
+            const chosen = [];
+            
+            for (const snd of validSounds) {
+              if (chosen.length >= CONFIG.game.pairCount) break; // 達配對數上限，停止
+              const tags = snd.tags ?? [];
+              // 優先選擇有配額且未滿的已知主播
+              const knownTag = tags.find(t => knownTags.has(t) && counts[t] < quotas[t]);
+              if (knownTag) { counts[knownTag]++; chosen.push(snd); }
+              // 次選：其他動物朋友，必須要再 2 筆
+              else if (!tags.some(t => knownTags.has(t)) && others < 2) { others++; chosen.push(snd); }
+            }
+            return chosen;
+          }
+
+          // --- 資料篩選 ---
+          /**
+           * 挑選配對遊戲的音效清單。
+           * 
+           * 篩選規則：
+           * 1. 必須恰好包含 1 個 streamer 標籤（識別主播）
+           * 2. 不能包含 '髒話' 或 'SUS' 標籤
+           * 3. 應用選擇配額（地基主2個、魔法值班室其他4人各1個、其他動物朋友隨機選2）
+           * 4. 再次洗牌以隨機化對牌順序
+           * 
+           * @returns {Array<Object>} 選定的配對物件清單，每個包含 id、audio、avatar、streamerName、title
+           */
+          function pickPairs() {
+            // 輔助：從 tagList 擷取所有 streamer 的 key（並做 slug 化）以供後續比對
+            const streamerKeys = state.tagList
+              .filter(t => t.role === 'streamer')
+              .map(t => utils.slug(t.key));
+
+            // 判斷標籤是否為 streamer（已 slug 化）
+            const isStreamer = t => streamerKeys.includes(t);
+            
+            // 篩選有效的音效：恰好 1 個 streamer，無髒話/SUS
+            let validSounds = state.sounds.filter(s => {
+              const st = s.tags.filter(isStreamer);
+              if (st.length !== 1) return false; // 必須恰好 1 個 streamer
+              if (s.tags.includes('髒話') || s.tags.includes('SUS')) return false; // 排除禁止標籤
+              return true;
+            });
+
+            // 洗牌，應用配額選擇，確保多樣性
+            validSounds = shuffleInPlace(validSounds);
+            let chosen = selectSounds(validSounds);
+            chosen = shuffleInPlace(chosen); // 再洗牌以隨機化對牌順序
+            // 最後確保不超過配對數量
+            chosen.splice(CONFIG.game.pairCount);
+
+            // 映射到配對用物件（包含 id, audio, avatar, streamerName, title 等欄位）
+            return chosen.map(s => {
+              const streamerTag = s.tags.find(isStreamer);
+              const tagObj = state.tags[utils.slug(streamerTag)];
+              return {
+                id: s.id,
+                audio: s.src,
+                streamer: streamerTag,
+                avatar: tagObj?.avatar || '',
+                streamerName: tagObj?.name || streamerTag,
+                title: s.title
+              };
+            });
+          }
+
+          /** 開始新遊戲 */
+          function startGame() {
+            pairs = pickPairs();
+            // 如果找不到足夠的配對音效，顯示訊息並中止遊戲啟動
+            if (!pairs?.length) {
+              resultEl.innerHTML = `<h3>無法開始遊戲</h3><p style="color:var(--muted)">${MESSAGES.errors.gameNoSounds}</p>`;
+              resultEl.classList.remove('hidden');
+              running = state.cgRunning = false;
+              return;
+            }
+            [cards, pendingTimeout, pendingPair] = [[], (clearTimeout(pendingTimeout), null), null];
+            // 為每個配對建立兩張相同的卡片
+            for (const p of pairs) {
+              const base = { type: 'card', pairId: p.id, audio: p.audio, avatar: p.avatar, streamer: p.streamer, streamerName: p.streamerName, title: p.title, matched: false, seen: false };
+              cards.push({ ...base, id: `${p.id}-0` }, { ...base, id: `${p.id}-1` });
+            }
+            shuffleInPlace(cards);
+            [matchedPairs, correct, wrong, tries, timer, first, second] = [0, 0, 0, 0, 0, null, null];
+            allowClick = true;
+            timerStarted = running = state.cgRunning = false;
+            if (timerEl) { timerEl.textContent = formatTime(0); timerEl.classList.remove('cg-running'); }
+            updateBoard();
+            updateStats();
+            resultEl.classList.add('hidden');
+            // 提供清理函式
+            cgCleanup = () => {
+              running = false;
+              state.cgRunning = false;
+              stopTimer();
+              stopCurrentAudio();
+              timerEl?.classList.remove('cg-running');
+              boardEl.innerHTML = '';
+              clearTimeout(pendingTimeout);
+              pendingTimeout = pendingPair = null;
+            };
+          }
+          /** 重新渲染遊戲板面 */
+          function updateBoard() {
+            boardEl.innerHTML = '';
+            for (const [idx, card] of cards.entries()) {
+              const cardEl = dom.el('div', {
+                class: `cg-card${card.flipped || card.matched ? ' flipped' : ''}${card.matched ? ' matched' : ''}`,
+                'data-idx': idx,
+                onclick: () => onCardClick(idx),
+                onpointerdown: () => { cardEl.classList.add('clicked'); setTimeout(() => cardEl.classList.remove('clicked'), 160); }
+              });
+              const backContent = card.avatar
+                ? `<img src="${withV(card.avatar)}" alt="${card.streamerName}">`
+                : `<div style="font-weight:700;color:var(--muted);font-size:12px">${card.streamerName}</div>`;
+              cardEl.innerHTML = `<div class="cg-card-inner"><div class="cg-card-front"></div><div class="cg-card-back">${backContent}${card.matched ? '<div class="cg-lock">✓</div>' : ''}</div></div>`;
+              boardEl.appendChild(cardEl);
+            }
+          }
+
+          let currentAudio = null;
+          /** 停止當前播放的音效 */
+          const stopCurrentAudio = () => { if (currentAudio) { try { currentAudio.pause(); currentAudio.currentTime = 0; } catch (e) { } currentAudio = null; } };
+
+          /** 處理卡片點擊並檢查配對 */
+          function onCardClick(idx) {
+            // 如果有待處理的 pendingPair，使用者此刻點擊其他卡片時應立即結算該 pendingPair
+            if (pendingPair?.f || pendingPair?.s) {
+              clearTimeout(pendingTimeout);
+              pendingTimeout = null;
+              const p = pendingPair;
+              pendingPair = null;
+              checkMatchPair(p.f, p.s);
+              first = second = null;
+              allowClick = true;
+            }
+            if (!allowClick) return;
+            const card = cards[idx];
+            if (card.flipped || card.matched) return;
+            // 在玩家第一次互動（翻牌）時啟用計時器
+            if (!timerStarted) {
+              timerStarted = running = state.cgRunning = true;
+              timerEl?.classList.add('cg-running');
+              startTimer();
+            }
+            // 執行翻牌（更新資料狀態並重新渲染板面，觸發 CSS 翻牌動畫）
+            card.flipped = true;
+            updateBoard();
+            if (!first) {
+              // 記錄這張卡牌在翻前是否已被翻看過（用於計分判定）
+              card._seenBefore = !!card.seen;
+              // 標記為已看過（避免後續重複計分）
+              card.seen = true;
+              first = card;
+              // 播放該卡的音效並顯示標題
+              stopCurrentAudio();
+              currentAudio = createPlayer(card.audio, { preload: 'auto' });
+              if (card.title) toast(card.title, 3000);
+            } else if (!second) {
+              // 第二張卡的處理：同樣標記是否先前看過並播放音效
+              card._seenBefore = !!card.seen;
+              card.seen = true;
+              second = card;
+              stopCurrentAudio();
+              currentAudio = createPlayer(card.audio, { preload: 'auto' });
+              if (card.title) toast(card.title, 3000);
+              tries++;
+              allowClick = false;
+              // 捕獲當前第一張/第二張卡的引用，避免在延遲期間被其他邏輯改寫造成 race condition。
+              const fCard = first;
+              const sCard = second;
+              // 儲存為 pendingPair，並啟動超時（500ms）。如果使用者在此期間點擊其他卡
+              // 則會在 onCardClick 開頭立刻結算這對。
+              pendingPair = { f: fCard, s: sCard };
+              if (pendingTimeout) { clearTimeout(pendingTimeout); pendingTimeout = null; }
+              pendingTimeout = setTimeout(() => {
+                pendingTimeout = null;
+                const p = pendingPair; pendingPair = null;
+                checkMatchPair(p.f, p.s);
+                // 重置全域暫存，允許下一回合互動
+                first = null;
+                second = null;
+                allowClick = true;
+              }, CONFIG.game.cardFlipDelay);
+            }
+            updateStats();
+          }
+
+          /** 檢查兩張卡片是否配對 */
+          function checkMatchPair(f, s) {
+            if (!f || !s) return;
+            if (f.pairId === s.pairId) {
+              f.matched = s.matched = true;
+              correct += 2;
+              matchedPairs++;
+            } else {
+              const seenCount = [f, s].filter(c => c._seenBefore).length;
+              wrong += seenCount || 0;
+              f.flipped = s.flipped = false;
+            }
+            delete f._seenBefore; delete s._seenBefore;
+            updateBoard();
+            updateStats();
+            if (matchedPairs === pairs.length) { stopCurrentAudio(); endGame(); }
+          }
+
+          /** 更新遊戲統計顯示 */
+          function updateStats() {
+            timerEl.textContent = formatTime(timer);
+            const denom = correct + wrong;
+            accEl.textContent = denom ? `準確率：${Math.round((correct / denom) * 100)}%` : '準確率：--%';
+          }
+
+          /** 格式化時間為 mm:ss */
+          const formatTime = t => `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+
+          /** 啟動遊戲計時器 */
+          function startTimer() {
+            clearInterval(timerId);
+            timerId = setInterval(() => { if (state.cgRunning) { timer++; timerEl.textContent = formatTime(timer); } }, 1000);
+          }
+          /** 停止遊戲計時器 */
+          const stopTimer = () => { clearInterval(timerId); timerId = null; };
+
+          /** 結束遊戲並顯示成績 */
+          function endGame() {
+            running = state.cgRunning = false;
+            stopTimer();
+            stopCurrentAudio();
+            timerEl?.classList.remove('cg-running');
+            const denom = correct + wrong;
+            const perc = denom ? Math.round((correct / denom) * 100) : '--';
+            const stat = (v, l) => `<div><div class="big-num">${v}</div><div class="muted">${l}</div></div>`;
+            const stats = [[formatTime(timer), '用時'], [correct, '正確數'], [wrong, '錯解數'], [perc + '%', '準確率']].map(([v, l]) => stat(v, l)).join('');
+            resultEl.innerHTML = `<h3>完成！</h3>
+                                  <div class="stats">${stats}</div>
+                                  <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+                                    <button class="btn small-btn" id="cg-restart-2">再來一局</button>
+                                    <button class="btn small-btn" id="cg-home">回主頁</button>
+                                  </div>`;
+            resultEl.classList.remove('hidden');
+            // 若準確率達標，隨機播放獎勵音效
+            if (perc >= CONFIG.game.rewardAccuracy) {
+              const reward = state.soundMap.get(CONFIG.game.rewardSoundIds[Math.floor(Math.random() * CONFIG.game.rewardSoundIds.length)]);
+              if (reward?.src) { stopCurrentAudio(); currentAudio = createPlayer(reward.src, { preload: 'auto' }); toast(MESSAGES.toast.gameReward, 3000); }
+            }
+            utils.byId('cg-restart-2')?.addEventListener('click', startGame);
+            utils.byId('cg-home')?.addEventListener('click', () => showPage('home'));
+          }
+
+          restartBtn.onclick = startGame;
+
+          // 初始：載入頁面時顯示卡牌（不啟動計時）。按「重開一局」可重新建立一局；計時皆在第一張翻牌時啟動。
+          // 這裡呼叫 startGame() 以建立並顯示卡牌（但 timerStarted=false，不會自動開始計時）
+          startGame();
+        }
+
+        // 切換到小遊戲分頁時初始化/清理 Concentration Game（使用事件驅動）
+        document.addEventListener('pageChange', ({ detail: { page, prevPage, phase } = {} }) => {
+          try {
+            if (phase === 'before' && prevPage === 'game') cgCleanup?.();
+            if (phase === 'after') {
+              page === 'game' && setupConcentrationGame?.();
+              page === 'awards' && renderawardsPage();
+            }
+          } catch { /* swallow to avoid breaking page flow */ }
+        });
+
+      })();
+    </script>
+</body>
+
+</html>
