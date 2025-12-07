@@ -1608,6 +1608,11 @@
       left: 0;
       top: 0;
       bottom: 0;
+      /* ⚠️ 重要：此值必須與以下保持一致（未來重構時需同步修改）：
+         - .dema-track-content 的 left 值
+         - JavaScript 常數 TRACK_LABEL_WIDTH
+         - Timeline canvas 繪製的起始偏移
+         - Playhead 定位的偏移 */
       width: 32px;
       display: flex;
       align-items: center;
@@ -1622,6 +1627,7 @@
 
     .dema-track-content {
       position: absolute;
+      /* ⚠️ 重要：必須等於 .dema-track-label 的 width（32px） */
       left: 32px;
       top: 0;
       right: 0;
@@ -1851,10 +1857,6 @@
         font-size: 10px;
         text-align: center;
         width: auto;
-      }
-
-      .dema-track-content {
-        left: 24px;
       }
     }
 
@@ -3857,16 +3859,19 @@
           // === 常數設定 ===
           const STORAGE_KEY = 'demaPanel_v1';
           const TRACK_COUNT = 3;
+
+          // ⚠️ 重要：音軌標籤寬度（px）
+          // 此值必須與 CSS 中以下定義保持完全一致（未來重構時需同步修改）：
+          // - .dema-track-label 的 width
+          // - .dema-track-content 的 left
+          // 用途：Timeline canvas 繪製偏移、Playhead 定位、滾動計算等
           const TRACK_LABEL_WIDTH = 32;
+
           const DEFAULT_PX_PER_SEC = 200;
           const MIN_PX_PER_SEC = 50;
           const MAX_PX_PER_SEC = 800;
           const MAX_DURATION = 300; // 最大時長 5 分鐘
           const HISTORY_LIMIT = 50;
-          // [HACK] clip 視覺向右偏移量（px）
-          // 原因：clip 在 startTime=0 時，左邊緣會稍微超出音軌標籤區域
-          // 解法：僅在視覺渲染時加上偏移，邏輯位置（拖曳、碰撞、時間計算）不受影響
-          const CLIP_VISUAL_OFFSET = 2;
           const LONG_PRESS_DELAY = 350;
           const MOBILE_DRAG_DELAY = 200;
           const WAVEFORM_SAMPLES_PER_SEC = 120; // 波型解析度：每秒多少個樣本點
@@ -4204,26 +4209,17 @@
 
             let targetTime = 0;
             
-            // 1. 尋找與 playhead 重疊的 clips
-            const overlappingClips = clips.filter(c => 
-              c.startTime <= playheadTime && (c.startTime + c.duration) > playheadTime
-            );
+            // 尋找 playhead 之前的所有 clips (startTime < playheadTime)
+            // 加一點緩衝 (0.01s) 避免浮點數誤差，並確保如果剛好在開頭會跳到更前一個
+            const previousClips = clips.filter(c => c.startTime < playheadTime - 0.01);
 
-            if (overlappingClips.length > 0) {
-              // 如果有多個重疊，選擇開始時間最早的
-              overlappingClips.sort((a, b) => a.startTime - b.startTime);
-              targetTime = overlappingClips[0].startTime;
+            if (previousClips.length > 0) {
+              // 排序找出最接近 playhead 的 (startTime 最大)
+              previousClips.sort((a, b) => b.startTime - a.startTime);
+              targetTime = previousClips[0].startTime;
             } else {
-              // 2. 如果沒有重疊，往前搜尋最近的一個 clip
-              const previousClips = clips.filter(c => c.startTime < playheadTime);
-              
-              if (previousClips.length > 0) {
-                // 排序找出最接近 playhead 的 (startTime 最大)
-                previousClips.sort((a, b) => b.startTime - a.startTime);
-                targetTime = previousClips[0].startTime;
-              } else {
-                targetTime = 0;
-              }
+              // 如果前面沒有 clip，跳回 0
+              targetTime = 0;
             }
 
             playheadTime = targetTime;
@@ -4339,8 +4335,9 @@
           const renderTimeline = () => {
             const canvas = els.demaTimelineCanvas;
             if (!canvas) return;
-            
+
             const container = canvas.parentElement;
+            // Canvas 總寬度 = 時間軸寬度 + 左側標籤區寬度（TRACK_LABEL_WIDTH）
             const width = totalDuration * pxPerSec + TRACK_LABEL_WIDTH;
             // 從 CSS 取得實際高度，避免拉伸
             const cssHeight = container?.clientHeight || 25;
@@ -4377,6 +4374,7 @@
             const textY = height / 2; // 文字垂直置中
 
             for (let t = 0; t <= totalDuration; t += interval) {
+              // 刻度 x 座標 = 標籤寬度偏移 + 時間對應的像素位置
               const x = TRACK_LABEL_WIDTH + t * pxPerSec;
               
               // 主刻度線（從底部向上）
@@ -4394,6 +4392,7 @@
 
           const renderPlayhead = () => {
             if (!els.demaPlayhead) return;
+            // Playhead x 座標 = 標籤寬度偏移 + 播放時間對應的像素位置
             const x = TRACK_LABEL_WIDTH + playheadTime * pxPerSec;
             els.demaPlayhead.style.left = x + 'px';
           };
@@ -4442,7 +4441,7 @@
 
               const clipDuration = clip.duration - clip.trimStart - clip.trimEnd;
               const width = Math.max(20, clipDuration * pxPerSec);
-              const left = clip.startTime * pxPerSec + CLIP_VISUAL_OFFSET; // [HACK] 視覺偏移，見 CLIP_VISUAL_OFFSET 定義
+              const left = clip.startTime * pxPerSec;
 
               // 建立波型 canvas（高度配合音軌高度 30px - 4px padding = 26px）
               const waveCanvas = document.createElement('canvas');
@@ -4499,7 +4498,7 @@
 
               const clipDuration = clip.duration - clip.trimStart - clip.trimEnd;
               const width = Math.max(20, clipDuration * pxPerSec);
-              const left = clip.startTime * pxPerSec + CLIP_VISUAL_OFFSET; // [HACK] 視覺偏移，見 CLIP_VISUAL_OFFSET 定義
+              const left = clip.startTime * pxPerSec;
 
               clipEl.style.left = left + 'px';
               clipEl.style.width = width + 'px';
