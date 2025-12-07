@@ -2074,7 +2074,7 @@
         <div class="dema-controls-left">
           <div class="dema-volume-wrap" id="demaClipVolumeWrap" style="display: none;">
             <input id="demaClipVolume" type="range" class="dema-volume-slider" min="0" max="150" value="100" step="5">
-            <span class="dema-volume-label">音量 <span id="demaClipVolumeValue">100%</span></span>
+            <span class="dema-volume-label">片段音量 <span id="demaClipVolumeValue">100%</span></span>
           </div>
         </div>
         <div class="dema-controls-center">
@@ -2085,8 +2085,8 @@
             <svg id="demaPlayIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             <svg id="demaPauseIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
           </button>
-          <button id="demaStop" class="dema-btn dema-btn--icon" title="停止">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"/></svg>
+          <button id="demaSkipNext" class="dema-btn dema-btn--icon" title="跳到下個片段">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
           </button>
         </div>
         <div class="dema-controls-right">
@@ -2213,7 +2213,7 @@
           // UI 時間設定（毫秒）
           timing: {
             toastDuration: 2500,           // Toast 顯示時長
-            longPressDelay: 650,           // 長按觸發選單延遲
+            longPressDelay: 400,           // 長按觸發選單延遲
             searchDebounce: 180,           // 搜尋防抖延遲
             animationDelay: 60,            // 頭像動畫延遲間隔
             hopOutDelay: 90                // 頭像離場動畫延遲
@@ -2338,7 +2338,7 @@
           demaPlayIcon: document.getElementById('demaPlayIcon'),
           demaPauseIcon: document.getElementById('demaPauseIcon'),
           demaSkipBack: document.getElementById('demaSkipBack'),
-          demaStop: document.getElementById('demaStop'),
+          demaSkipNext: document.getElementById('demaSkipNext'),
           demaTime: document.getElementById('demaTime'),
           demaZoom: document.getElementById('demaZoom'),
           demaClear: document.getElementById('demaClear'),
@@ -4241,9 +4241,58 @@
             if (wasPlaying) play();
           };
 
+          const skipToNext = () => {
+            const wasPlaying = isPlaying;
+            if (isPlaying) pause();
+
+            let targetTime = totalDuration;
+            
+            // 1. 尋找 playhead 之後的所有 clips
+            // 我們關注的是 clip 的 startTime
+            const nextClips = clips.filter(c => c.startTime > playheadTime + 0.01); // 加一點緩衝避免原地踏步
+
+            if (nextClips.length > 0) {
+              // 排序找出最接近 playhead 的 (startTime 最小)
+              nextClips.sort((a, b) => a.startTime - b.startTime);
+              targetTime = nextClips[0].startTime;
+            } else {
+              // 如果後面沒有 clip，跳到全體軌道上時間最晚的 clip 的結尾
+              if (clips.length > 0) {
+                let maxEnd = 0;
+                for (const clip of clips) {
+                  const duration = clip.duration - clip.trimStart - clip.trimEnd;
+                  const end = clip.startTime + duration;
+                  if (end > maxEnd) maxEnd = end;
+                }
+                targetTime = maxEnd;
+              } else {
+                targetTime = totalDuration;
+              }
+            }
+
+            playheadTime = targetTime;
+            renderPlayhead();
+            updateTimeDisplay();
+
+            // 滾動視圖到 playhead 位置 (置中)
+            const scrollContainer = els.demaTracksScroll?.parentElement;
+            if (scrollContainer) {
+              const px = playheadTime * pxPerSec;
+              const scrollLeft = (px + TRACK_LABEL_WIDTH) - (scrollContainer.clientWidth / 2);
+              scrollContainer.scrollLeft = Math.max(0, scrollLeft);
+            }
+
+            if (wasPlaying) play();
+          };
+
           const updatePlayPauseIcon = () => {
             if (els.demaPlayIcon) els.demaPlayIcon.style.display = isPlaying ? 'none' : 'block';
             if (els.demaPauseIcon) els.demaPauseIcon.style.display = isPlaying ? 'block' : 'none';
+            
+            if (els.demaPlayPause) {
+              els.demaPlayPause.style.background = isPlaying ? 'var(--accent-2)' : 'var(--accent)';
+              els.demaPlayPause.style.borderColor = isPlaying ? 'var(--accent-2)' : 'var(--accent)';
+            }
           };
 
           // === Playhead 動畫 ===
@@ -4983,7 +5032,7 @@
             els.openDemaBtn?.addEventListener('click', open);
             els.demaClose?.addEventListener('click', close);
             els.demaPlayPause?.addEventListener('click', () => isPlaying ? pause() : play());
-            els.demaStop?.addEventListener('click', stop);
+            els.demaSkipNext?.addEventListener('click', skipToNext);
             els.demaSkipBack?.addEventListener('click', skipToStart);
             els.demaUndo?.addEventListener('click', undo);
             els.demaRedo?.addEventListener('click', redo);
