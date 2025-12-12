@@ -3068,6 +3068,16 @@
           const rec = received.filter(s => allowedIds.has(s.id) && !state.favSet.has(s.id));
           // 一般區：篩選結果中既非最愛也未在分享列表的音效
           const rest = filtered.filter(s => !state.favSet.has(s.id) && !rec.includes(s));
+
+          // [優化] 如果 URL 指定了特定音效，將其移至列表最前方以確保優先渲染
+          const focusId = new URLSearchParams(location.search).get('sound');
+          if (focusId) {
+            const idx = rest.findIndex(s => s.id === focusId);
+            if (idx > 0) {
+              const [item] = rest.splice(idx, 1);
+              rest.unshift(item);
+            }
+          }
           
           // 步驟 4：更新 UI
           // 最愛區只在非編輯模式下渲染（避免拖放時重新排序卡片）
@@ -3177,7 +3187,7 @@
               const { clientX, clientY } = e;
               state.contextTimer = setTimeout(() => {
                 closeMenu();
-                openMenuForSound(snd, clientX || window.innerWidth / 2, clientY || window.innerHeight / 2);
+                openMenuForSound(snd, clientX ?? window.innerWidth / 2, clientY ?? window.innerHeight / 2);
               }, CONFIG.timing.longPressDelay);
             });
             card.addEventListener('pointerup', endHold);
@@ -3934,8 +3944,8 @@
               if (!raw) return;
               const data = JSON.parse(raw);
               if (data.version !== 1) return;
-              playheadTime = data.playheadTime || 0;
-              pxPerSec = clamp(data.pxPerSec || DEFAULT_PX_PER_SEC, MIN_PX_PER_SEC, MAX_PX_PER_SEC);
+              playheadTime = data.playheadTime ?? 0;
+              pxPerSec = clamp(data.pxPerSec ?? DEFAULT_PX_PER_SEC, MIN_PX_PER_SEC, MAX_PX_PER_SEC);
               clips = (data.clips || []).filter(c => c && c.id && c.soundId);
               undoStack = data.undoStack || [];
               redoStack = data.redoStack || [];
