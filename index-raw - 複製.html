@@ -2053,7 +2053,7 @@
         <div style="display:flex;flex-direction:column;gap:8px;">
           <button id="themeBtn" class="btn" type="button" aria-label="切換亮色/暗色主題">電燈開關</button>
           <label for="settingsVolume">播放音量： <span id="settingsVolumeValue" aria-live="polite">100%</span></label>
-          <input id="settingsVolume" type="range" min="0" max="500" step="1" value="100"
+          <input id="settingsVolume" type="range" min="0" max="180" step="1" value="100"
             aria-describedby="settingsVolumeValue" />
           <div style="display:flex;justify-content:flex-end;margin-top:6px;gap:8px;">
             <button id="settingsClose" class="btn" type="button" aria-label="關閉設定面板">關閉</button>
@@ -2221,6 +2221,12 @@
             hopOutDelay: 90                // 頭像離場動畫延遲
           },
 
+          // 音量設定
+          volume: {
+            max: 300,                      // 最大音量百分比
+            default: 100                   // 預設音量百分比
+          },
+
           // UI 渲染設定
           ui: {
             batchSize: 72                  // 每次渲染的卡片數量 (6欄 x 12列)
@@ -2244,13 +2250,6 @@
           // 預設顏色
           colors: {
             defaultTag: '#94a3b8'          // 預設標籤色
-          },
-
-          // 全域音量設定
-          // 注意：HTML Audio 元素的 volume 屬性範圍為 0~1，超過 100% 需使用 Web Audio API 的 GainNode
-          volume: {
-            default: 1.0,                   // 預設音量（1.0 = 100%）
-            max: 5.0                        // 最大音量
           }
         };
 
@@ -2395,76 +2394,53 @@
         };
 
         state.favSet = new Set(state.favorites);
-        /**
-         * 從 localStorage 讀取全域音量設定
-         * 數值範圍：0 ~ CONFIG.volume.max（預設 5.0 = 500%）
-         * 若無有效值則使用 CONFIG.volume.default（預設 1.0 = 100%）
-         */
         state.globalVolume = (() => {
           const v = localStorage.getItem(CONFIG.storage.globalVolume);
           const n = Number(v);
-          const max = CONFIG.volume.max;
-          return (v !== null && !isNaN(n) && n >= 0 && n <= max) ? n : CONFIG.volume.default;
+          const maxVol = CONFIG.volume.max / 100;
+          return (v !== null && !isNaN(n) && n >= 0 && n <= maxVol) ? n : (CONFIG.volume.default / 100);
         })();
 
         let cgCleanup = null;
 
         /* =======================================================================
            5. 音頻播放核心
-           
-           注意：HTML5 Audio 的 volume 屬性範圍為 0~1，無法實現超過 100% 的音量。
-           為了支援最高 500% 的音量放大，需使用 Web Audio API 的 GainNode。
            ======================================================================= */
 
-        /**
-         * 共用的 AudioContext（延遲初始化，避免自動播放政策問題）
-         * @type {AudioContext|null}
-         */
-        let sharedAudioContext = null;
+        let globalAudioContext = null;
+        let globalMasterGain = null;
 
-        /**
-         * 取得或建立共用的 AudioContext
-         * @returns {AudioContext}
-         */
-        const getSharedAudioContext = () => {
-          if (!sharedAudioContext) {
-            sharedAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const getGlobalAudioContext = () => {
+          if (!globalAudioContext) {
+            globalAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+            globalMasterGain = globalAudioContext.createGain();
+            // 確保初始音量正確
+            globalMasterGain.gain.value = state.globalVolume;
+            globalMasterGain.connect(globalAudioContext.destination);
           }
-          if (sharedAudioContext.state === 'suspended') {
-            sharedAudioContext.resume();
+          if (globalAudioContext.state === 'suspended') {
+            globalAudioContext.resume().catch(e => console.warn('[AudioContext] resume failed', e));
           }
-          return sharedAudioContext;
+          return globalAudioContext;
         };
 
-        /**
-         * 將全域音量設定套用到 Audio 元素
-         * 使用 Web Audio API 的 GainNode 以支援超過 100% 的音量
-         * @param {HTMLAudioElement} audio - 音訊元素
-         * @returns {GainNode|null} - 回傳建立的 GainNode 供後續調整
-         */
-        const applyVolumeToAudio = (audio) => {
-          if (!audio) return null;
-          try {
-            const ctx = getSharedAudioContext();
-            // 建立 MediaElementSource（注意：同一 audio 只能建立一次）
-            if (!audio._sourceNode) {
-              const source = ctx.createMediaElementSource(audio);
-              const gainNode = ctx.createGain();
-              source.connect(gainNode);
-              gainNode.connect(ctx.destination);
-              audio._sourceNode = source;
-              audio._gainNode = gainNode;
+        const updateGlobalMasterVolume = (vol) => {
+            if (globalMasterGain) {
+                try {
+                    // 平滑過渡避免爆音
+                    const currentTime = globalAudioContext.currentTime;
+                    globalMasterGain.gain.setTargetAtTime(vol, currentTime, 0.02);
+                } catch {
+                    globalMasterGain.gain.value = vol;
+                }
             }
-            // 套用全域音量（可超過 1.0）
-            if (audio._gainNode) {
-              audio._gainNode.gain.value = state.globalVolume;
-            }
-            return audio._gainNode;
-          } catch (e) {
-            console.warn('[applyVolumeToAudio] 設定音量失敗，fallback 到原生 volume', e);
-            // Fallback：使用原生 volume（限制在 0~1）
-            audio.volume = Math.min(1, state.globalVolume);
-            return null;
+        };
+
+        /** 將全域音量設定套用到 Audio 元素 */
+        const applyVolumeToAudio = a => {
+          // 僅在非 Web Audio 模式下需要手動設定
+          if (!a._gainNode) {
+            a.volume = Math.min(1, state.globalVolume);
           }
         };
 
@@ -2472,11 +2448,59 @@
         function createPlayer(src, opts = {}) {
           const { snd, onPlay, onEnded, preload = 'auto', loop = false, autoplay = true } = opts;
           try {
-            const audio = new Audio(src);
+            const audio = new Audio();
+            // 嘗試設定 crossOrigin 以避免 Web Audio API 的 CORS 限制 (tainted source)
+            // 這對於從 file:// 或不同源載入音訊時很重要
+            try { audio.crossOrigin = "anonymous"; } catch {}
+            
+            audio.src = src;
             Object.assign(audio, { preload, loop });
+            
+            // 嘗試連接 Web Audio API 以支援 > 100% 音量
+            try {
+              const ctx = getGlobalAudioContext();
+              const source = ctx.createMediaElementSource(audio);
+              
+              // 個別音效增益 (支援 .volume 屬性)
+              const localGain = ctx.createGain();
+              localGain.gain.value = 1; 
+              
+              source.connect(localGain);
+              localGain.connect(globalMasterGain);
+              
+              audio._gainNode = localGain;
+              audio._sourceNode = source;
+
+              // 覆寫 volume 屬性以控制 localGain
+              Object.defineProperty(audio, 'volume', {
+                  get() { return localGain.gain.value; },
+                  set(v) { localGain.gain.value = v; },
+                  configurable: true
+              });
+
+            } catch (e) {
+              console.warn('[createPlayer] Web Audio API attach failed (CORS?), falling back to standard volume.', e);
+              applyVolumeToAudio(audio);
+            }
+
             onPlay && audio.addEventListener('play', () => onPlay(snd, audio));
-            onEnded && audio.addEventListener('ended', () => onEnded(snd, audio));
-            applyVolumeToAudio(audio);
+            
+            const cleanup = () => {
+              if (audio._gainNode) {
+                try { audio._gainNode.disconnect(); } catch {}
+                audio._gainNode = null;
+              }
+              if (audio._sourceNode) {
+                try { audio._sourceNode.disconnect(); } catch {}
+                audio._sourceNode = null;
+              }
+            };
+
+            audio.addEventListener('ended', () => {
+              cleanup();
+              if (onEnded) onEnded(snd, audio);
+            });
+            
             // 自動播放可能被瀏覽器政策阻擋（如無使用者互動），靜默處理
             autoplay && audio.play().catch(() => { /* 預期行為：瀏覽器自動播放政策 */ });
             return audio;
@@ -2875,13 +2899,18 @@
 
         /** 更新混音主音量 */
         const updateMixMasterGain = norm => {
-          const gain = mixAudio?.masterGain?.gain;
-          if (!gain) return;
           try {
-            gain.value = norm;
+            if (typeof mixAudio === 'undefined') return;
+            const gain = mixAudio?.masterGain?.gain;
+            if (!gain) return;
+            try {
+              gain.value = norm;
+            } catch (e) {
+              console.warn('[updateMixMasterGain] 直接設定失敗，嘗試 rampTo', e);
+              gain.rampTo?.(norm, 0.02);
+            }
           } catch (e) {
-            console.warn('[updateMixMasterGain] 直接設定失敗，嘗試 rampTo', e);
-            gain.rampTo?.(norm, 0.02);
+            console.warn('[updateMixMasterGain] failed', e);
           }
         };
 
@@ -2898,9 +2927,8 @@
         document.addEventListener('keydown', e => { if (e.key === 'Escape' && isSettingsOpen()) hideSettings(); });
 
         els.settingsVolume?.addEventListener('input', () => {
-          const maxPercent = CONFIG.volume.max * 100;
-          const rawValue = Math.max(0, Math.min(maxPercent, Number(els.settingsVolume.value) || 0));
-          const norm = rawValue / 100;
+          const rawVal = Number(els.settingsVolume.value) || 0;
+          const norm = Math.max(0, Math.min(CONFIG.volume.max, rawVal)) / 100;
           state.globalVolume = norm;
           try {
             localStorage.setItem(CONFIG.storage.globalVolume, String(norm));
@@ -2908,7 +2936,11 @@
             console.warn('[settings] 儲存音量設定失敗', e);
           }
           if (els.settingsVolumeValue) els.settingsVolumeValue.textContent = `${Math.round(norm * 100)}%`;
+          
+          // 更新混音器主音量
           updateMixMasterGain(norm);
+          // 更新全域主音量 (Web Audio API)
+          updateGlobalMasterVolume(norm);
         });
 
         /** 播放彩蛋：音效開始時顯示主播頭像 */
@@ -3540,6 +3572,15 @@
 
         // 入口：載入設定後初始化狀態、渲染並套用 URL 查詢
         loadConfig().then(() => {
+          // 初始化音量設定 UI
+          if (els.settingsVolume) {
+            els.settingsVolume.max = CONFIG.volume.max;
+            // 確保 UI 顯示正確的初始值
+            const vol = Math.round((state.globalVolume ?? 1) * 100);
+            els.settingsVolume.value = vol;
+            if (els.settingsVolumeValue) els.settingsVolumeValue.textContent = `${vol}%`;
+          }
+
           initBackgroundAnimation();
           
           // [Anniversary] 預先載入慶祝音效
