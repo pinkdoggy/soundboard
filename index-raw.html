@@ -2053,7 +2053,7 @@
         <div style="display:flex;flex-direction:column;gap:8px;">
           <button id="themeBtn" class="btn" type="button" aria-label="切換亮色/暗色主題">電燈開關</button>
           <label for="settingsVolume">播放音量： <span id="settingsVolumeValue" aria-live="polite">100%</span></label>
-          <input id="settingsVolume" type="range" min="0" max="500" step="1" value="100"
+          <input id="settingsVolume" type="range" min="0" max="300" step="1" value="100"
             aria-describedby="settingsVolumeValue" />
           <div style="display:flex;justify-content:flex-end;margin-top:6px;gap:8px;">
             <button id="settingsClose" class="btn" type="button" aria-label="關閉設定面板">關閉</button>
@@ -2250,7 +2250,7 @@
           // 注意：HTML Audio 元素的 volume 屬性範圍為 0~1，超過 100% 需使用 Web Audio API 的 GainNode
           volume: {
             default: 1.0,                   // 預設音量（1.0 = 100%）
-            max: 5.0                        // 最大音量
+            max: 3.0                        // 最大音量
           }
         };
 
@@ -2397,7 +2397,7 @@
         state.favSet = new Set(state.favorites);
         /**
          * 從 localStorage 讀取全域音量設定
-         * 數值範圍：0 ~ CONFIG.volume.max（預設 5.0 = 500%）
+         * 數值範圍：0 ~ CONFIG.volume.max (每1.0等於100%)
          * 若無有效值則使用 CONFIG.volume.default（預設 1.0 = 100%）
          */
         state.globalVolume = (() => {
@@ -2413,7 +2413,7 @@
            5. 音頻播放核心
            
            注意：HTML5 Audio 的 volume 屬性範圍為 0~1，無法實現超過 100% 的音量。
-           為了支援最高 500% 的音量放大，需使用 Web Audio API 的 GainNode。
+           為了支援最高的音量放大，需使用 Web Audio API 的 GainNode。
            ======================================================================= */
 
         /**
@@ -2873,16 +2873,11 @@
         /** 檢查設定面板是否開啟 */
         const isSettingsOpen = () => els.settingsModal && !els.settingsModal.classList.contains('hidden');
 
-        /** 更新混音主音量 */
+        /** 更新混音主音量（用於 demaPanel 的 Web Audio API）*/
         const updateMixMasterGain = norm => {
-          const gain = mixAudio?.masterGain?.gain;
-          if (!gain) return;
-          try {
-            gain.value = norm;
-          } catch (e) {
-            console.warn('[updateMixMasterGain] 直接設定失敗，嘗試 rampTo', e);
-            gain.rampTo?.(norm, 0.02);
-          }
+          // 注意：此函式原本用於更新某個不存在的 mixAudio 物件
+          // 目前 demaPanel 使用獨立的 audioContext，不需要在此更新
+          // 保留此函式以供未來擴充或整合使用
         };
 
         els.settingsBtn?.addEventListener('click', e => {
@@ -3055,6 +3050,8 @@
             // 依票選順序收集已匹配的音效
             const seen = new Set();
             const matchedList = topIds.map(id => state.soundMap.get(id)).filter(s => s && !seen.has(s.id) && (seen.add(s.id), true));
+            // 檢查未匹配的音效 ID
+            const unmatchedIds = topIds.filter(id => !state.soundMap.has(id));
             // 重組：已匹配的優先，其餘保持原序
             state.sounds = [...matchedList, ...state.sounds.filter(s => !seen.has(s.id))];
             state.soundMap = new Map(state.sounds.map(s => [s.id, s]));
@@ -3065,6 +3062,10 @@
               next20: matchedList.slice(CONFIG.awards.top10Count, CONFIG.awards.topRankCount)
             };
             console.info('[vote reorder] applied ordering, matched:', matchedList.length, '/', topIds.length);
+            // 若有未匹配的音效，輸出錯誤訊息
+            if (unmatchedIds.length > 0) {
+              console.error('[vote reorder] 以下票選音效 ID 無法在 sounds.json 中找到對應項目:', unmatchedIds);
+            }
             return true;
           } catch (e) { console.warn('[vote load] failed', e); return false; }
         }

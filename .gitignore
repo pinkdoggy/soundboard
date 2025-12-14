@@ -1,2 +1,4 @@
 config/sounds-new.json
 python-scripts/workflow.ini
+.claude/
+build.bat
