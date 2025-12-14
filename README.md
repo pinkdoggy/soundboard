@@ -91,18 +91,3 @@ python python-scripts/ufid64.py config/sounds.json --inplace --namespace soundbo
 
 詳細程式架構說明請參閱 [doc/architecture.md](doc/architecture.md)
 
-## 瀏覽器支援
-
-- Chrome/Edge 90+
-- Firefox 88+
-- Safari 14+
-
-需要支援：
-- ES6+ JavaScript
-- CSS Custom Properties
-- Web Audio API
-- localStorage
-
----
-
-更多技術細節請參閱 [doc/](doc/) 目錄中的文檔。
