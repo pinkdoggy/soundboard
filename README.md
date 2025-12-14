@@ -103,14 +103,6 @@ python python-scripts/ufid64.py config/sounds.json --inplace --namespace soundbo
 - Web Audio API
 - localStorage
 
-## 授權
-
-本專案的音效內容版權歸原創作者所有，僅供個人學習與交流使用。
-
-## 致謝
-
-感謝所有主播提供精彩內容，以及社群成員的貢獻與支持。
-
 ---
 
 更多技術細節請參閱 [doc/](doc/) 目錄中的文檔。
