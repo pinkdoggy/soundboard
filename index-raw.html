@@ -2053,7 +2053,7 @@
         <div style="display:flex;flex-direction:column;gap:8px;">
           <button id="themeBtn" class="btn" type="button" aria-label="切換亮色/暗色主題">電燈開關</button>
           <label for="settingsVolume">播放音量： <span id="settingsVolumeValue" aria-live="polite">100%</span></label>
-          <input id="settingsVolume" type="range" min="0" max="100" step="1" value="100"
+          <input id="settingsVolume" type="range" min="0" max="180" step="1" value="100"
             aria-describedby="settingsVolumeValue" />
           <div style="display:flex;justify-content:flex-end;margin-top:6px;gap:8px;">
             <button id="settingsClose" class="btn" type="button" aria-label="關閉設定面板">關閉</button>
@@ -2839,7 +2839,7 @@
         document.addEventListener('keydown', e => { if (e.key === 'Escape' && isSettingsOpen()) hideSettings(); });
 
         els.settingsVolume?.addEventListener('input', () => {
-          const norm = Math.max(0, Math.min(100, Number(els.settingsVolume.value) || 0)) / 100;
+          const norm = Math.max(0, Math.min(180, Number(els.settingsVolume.value) || 0)) / 100;
           state.globalVolume = norm;
           try {
             localStorage.setItem(CONFIG.storage.globalVolume, String(norm));
