@@ -16,6 +16,7 @@
   { "key": "破防",    "name": "破防",   "color": "#e95079", "role": "category" },
   { "key": "叫",      "name": "叫",     "color": "#839b2f", "role": "category" },  
   { "key": "定型文",  "name": "定型文", "color": "#319ace", "role": "category" },
+  { "key": "三周年",  "name": "三周年", "color": "#ff893d", "role": "category" },
 
   { "key": "罵",      "name": "罵",     "color": "#e16144", "role": "category" },
   { "key": "怪聲",    "name": "怪聲",   "color": "#7683ef", "role": "category" },

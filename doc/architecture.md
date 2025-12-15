@@ -9,6 +9,8 @@
 - [資料結構](#資料結構)
 - [Local Storage 使用](#local-storage-使用)
 - [核心模組](#核心模組)
+  - [音頻播放核心](#5-音頻播放核心)
+  - [[ADHOC] 三周年特殊機制：音效時間軸觸發動畫](#adhoc-三周年特殊機制音效時間軸觸發動畫)
 - [樣式系統](#樣式系統)
 
 ---
@@ -344,6 +346,64 @@ const playSoundObject = snd =>
 - 自動處理瀏覽器自動播放政策
 - 播放時觸發頭像動畫（onPlayStart）
 - 播放結束清理（onPlayEnd）
+
+##### [ADHOC] 三周年特殊機制：音效時間軸觸發動畫
+
+> **注意**：這是一個臨時性的特殊功能，未來可能重構為通用的音效事件系統。
+
+**當前實作**：音效 `OVA1gg` 在播放到第 9 秒時，會觸發「貓下去問號頭像」從螢幕右側飛入到中央的動畫。
+
+**技術實作**：
+
+1. **CSS 樣式** (約 1181-1244 行)：
+   - `.special-avatar-container`：固定在螢幕垂直中央高度 (`position: fixed; top: 50%`)
+   - `.special-avatar`：圓形頭像樣式 (120px × 120px)
+   - `@keyframes flyInFromRight`：從右側飛入動畫 (ease-out, 0.6s)
+   - `@keyframes flyOutToLeft`：飛出到左側動畫 (ease-out, 0.6s)
+
+2. **JavaScript 邏輯** (約 3190-3228 行，位於 `onPlayStart` 函數內)：
+   ```javascript
+   if (snd.id === 'OVA1gg') {
+     const triggerTime = 9000; // 9 秒
+     const displayDuration = 1000; // 停留 1 秒
+
+     setTimeout(() => {
+       // 建立頭像容器並加入 fly-in 動畫
+       const container = dom.el('div', { class: 'special-avatar-container' });
+       const avatarImg = dom.el('img', {
+         src: 'avatars/catdown-問號.png',
+         alt: '貓下去問號頭像',
+         class: 'special-avatar fly-in'
+       });
+       container.appendChild(avatarImg);
+       document.body.appendChild(container);
+
+       // 1 秒後觸發飛出動畫
+       setTimeout(() => {
+         avatarImg.classList.remove('fly-in');
+         avatarImg.classList.add('fly-out');
+         // 動畫結束後移除元素
+         avatarImg.addEventListener('animationend', () => {
+           container.remove();
+         }, { once: true });
+       }, displayDuration);
+     }, triggerTime);
+   }
+   ```
+
+3. **動畫流程**：
+   - 音效開始播放 → 倒數 9 秒
+   - 第 9 秒：頭像從右側飛入 (0.6 秒，ease-out)
+   - 停留在螢幕中央 1 秒
+   - 飛出到左側 (0.6 秒，ease-out)
+   - 動畫結束後自動清理 DOM 元素
+
+**未來重構方向**：
+- 將配置移至 `sounds.json` 中，新增 `avatarAnimations` 欄位
+- 支援多個時間點觸發
+- 支援同時顯示多個頭像
+- 支援自訂動畫參數（持續時間、方向、緩動函數等）
+- 抽象為通用的時間軸事件系統
 
 #### 6. DOM 建構工具 (dom)
 
@@ -1188,4 +1248,7 @@ els.grid.addEventListener('click', (e) => {
 
 ---
 
-更多腳本與資料管理相關文檔，請參閱 [scripts-guide.md](scripts-guide.md)。
+## 相關文檔
+
+- [scripts-guide.md](scripts-guide.md) - 腳本與資料管理相關文檔
+- [adhoc-features.md](adhoc-features.md) - ADHOC 特殊功能文檔（臨時性功能說明）

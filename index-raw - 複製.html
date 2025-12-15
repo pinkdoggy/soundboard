@@ -557,13 +557,13 @@
       justify-content: center;
     }
 
-    /* 三周年內容容器（面板） */
+    /* 三週年內容容器（面板） */
     .anniversary-content {
       width: 100%;
       padding: var(--space-md);
       display: flex;
       flex-direction: column;
-      gap: var(--space-sm);
+      gap: var(--space-md);
       position: relative;
     }
 
@@ -612,7 +612,7 @@
       justify-content: center;
       cursor: pointer;
       transition: transform var(--duration-fast);
-      padding: var(0);
+      padding: var(--space-sm);
     }
 
     .anniversary-archive:hover {
@@ -925,7 +925,7 @@
       position: fixed;
       left: 0;
       right: 0;
-      top: var(--space-md); /* 改為頂部定位 */
+      bottom: var(--space-md);
       display: flex;
       flex-wrap: wrap;
       gap: var(--space-md) 14px;
@@ -938,7 +938,7 @@
     .group {
       display: inline-flex;
       gap: var(--space-sm);
-      align-items: flex-start; /* 改為向下堆疊 */
+      align-items: flex-end;
     }
 
     .avatar {
@@ -949,7 +949,7 @@
       overflow: hidden;
       border: 2px solid rgba(255, 255, 255, 0.8);
       box-shadow: var(--shadow-lg);
-      transform-origin: 50% 0%; /* 改為從頂部作為變換原點 */
+      transform-origin: 50% 100%;
     }
 
     .avatar>img {
@@ -1043,7 +1043,7 @@
 
 
     /* -----------------------------------------------------------------------------
-      5.7 周年慶祝賀面板
+      5.7 週年慶祝賀面板
     ----------------------------------------------------------------------------- */
 
     .gradient-r1-background {
@@ -1109,10 +1109,10 @@
        7. 動畫系統（Keyframes）
        ============================================================================= */
 
-    /* 彈入動畫：用於頭像進場（從上方進入） */
+    /* 彈入動畫：用於頭像進場 */
     @keyframes popIn {
       0% {
-        transform: translateY(-20px) scale(0.7); /* 改為從上方進入 */
+        transform: translateY(20px) scale(0.7);
         opacity: 0;
       }
 
@@ -1147,7 +1147,7 @@
       }
     }
 
-    /* 跳出動畫：用於頭像離場（向上離開） */
+    /* 跳出動畫：用於頭像離場 */
     @keyframes hopOut {
       0% {
         transform: translateY(0);
@@ -1155,12 +1155,12 @@
       }
 
       22% {
-        transform: translateY(12px); /* 改為先向下微動 */
+        transform: translateY(-12px);
         opacity: 1;
       }
 
       100% {
-        transform: translateY(-60px); /* 改為向上離開 */
+        transform: translateY(60px);
         opacity: 0;
       }
     }
@@ -2140,7 +2140,7 @@
 <body>
   <div class="wrap">
     <header>
-      <h1>阿萬與動物朋友按鈕2795</h1>
+      <h1>阿萬與動物朋友按鈕2787</h1>
       <button id="navToggle" class="nav-toggle" aria-label="打開選單" aria-expanded="false" aria-controls="primaryNav"
         title="選單">
         <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
@@ -2165,20 +2165,20 @@
 
     <!-- 首頁內容：音效列表 -->
     <main id="page-home" role="tabpanel" aria-labelledby="tab-home">
-      <!-- 三周年慶祝專區 -->
+      <!-- 三週年慶祝專區 -->
       <div id="anniversaryZone" class="anniversary-zone gradient-r1-background">
         <div class="anniversary-content">
           <!-- Row 1: 標題（點擊觸發彩帶特效） -->
           <div class="anniversary-row anniversary-title-row">
-            <div id="anniversaryTitle" class="anniversary-title" role="button" aria-label="慶祝三周年">
-              <div class="anniversary-text">這是什麼RAR</div>
+            <div id="anniversaryTitle" class="anniversary-title" role="button" aria-label="慶祝三週年">
+              <div class="anniversary-text">🎉三週年快樂🎉</div>
             </div>
           </div>
 
           <!-- Row 2: 壓縮檔圖示（點擊觸發解壓） -->
           <div id="anniversaryArchiveRow" class="anniversary-row anniversary-archive-row">
-            <div id="anniversaryArchive" class="anniversary-archive" role="button" aria-label="解壓三周年音效包">
-              <img src="assets/3rd.r1r.avif" alt="三周年音效包" class="archive-icon">
+            <div id="anniversaryArchive" class="anniversary-archive" role="button" aria-label="解壓三週年音效包">
+              <img src="assets/3rd.r1r.avif" alt="三週年音效包" class="archive-icon">
               <div class="archive-filename">dr3rd.r1r</div>
             </div>
           </div>
@@ -2467,7 +2467,7 @@
          * 檔案版本字串：每次部署變更此值，可確保抓取最新資料並強制 CDN/瀏覽器重新載入。
          * @const {string}
          */
-        const VERSION = 'ver2025-12-16';
+        const VERSION = 'ver2025-12-7';
 
         /**
          * 應用程式設定：集中管理可調整的設定值。
@@ -3198,8 +3198,8 @@
              ===================================================================== */
           if (snd.id === 'OVA1gg') {
             // 在第 9 秒觸發頭像飛入
-            const triggerTime = 8500; // 8.5 秒 = 8500 毫秒
-            const displayDuration = 1500; // 停留 1.5 秒
+            const triggerTime = 9000; // 9 秒 = 9000 毫秒
+            const displayDuration = 1000; // 停留 1 秒
 
             setTimeout(() => {
               // 建立特殊頭像容器
@@ -3615,7 +3615,7 @@
         }
 
         /* =======================================================================
-           11. 周年慶祝功能模組
+           11. 週年慶祝功能模組
            
            包含：
            - 彩帶特效 (fireConfetti)
@@ -3623,7 +3623,7 @@
            - 互動事件綁定
            ======================================================================= */
 
-        /** 慶祝三周年彩帶特效 */
+        /** 慶祝三週年彩帶特效 */
         function fireConfetti() {
            // 播放音效
            setTimeout(() => {
@@ -3714,7 +3714,7 @@
            loop();
         }
 
-        /** 解壓三周年音效包 */
+        /** 解壓三週年音效包 */
         let isExtracted = false; // 防止重複解壓
         async function extractAnniversary() {
           // 確保音效已載入完成
@@ -3730,15 +3730,15 @@
           }
           isExtracted = true;
 
-          // 搜尋所有帶有「三周年」或「三周年」標籤的音效
+          // 搜尋所有帶有「三周年」或「三週年」標籤的音效
           const anniversarySounds = state.sounds.filter(sound => {
             return sound.tags.some(tag =>
-              tag.includes('三周年') || tag.includes('三周年')
+              tag.includes('三周年') || tag.includes('三週年')
             );
           });
 
           if (anniversarySounds.length === 0) {
-            console.warn('找不到三周年音效');
+            console.warn('找不到三週年音效');
             isExtracted = false;
             return;
           }
@@ -3812,13 +3812,13 @@
 
         /** 初始化事件綁定 */
         function initEvents() {
-          // [Anniversary] 三周年標題點擊觸發彩帶特效
+          // [Anniversary] 三週年標題點擊觸發彩帶特效
           const titleBtn = document.getElementById('anniversaryTitle');
           if (titleBtn) {
             titleBtn.addEventListener('click', fireConfetti);
           }
 
-          // [Anniversary] 三周年解壓縮互動
+          // [Anniversary] 三週年解壓縮互動
           const archiveBtn = document.getElementById('anniversaryArchive');
           if (archiveBtn) {
             archiveBtn.addEventListener('click', extractAnniversary);
