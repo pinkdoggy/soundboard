@@ -2171,7 +2171,7 @@
           <!-- Row 1: 標題（點擊觸發彩帶特效） -->
           <div class="anniversary-row anniversary-title-row">
             <div id="anniversaryTitle" class="anniversary-title" role="button" aria-label="慶祝三周年">
-              <div class="anniversary-text">這是什麼RAR</div>
+              <div class="anniversary-text">這是什麼壓縮檔</div>
             </div>
           </div>
 
@@ -2179,7 +2179,7 @@
           <div id="anniversaryArchiveRow" class="anniversary-row anniversary-archive-row">
             <div id="anniversaryArchive" class="anniversary-archive" role="button" aria-label="解壓三周年音效包">
               <img src="assets/3rd.r1r.avif" alt="三周年音效包" class="archive-icon">
-              <div class="archive-filename">dr3rd.r1r</div>
+              <div class="archive-filename">厭世醫師阿萬3rd.r1r</div>
             </div>
           </div>
 
@@ -2279,7 +2279,7 @@
     <div id="page-about" class="hidden" role="tabpanel" aria-labelledby="tab-about">
       <div class="about-content">
         <p>本站由粉肝製作，並非由厭世醫師阿萬官方經營。音效內容皆是粉肝去脈絡式、斷章取義的剪輯，僅供娛樂。本站的音效皆屬於原作者厭世醫師阿萬，使用時須遵守厭世醫師阿萬的二次創作條例。</p>
-        <p>最後更新時間：2025/12/15。</p>
+        <p>最後更新時間：2025/12/16。</p>
 
         <p>阿萬本家→ <a href="https://x.com/drlifesucks" target="_blank">厭世醫師阿萬X</a>、<a
             href="https://www.youtube.com/@Dr.lifesucks" target="_blank">厭世醫師阿萬Youtube</a> </p>
@@ -3802,6 +3802,17 @@
 
           // 確保所有卡片都已添加
           await addCardsPromise;
+
+          // 解壓縮完成後，修改標題文字並觸發慶祝動畫
+          const anniversaryTextEl = document.querySelector('.anniversary-text');
+          if (anniversaryTextEl) {
+            anniversaryTextEl.textContent = "🎉等登！三周年語音🎉";
+          }
+
+          // 稍微延遲後播放彩帶拉炮動畫和音效
+          setTimeout(() => {
+            fireConfetti();
+          }, 10);
         }
 
         /* =======================================================================
