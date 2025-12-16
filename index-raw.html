@@ -557,7 +557,7 @@
       justify-content: center;
     }
 
-    /* 三周年內容容器（面板） */
+    /* 三週年內容容器（面板） */
     .anniversary-content {
       width: 100%;
       padding: var(--space-md);
@@ -1043,7 +1043,7 @@
 
 
     /* -----------------------------------------------------------------------------
-      5.7 周年慶祝賀面板
+      5.7 週年慶祝賀面板
     ----------------------------------------------------------------------------- */
 
     .gradient-r1-background {
@@ -1179,7 +1179,7 @@
     }
 
     /* =========================================================================
-       [ADHOC] 三周年特殊機制：特定音效觸發頭像飛入動畫
+       [ADHOC] 三週年特殊機制：特定音效觸發頭像飛入動畫
 
        此為臨時性功能，未來可能重構為通用的音效事件系統。
        目前實作：OVA1gg 音效在第 9 秒時觸發貓下去頭像從右側飛入
@@ -2165,20 +2165,20 @@
 
     <!-- 首頁內容：音效列表 -->
     <main id="page-home" role="tabpanel" aria-labelledby="tab-home">
-      <!-- 三周年慶祝專區 -->
+      <!-- 三週年慶祝專區 -->
       <div id="anniversaryZone" class="anniversary-zone gradient-r1-background">
         <div class="anniversary-content">
           <!-- Row 1: 標題（點擊觸發彩帶特效） -->
           <div class="anniversary-row anniversary-title-row">
-            <div id="anniversaryTitle" class="anniversary-title" role="button" aria-label="慶祝三周年">
-              <div class="anniversary-text">這是什麼壓縮檔</div>
+            <div id="anniversaryTitle" class="anniversary-title" role="button" aria-label="慶祝三週年">
+              <div class="anniversary-text">這是什麼壓縮檔！點它！</div>
             </div>
           </div>
 
           <!-- Row 2: 壓縮檔圖示（點擊觸發解壓） -->
           <div id="anniversaryArchiveRow" class="anniversary-row anniversary-archive-row">
-            <div id="anniversaryArchive" class="anniversary-archive" role="button" aria-label="解壓三周年音效包">
-              <img src="assets/3rd.r1r.avif" alt="三周年音效包" class="archive-icon">
+            <div id="anniversaryArchive" class="anniversary-archive" role="button" aria-label="解壓三週年音效包">
+              <img src="assets/3rd.r1r.avif" alt="三週年音效包" class="archive-icon">
               <div class="archive-filename">厭世醫師阿萬3rd.r1r</div>
             </div>
           </div>
@@ -3188,7 +3188,7 @@
         const activeGroups = new Set();
         function onPlayStart(snd, audio) {
           /* =====================================================================
-             [ADHOC] 三周年特殊機制：OVA1gg 音效的頭像飛入動畫
+             [ADHOC] 三週年特殊機制：OVA1gg 音效的頭像飛入動畫
 
              在第 9 秒時觸發貓下去頭像從右側飛入，停留 1 秒後飛出
 
@@ -3615,7 +3615,7 @@
         }
 
         /* =======================================================================
-           11. 周年慶祝功能模組
+           11. 週年慶祝功能模組
            
            包含：
            - 彩帶特效 (fireConfetti)
@@ -3623,7 +3623,7 @@
            - 互動事件綁定
            ======================================================================= */
 
-        /** 慶祝三周年彩帶特效 */
+        /** 慶祝三週年彩帶特效 */
         function fireConfetti() {
            // 播放音效
            setTimeout(() => {
@@ -3714,7 +3714,7 @@
            loop();
         }
 
-        /** 解壓三周年音效包 */
+        /** 解壓三週年音效包 */
         let isExtracted = false; // 防止重複解壓
         async function extractAnniversary() {
           // 確保音效已載入完成
@@ -3730,15 +3730,15 @@
           }
           isExtracted = true;
 
-          // 搜尋所有帶有「三周年」或「三周年」標籤的音效
+          // 搜尋所有帶有「三週年」或「三週年」標籤的音效
           const anniversarySounds = state.sounds.filter(sound => {
             return sound.tags.some(tag =>
-              tag.includes('三周年') || tag.includes('三周年')
+              tag.includes('三週年') || tag.includes('三周年')
             );
           });
 
           if (anniversarySounds.length === 0) {
-            console.warn('找不到三周年音效');
+            console.warn('找不到三週年音效');
             isExtracted = false;
             return;
           }
@@ -3806,7 +3806,7 @@
           // 解壓縮完成後，修改標題文字並觸發慶祝動畫
           const anniversaryTextEl = document.querySelector('.anniversary-text');
           if (anniversaryTextEl) {
-            anniversaryTextEl.textContent = "🎉等登！三周年語音🎉";
+            anniversaryTextEl.textContent = "🎉等登！三週年語音🎉";
           }
 
           // 稍微延遲後播放彩帶拉炮動畫和音效
@@ -3823,13 +3823,13 @@
 
         /** 初始化事件綁定 */
         function initEvents() {
-          // [Anniversary] 三周年標題點擊觸發彩帶特效
+          // [Anniversary] 三週年標題點擊觸發彩帶特效
           const titleBtn = document.getElementById('anniversaryTitle');
           if (titleBtn) {
             titleBtn.addEventListener('click', fireConfetti);
           }
 
-          // [Anniversary] 三周年解壓縮互動
+          // [Anniversary] 三週年解壓縮互動
           const archiveBtn = document.getElementById('anniversaryArchive');
           if (archiveBtn) {
             archiveBtn.addEventListener('click', extractAnniversary);
