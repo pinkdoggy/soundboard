@@ -449,6 +449,12 @@
       letter-spacing: 0.5px;
     }
 
+    #soundCount {
+      font-size: 0.7em;
+      vertical-align: sub;
+      opacity: 0.85;
+    }
+
     /* 主題切換按鈕（使用通用按鈕樣式） */
     .theme-toggle {
       border: 1px solid var(--border);
@@ -2140,7 +2146,7 @@
 <body>
   <div class="wrap">
     <header>
-      <h1>阿萬與動物朋友按鈕2914</h1>
+      <h1>阿萬與動物朋友按鈕<span id="soundCount">...</span></h1>
       <button id="navToggle" class="nav-toggle" aria-label="打開選單" aria-expanded="false" aria-controls="primaryNav"
         title="選單">
         <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
@@ -2586,6 +2592,7 @@
 
         /** DOM 元素快取物件 */
         const els = {
+          soundCount: document.getElementById('soundCount'),
           q: document.getElementById('q'),
           activeChips: document.getElementById('activeChips'),
           clearBtn: document.getElementById('clearBtn'),
@@ -3986,10 +3993,15 @@
         // 入口：載入設定後初始化狀態、渲染並套用 URL 查詢
         loadConfig().then(() => {
           initBackgroundAnimation();
-          
+
           // [Anniversary] 預先載入慶祝音效
           fetch('assets/confetti-pop.mp3').catch(() => {});
-          
+
+          // 更新標題中的音效數量
+          if (els.soundCount) {
+            els.soundCount.textContent = state.sounds.length;
+          }
+
           applyURLToState();
           renderTagList();
           showPage(state.page);
