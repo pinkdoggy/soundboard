@@ -2166,6 +2166,7 @@
     <!-- 首頁內容：音效列表 -->
     <main id="page-home" role="tabpanel" aria-labelledby="tab-home">
       <!-- 三週年慶祝專區 -->
+      <div hidden>
       <div id="anniversaryZone" class="anniversary-zone gradient-r1-background">
         <div class="anniversary-content">
           <!-- Row 1: 標題（點擊觸發彩帶特效） -->
@@ -2199,6 +2200,7 @@
             <!-- 解壓後的音效會動態插入這裡 -->
           </div>
         </div>
+      </div>
       </div>
       <!-- 搜尋列（獨立成 row） -->
       <div class="search-row">
@@ -2241,6 +2243,7 @@
           <div class="actions">
             <button id="openDemaBtn" class="btn small-btn" aria-label="開啟多軌混音編輯器">混音</button>
             <button id="shuffleBtn" class="btn small-btn" aria-label="隨機排列音效順序">洗牌</button>
+            <button id="reverseBtn" class="btn small-btn" aria-label="翻轉音效排列順序">翻轉排序</button>
             <button id="resetOrderBtn" class="btn small-btn" aria-label="恢復預設排列順序">預設順序</button>
           </div>
         </div>
@@ -2279,7 +2282,7 @@
     <div id="page-about" class="hidden" role="tabpanel" aria-labelledby="tab-about">
       <div class="about-content">
         <p>本站由粉肝製作，並非由厭世醫師阿萬官方經營。音效內容皆是粉肝去脈絡式、斷章取義的剪輯，僅供娛樂。本站的音效皆屬於原作者厭世醫師阿萬，使用時須遵守厭世醫師阿萬的二次創作條例。</p>
-        <p>最後更新時間：2025/12/24。</p>
+        <p>最後更新時間：2026/1/15。</p>
 
         <p>阿萬本家→ <a href="https://x.com/drlifesucks" target="_blank">厭世醫師阿萬X</a>、<a
             href="https://www.youtube.com/@Dr.lifesucks" target="_blank">厭世醫師阿萬Youtube</a> </p>
@@ -2615,6 +2618,7 @@
           doneSortBtn: document.getElementById('doneSortBtn'),
           shareFavBtn: document.getElementById('shareFavBtn'),
           shuffleBtn: document.getElementById('shuffleBtn'),
+          reverseBtn: document.getElementById('reverseBtn'),
           resetOrderBtn: document.getElementById('resetOrderBtn'),
           openDemaBtn: document.getElementById('openDemaBtn'),
           // demaPanel 元素
@@ -3891,6 +3895,20 @@
                 if (!state.favSet.has(s.id)) { nf.push(s); idxs.push(i); }
               });
               shuffleInPlace(nf);
+              idxs.forEach((i, k) => { state.sounds[i] = nf[k]; });
+              render();
+            });
+          }
+          // 翻轉排序按鈕
+          if (els.reverseBtn) {
+            els.reverseBtn.addEventListener('click', () => {
+              // 只翻轉「非最愛」音效的順序，不影響最愛區的排列
+              const nf = [];
+              const idxs = [];
+              state.sounds.forEach((s, i) => {
+                if (!state.favSet.has(s.id)) { nf.push(s); idxs.push(i); }
+              });
+              nf.reverse();
               idxs.forEach((i, k) => { state.sounds[i] = nf[k]; });
               render();
             });
