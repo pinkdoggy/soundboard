@@ -2140,6 +2140,45 @@
     :root.light .dema-clip-label {
       text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
     }
+
+    /* 返回頂部浮動按鈕 */
+    #backToTopBtn {
+      position: sticky;
+      top: calc(var(--control-h) + var(--space-sm) + var(--space-md));
+      z-index: 11;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    #backToTopBtn button {
+      pointer-events: auto;
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      background: var(--glass-bg);
+      backdrop-filter: saturate(1.5) blur(8px);
+      -webkit-backdrop-filter: saturate(1.5) blur(8px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      color: var(--fg);
+      font-size: 15px;
+      padding: 8px 24px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      white-space: nowrap;
+    }
+
+    #backToTopBtn button:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    #backToTopBtn.visible button {
+      opacity: 1;
+      transform: translateY(0);
+    }
   </style>
 </head>
 
@@ -2220,6 +2259,10 @@
         </div>
         <button id="clearBtn" class="btn" aria-label="清除搜尋">清除</button>
       </div>
+      <!-- 返回頂部浮動按鈕 -->
+      <div id="backToTopBtn" aria-hidden="true">
+        <button onclick="window.scrollTo({top:0,behavior:'smooth'})" tabindex="-1" aria-label="返回頂部">↑ 返回頂部</button>
+      </div>
       <!-- 標籤一覽 -->
       <div id="tagList" class="tag-list" role="list" aria-label="可點選的音效標籤"></div>
       <!-- 最愛區 -->
@@ -2288,7 +2331,7 @@
     <div id="page-about" class="hidden" role="tabpanel" aria-labelledby="tab-about">
       <div class="about-content">
         <p>本站由粉肝製作，並非由厭世醫師阿萬官方經營。音效內容皆是粉肝去脈絡式、斷章取義的剪輯，僅供娛樂。本站的音效皆屬於原作者厭世醫師阿萬，使用時須遵守厭世醫師阿萬的二次創作條例。</p>
-        <p>最後更新時間：2026/1/15。</p>
+        <p>最後更新時間：2026/2/28。</p>
 
         <p>阿萬本家→ <a href="https://x.com/drlifesucks" target="_blank">厭世醫師阿萬X</a>、<a
             href="https://www.youtube.com/@Dr.lifesucks" target="_blank">厭世醫師阿萬Youtube</a> </p>
@@ -6116,6 +6159,15 @@
 
         // 掛載到 window 供控制台存取
         window.SoundboardDebug = SoundboardDebug;
+
+        // 返回頂部按鈕：滾動超過一頁高度時顯示
+        (function () {
+          const btn = document.getElementById('backToTopBtn');
+          if (!btn) return;
+          window.addEventListener('scroll', function () {
+            btn.classList.toggle('visible', window.scrollY > window.innerHeight);
+          }, { passive: true });
+        })();
 
       })();
     </script>
