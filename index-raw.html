@@ -2331,7 +2331,7 @@
     <div id="page-about" class="hidden" role="tabpanel" aria-labelledby="tab-about">
       <div class="about-content">
         <p>本站由粉肝製作，並非由厭世醫師阿萬官方經營。音效內容皆是粉肝去脈絡式、斷章取義的剪輯，僅供娛樂。本站的音效皆屬於原作者厭世醫師阿萬，使用時須遵守厭世醫師阿萬的二次創作條例。</p>
-        <p>最後更新時間：2026/2/28。</p>
+        <p>最後更新時間：2026/3/9。</p>
 
         <p>阿萬本家→ <a href="https://x.com/drlifesucks" target="_blank">厭世醫師阿萬X</a>、<a
             href="https://www.youtube.com/@Dr.lifesucks" target="_blank">厭世醫師阿萬Youtube</a> </p>
@@ -2519,7 +2519,7 @@
          * 檔案版本字串：每次部署變更此值，可確保抓取最新資料並強制 CDN/瀏覽器重新載入。
          * @const {string}
          */
-        const VERSION = 'ver2025-12-24';
+        const VERSION = 'ver2026-03-09';
 
         /**
          * 應用程式設定：集中管理可調整的設定值。
@@ -2741,6 +2741,9 @@
 
         let cgCleanup = null;
 
+        /** 追蹤目前活躍的 Audio 元素，以便全域音量變更時即時更新 */
+        const activeAudios = new Set();
+
         /* =======================================================================
            5. 音頻播放核心
            
@@ -2760,9 +2763,11 @@
          */
         const getSharedAudioContext = () => {
           if (!sharedAudioContext) {
-            sharedAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return null;
+            sharedAudioContext = new AudioCtx();
           }
-          if (sharedAudioContext.state === 'suspended') {
+          if (sharedAudioContext && sharedAudioContext.state === 'suspended') {
             sharedAudioContext.resume();
           }
           return sharedAudioContext;
@@ -2778,6 +2783,7 @@
           if (!audio) return null;
           try {
             const ctx = getSharedAudioContext();
+            if (!ctx) throw new Error('AudioContext not supported');
             // 建立 MediaElementSource（注意：同一 audio 只能建立一次）
             if (!audio._sourceNode) {
               const source = ctx.createMediaElementSource(audio);
@@ -2806,6 +2812,13 @@
           try {
             const audio = new Audio(src);
             Object.assign(audio, { preload, loop });
+            
+            activeAudios.add(audio);
+            const cleanup = () => activeAudios.delete(audio);
+            audio.addEventListener('ended', cleanup);
+            audio.addEventListener('pause', cleanup);
+            audio.addEventListener('play', () => activeAudios.add(audio));
+            
             onPlay && audio.addEventListener('play', () => onPlay(snd, audio));
             onEnded && audio.addEventListener('ended', () => onEnded(snd, audio));
             applyVolumeToAudio(audio);
@@ -3207,9 +3220,14 @@
 
         /** 更新混音主音量（用於 demaPanel 的 Web Audio API）*/
         const updateMixMasterGain = norm => {
-          // 注意：此函式原本用於更新某個不存在的 mixAudio 物件
-          // 目前 demaPanel 使用獨立的 audioContext，不需要在此更新
-          // 保留此函式以供未來擴充或整合使用
+          // 即時更新所有活躍的 Audio 元素音量
+          for (const audio of activeAudios) {
+            if (audio._gainNode) {
+              audio._gainNode.gain.value = norm;
+            } else {
+              audio.volume = Math.min(1, norm);
+            }
+          }
         };
 
         els.settingsBtn?.addEventListener('click', e => {
@@ -4589,9 +4607,11 @@
           // === 音訊載入與解碼 ===
           const getAudioContext = () => {
             if (!audioContext) {
-              audioContext = new (window.AudioContext || window.webkitAudioContext)();
+              const AudioCtx = window.AudioContext || window.webkitAudioContext;
+              if (!AudioCtx) return null;
+              audioContext = new AudioCtx();
             }
-            if (audioContext.state === 'suspended') {
+            if (audioContext && audioContext.state === 'suspended') {
               audioContext.resume();
             }
             return audioContext;
@@ -4602,6 +4622,7 @@
               return audioBufferCache.get(url);
             }
             const ctx = getAudioContext();
+            if (!ctx) throw new Error('Web Audio API not supported');
             const response = await fetch(url);
             const arrayBuffer = await response.arrayBuffer();
             const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
@@ -4678,7 +4699,7 @@
 
             const ctx = getAudioContext();
             isPlaying = true;
-            playStartTime = ctx.currentTime;
+            playStartTime = ctx ? ctx.currentTime : performance.now() / 1000;
             playStartPosition = playheadTime;
             scheduledSources = [];
 
@@ -4694,46 +4715,64 @@
               const snd = state.soundMap.get(clip.soundId);
               if (!snd) continue;
 
-              try {
-                const buffer = await loadAudioBuffer(snd.src);
-                const source = ctx.createBufferSource();
-                source.buffer = buffer;
-                
-                // 套用音量：全域音量 * 片段音量
-                const gainNode = ctx.createGain();
-                const clipVolume = clip.volume ?? 1;
-                gainNode.gain.value = (state.globalVolume ?? 1) * clipVolume;
-                source.connect(gainNode);
-                gainNode.connect(ctx.destination);
+              const clipStart = clip.startTime;
+              const clipDuration = clip.duration - clip.trimStart - clip.trimEnd;
+              const clipEnd = clipStart + clipDuration;
 
-                // 計算播放時間
-                const clipStart = clip.startTime;
-                const clipDuration = clip.duration - clip.trimStart - clip.trimEnd;
-                const clipEnd = clipStart + clipDuration;
+              // 如果 playhead 已經超過此 clip，跳過
+              if (playheadTime >= clipEnd) continue;
 
-                // 如果 playhead 已經超過此 clip，跳過
-                if (playheadTime >= clipEnd) continue;
+              // 計算 offset 和 when
+              let offset = clip.trimStart;
+              let when = 0;
+              let duration = clipDuration;
 
-                // 計算 offset 和 when
-                let offset = clip.trimStart;
-                let when = 0;
-                let duration = clipDuration;
+              if (playheadTime > clipStart) {
+                // playhead 在 clip 中間
+                offset += (playheadTime - clipStart);
+                duration = clipEnd - playheadTime;
+              } else {
+                // playhead 在 clip 之前
+                when = clipStart - playheadTime;
+              }
 
-                if (playheadTime > clipStart) {
-                  // playhead 在 clip 中間
-                  offset += (playheadTime - clipStart);
-                  duration = clipEnd - playheadTime;
+              if (duration > 0) {
+                if (ctx) {
+                  try {
+                    const buffer = await loadAudioBuffer(snd.src);
+                    const source = ctx.createBufferSource();
+                    source.buffer = buffer;
+                    
+                    // 套用音量：全域音量 * 片段音量
+                    const gainNode = ctx.createGain();
+                    const clipVolume = clip.volume ?? 1;
+                    gainNode.gain.value = (state.globalVolume ?? 1) * clipVolume;
+                    source.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+
+                    source.start(ctx.currentTime + when, offset, duration);
+                    scheduledSources.push({ source, gainNode, type: 'webaudio' });
+                  } catch (e) {
+                    console.warn('[demaPanel] failed to play clip', clip.id, e);
+                  }
                 } else {
-                  // playhead 在 clip 之前
-                  when = clipStart - playheadTime;
+                  // HTML5 Audio fallback
+                  const audio = new Audio(snd.src);
+                  audio.currentTime = offset;
+                  audio.volume = Math.min(1, (state.globalVolume ?? 1) * (clip.volume ?? 1));
+                  
+                  const timeoutId = setTimeout(() => {
+                    audio.play().catch(e => console.warn('HTML5 Audio play failed', e));
+                    
+                    const stopTimeoutId = setTimeout(() => {
+                      audio.pause();
+                    }, duration * 1000);
+                    
+                    scheduledSources.push({ audio, stopTimeoutId, type: 'html5' });
+                  }, when * 1000);
+                  
+                  scheduledSources.push({ timeoutId, audio, type: 'html5-pending' });
                 }
-
-                if (duration > 0) {
-                  source.start(ctx.currentTime + when, offset, duration);
-                  scheduledSources.push({ source, gainNode });
-                }
-              } catch (e) {
-                console.warn('[demaPanel] failed to play clip', clip.id, e);
               }
             }
 
@@ -4746,19 +4785,24 @@
             isPlaying = false;
 
             // 停止所有音源
-            for (const { source } of scheduledSources) {
-              try {
-                source.stop();
-              } catch {
-                // 預期行為：音源可能已自然結束或已停止
+            for (const src of scheduledSources) {
+              if (src.type === 'webaudio') {
+                try { src.source.stop(); } catch {}
+              } else if (src.type === 'html5') {
+                clearTimeout(src.stopTimeoutId);
+                src.audio.pause();
+              } else if (src.type === 'html5-pending') {
+                clearTimeout(src.timeoutId);
+              } else if (src.source) {
+                try { src.source.stop(); } catch {}
               }
             }
             scheduledSources = [];
 
             // 更新 playhead 位置
-            if (audioContext) {
-              playheadTime = playStartPosition + (audioContext.currentTime - playStartTime);
-            }
+            const ctx = getAudioContext();
+            const now = ctx ? ctx.currentTime : performance.now() / 1000;
+            playheadTime = playStartPosition + (now - playStartTime);
 
             stopPlayheadAnimation();
             updatePlayPauseIcon();
@@ -4868,7 +4912,8 @@
               if (!isPlaying) return;
 
               const ctx = getAudioContext();
-              playheadTime = playStartPosition + (ctx.currentTime - playStartTime);
+              const now = ctx ? ctx.currentTime : performance.now() / 1000;
+              playheadTime = playStartPosition + (now - playStartTime);
 
               const endTime = calculateTotalDuration();
               if (playheadTime >= endTime) {
@@ -5036,15 +5081,23 @@
               ]);
 
               // 繪製波型
-              if (waveformCache.has(snd.src)) {
-                drawWaveform(waveCanvas, snd.src, clip.trimStart, clip.trimEnd, clip.duration);
-              } else {
-                // 非同步載入並繪製
-                loadAudioBuffer(snd.src).then(() => {
+              const ctx = getAudioContext();
+              if (ctx) {
+                if (waveformCache.has(snd.src)) {
                   drawWaveform(waveCanvas, snd.src, clip.trimStart, clip.trimEnd, clip.duration);
-                }).catch((e) => {
-                  console.warn('[demaPanel] 無法載入音訊波型', snd.src, e);
-                });
+                } else {
+                  // 非同步載入並繪製
+                  loadAudioBuffer(snd.src).then(() => {
+                    drawWaveform(waveCanvas, snd.src, clip.trimStart, clip.trimEnd, clip.duration);
+                  }).catch((e) => {
+                    console.warn('[demaPanel] 無法載入音訊波型', snd.src, e);
+                  });
+                }
+              } else {
+                // Fallback: draw a simple placeholder waveform
+                const ctx2d = waveCanvas.getContext('2d');
+                ctx2d.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx2d.fillRect(0, waveCanvas.height / 2 - 2, waveCanvas.width, 4);
               }
 
               // 事件綁定
@@ -5139,11 +5192,24 @@
           const addClip = async (snd, trackIndex = 0, startTime = null) => {
             // 載入音訊以取得時長
             let duration = 3; // 預設 3 秒
-            try {
-              const buffer = await loadAudioBuffer(snd.src);
-              duration = buffer.duration;
-            } catch (e) {
-              console.warn('[demaPanel] failed to get duration', e);
+            const ctx = getAudioContext();
+            if (ctx) {
+              try {
+                const buffer = await loadAudioBuffer(snd.src);
+                duration = buffer.duration;
+              } catch (e) {
+                console.warn('[demaPanel] failed to get duration', e);
+              }
+            } else {
+              try {
+                duration = await new Promise((resolve, reject) => {
+                  const audio = new Audio(snd.src);
+                  audio.addEventListener('loadedmetadata', () => resolve(audio.duration));
+                  audio.addEventListener('error', reject);
+                });
+              } catch (e) {
+                console.warn('[demaPanel] failed to get duration via HTML5', e);
+              }
             }
 
             const newClip = {
