@@ -1,0 +1,17 @@
+{
+  "recursive": false,
+  "keep_channels": false,
+  "force": false,
+  "sample_rate": 32000,
+  "workers": 0,
+  "I": -14.0,
+  "TP": -1.5,
+  "LRA": 11.0,
+  "nbytes": 4,
+  "namespace": "",
+  "input": "C:/Users/h/Documents/sounds/原檔案",
+  "output": "C:/Users/h/Documents/sounds/原檔案/out",
+  "sounds": "C:\\Users\\h\\Documents\\GitHub\\soundboard\\config\\sounds.json",
+  "sounds_dir": "C:\\Users\\h\\Documents\\GitHub\\soundboard\\sounds",
+  "overwrite_dup": false
+}
