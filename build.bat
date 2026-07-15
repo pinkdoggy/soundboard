@@ -1,0 +1,1 @@
+npx html-minifier-terser index-raw.html --collapse-whitespace --remove-comments --minify-css true --minify-js true -o index.html
