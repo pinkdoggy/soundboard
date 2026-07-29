@@ -1,7 +1,7 @@
 config/sounds-new.json
+config/mp3_index.json
 python-scripts/workflow.ini
 .claude/
-build.bat
-sounds/desktop.ini
-voices_orphan/desktop.ini
-backup-pre-voices-20260715/
+voices/desktop.ini
+backup-kingxie/
+backup-voices-naming/

@@ -7,7 +7,7 @@
   { "key": "花雕雞",  "name": "花雕雞",   "color": "#c9c9c9", "role": "streamer", "avatar": "avatars/huadiaog.png" },
   { "key": "鼠ki雅",  "name": "鼠ki雅",   "color": "#ba8e54", "role": "streamer", "avatar": "avatars/shukiya.png" },
   { "key": "馬鈴鼠",  "name": "馬鈴鼠",   "color": "#a5b3b8", "role": "streamer", "avatar": "avatars/malingshu.png" },
-  { "key": "帝王謝",  "name": "帝王謝",   "color": "#a5b3b8", "role": "streamer", "avatar": "avatars/kingxie.png" },
+  { "key": "帝王謝",  "name": "帝王謝",   "color": "#b964e0", "role": "streamer", "avatar": "avatars/kingxie.png" },
 
   
   { "key": "笑",      "name": "笑",     "color": "#edb34e", "role": "category" },

@@ -25,6 +25,22 @@
   <link rel="icon" href="assets/favicon.png" type="image/png">
 
   <title>阿萬與動物朋友按鈕</title>
+<!-- OG:BEGIN 由 python-scripts/gen_og.py 產生，請勿手動編輯 -->
+  <meta name="description" content="由粉肝製作的非官方音效板網站，目前收藏了4431條網路足跡，西西">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="阿萬與動物朋友按鈕">
+  <meta property="og:locale" content="zh_TW">
+  <meta property="og:title" content="阿萬與動物朋友按鈕">
+  <meta property="og:description" content="由粉肝製作的非官方音效板網站，目前收藏了4431條網路足跡，西西">
+  <meta property="og:image" content="https://pinkdoggy.github.io/soundboard/assets/og/home.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:url" content="https://pinkdoggy.github.io/soundboard/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="阿萬與動物朋友按鈕">
+  <meta name="twitter:description" content="由粉肝製作的非官方音效板網站，目前收藏了4431條網路足跡，西西">
+  <meta name="twitter:image" content="https://pinkdoggy.github.io/soundboard/assets/og/home.png">
+  <!-- OG:END -->
   <style>
     /* =============================================================================
        1. CSS 變數系統（CSS Custom Properties）
@@ -3064,10 +3080,14 @@
           focusSoundFromURL();
         });
 
-        /** 建立僅包含 sound id 的分享連結 */
+        /** 建立僅包含 sound id 的分享連結
+         *  指向 s/<id>.html 這個預先產生的預覽頁（由 python-scripts/gen_og.py 產出）：
+         *  爬蟲不執行 JS，只有實體檔案才能提供每條音效各自的 Open Graph 預覽；
+         *  真人開啟該頁後會被立即轉址回 ?sound=<id>，體驗與先前相同。 */
         function buildSoundURL(id) {
-          const base = location.href.replace(/[?#].*$/, '');
-          return `${base}?sound=${encodeURIComponent(id)}`;
+          // 取當前頁面所在目錄（同時相容 /path/ 與 /path/index.html）
+          const dir = location.href.replace(/[?#].*$/, '').replace(/[^/]*$/, '');
+          return `${dir}s/${encodeURIComponent(id)}.html`;
         }
 
         /** 建立分享列表的 URL：加入 list 參數，使用逗號分隔的 id 列表。 */
