@@ -84,6 +84,8 @@ def main():
     ap = argparse.ArgumentParser(description="建置網站（OG 分享頁 + 壓縮 index.html）")
     ap.add_argument("--skip-og", action="store_true",
                     help="略過 OG 分享頁產生，只重新壓縮 index.html")
+    ap.add_argument("--og-mode", choices=["changed", "force", "skip"], default=None,
+                    help="分享頁建置模式；不指定則由 gen_og.py 互動詢問")
     args = ap.parse_args()
 
     hr("阿萬與動物朋友按鈕 - 建置")
@@ -94,8 +96,10 @@ def main():
 
     if not args.skip_og:
         step += 1
-        run_step(step, total, "產生 Open Graph 分享頁（gen_og.py）",
-                 [sys.executable, str(SCRIPT_DIR / "gen_og.py"), "--execute"])
+        og_cmd = [sys.executable, str(SCRIPT_DIR / "gen_og.py"), "--execute"]
+        if args.og_mode:
+            og_cmd += ["--mode", args.og_mode]
+        run_step(step, total, "產生 Open Graph 分享頁（gen_og.py）", og_cmd)
         print("[OK] 分享頁與 OG 縮圖產生完成。")
         print()
     else:

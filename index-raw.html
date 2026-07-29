@@ -3081,13 +3081,15 @@
         });
 
         /** 建立僅包含 sound id 的分享連結
-         *  指向 s/<id>.html 這個預先產生的預覽頁（由 python-scripts/gen_og.py 產出）：
+         *  指向 s/<id> 這個預先產生的預覽頁（由 python-scripts/gen_og.py 產出）：
          *  爬蟲不執行 JS，只有實體檔案才能提供每條音效各自的 Open Graph 預覽；
-         *  真人開啟該頁後會被立即轉址回 ?sound=<id>，體驗與先前相同。 */
+         *  真人開啟該頁後會被立即轉址回 ?sound=<id>，體驗與先前相同。
+         *  網址省略 .html（GitHub Pages 會自動對應到 s/<id>.html），
+         *  帶 .html 的舊連結同樣有效。 */
         function buildSoundURL(id) {
           // 取當前頁面所在目錄（同時相容 /path/ 與 /path/index.html）
           const dir = location.href.replace(/[?#].*$/, '').replace(/[^/]*$/, '');
-          return `${dir}s/${encodeURIComponent(id)}.html`;
+          return `${dir}s/${encodeURIComponent(id)}`;
         }
 
         /** 建立分享列表的 URL：加入 list 參數，使用逗號分隔的 id 列表。 */

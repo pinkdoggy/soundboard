@@ -11,6 +11,10 @@ Open Graph 分享預覽產生器
      （頭貼等比放大置中、去除透明度並填上網站背景色，
        避免部分平台把透明區域算成黑底）
   2. s/<id>.html ── 每條音效一個極小的預覽頁
+     實體檔名保留 .html（GitHub Pages 才解析得到），但對外的分享網址與
+     og:url 一律省略副檔名（/s/<id>）；GitHub Pages 會自動把 /s/<id>
+     對應到 s/<id>.html。頁內的轉址與資源路徑都是相對的（../），
+     兩種網址形式都能正確解析，舊的 .html 連結因此仍然有效。
        og:title       {音效標題}－阿萬與動物朋友按鈕
        og:description by {實況主標籤、…}\n標籤：{其他標籤、…}
        og:image       第一個實況主標籤對應的頭貼
@@ -163,26 +167,78 @@ def render(entry, streamers):
         site=esc(SITE_NAME),
         img=esc(f"{BASE_URL}assets/og/{avatar_stem}.png"),
         size=OG_SIZE,
-        page_url=esc(f"{BASE_URL}s/{sid}.html"),
+        page_url=esc(f"{BASE_URL}s/{sid}"),
         app_url=esc(f"{BASE_URL}?sound={sid}"),
         id_attr=esc(sid),
         id_js=json.dumps(sid)[1:-1],  # 供 JS 字串安全使用
     )
 
 
-def build_pages(voices, streamers, execute, log):
+MODES = {
+    "changed": "只寫入內容有變動的頁（推薦）",
+    "force":   "全部重新建置（覆蓋所有頁）",
+    "skip":    "跳過已存在的頁（最快，但可能留下過期內容）",
+}
+MODE_ORDER = ["changed", "force", "skip"]
+
+
+def ask_mode(n_existing, log):
+    """互動詢問建置模式；非互動環境（管線／CI）直接採用預設的 changed。"""
+    if not sys.stdin.isatty():
+        log("（非互動環境，採用預設模式：只寫入有變動的頁）")
+        return "changed"
+    log(f"\ns/ 目錄已有 {n_existing} 個頁面，請選擇建置方式：")
+    for i, m in enumerate(MODE_ORDER, 1):
+        log(f"  {i}) {MODES[m]}")
+    log("  ※ 「跳過已存在」不會偵測 title／tags／網址格式的變更，"
+        "改過這些東西時請勿使用。")
+    while True:
+        try:
+            ans = input("請輸入 1-3（直接按 Enter 使用 1）：").strip()
+        except EOFError:
+            return "changed"
+        if ans == "":
+            return "changed"
+        if ans in ("1", "2", "3"):
+            return MODE_ORDER[int(ans) - 1]
+        log("  輸入無效，請輸入 1、2 或 3。")
+
+
+def build_pages(voices, streamers, execute, log, mode="force"):
+    """產生分享頁。回傳 (總位元組數, 統計)。
+
+    無論哪種模式都會清掉「已不存在於 voices.json」的舊頁面，
+    否則已刪除音效的分享連結會繼續存活並指向不存在的音效。
+    """
+    stats = {"written": 0, "unchanged": 0, "skipped": 0, "removed": 0}
     if execute:
-        # 整個重建，避免留下已刪除音效的舊頁面
-        if OUT_DIR.exists():
-            shutil.rmtree(OUT_DIR)
-        OUT_DIR.mkdir(parents=True)
+        OUT_DIR.mkdir(parents=True, exist_ok=True)
+        valid = {f"{e['id']}.html" for e in voices}
+        for p in OUT_DIR.iterdir():
+            if p.is_file() and p.name not in valid:
+                p.unlink()
+                stats["removed"] += 1
+
     total = 0
     for e in voices:
+        dst = OUT_DIR / f"{e['id']}.html"
         content = render(e, streamers)
-        if execute:
-            (OUT_DIR / f"{e['id']}.html").write_text(content, encoding="utf-8")
         total += len(content.encode("utf-8"))
-    return total
+        if not execute:
+            continue
+        if mode == "skip" and dst.is_file():
+            stats["skipped"] += 1
+            continue
+        if mode == "changed" and dst.is_file():
+            try:
+                if dst.read_text(encoding="utf-8") == content:
+                    stats["unchanged"] += 1
+                    continue
+            except OSError:
+                pass    # 讀不到就當作需要重寫
+        dst.write_text(content, encoding="utf-8")
+        stats["written"] += 1
+    return total, stats
 
 
 # --------------------------------------------------------------------------- #
@@ -263,6 +319,10 @@ def verify(voices, streamers, log):
         stem = Path(streamers[st[0]]["avatar"]).stem
         if f"assets/og/{stem}.png" not in txt:
             errors.append(f"縮圖對應錯誤：{e['id']}")
+        # og:url 必須與實際被分享的網址一致（免副檔名），否則 Facebook 之類的
+        # 平台會改抓 og:url 指到的位址，預覽就可能對不上。
+        if f'og:url" content="{BASE_URL}s/{e["id"]}"' not in txt:
+            errors.append(f"og:url 不是免副檔名形式：{e['id']}")
 
     raw = INDEX_RAW.read_text(encoding="utf-8")
     if MARK_BEGIN not in raw or f"收藏了{len(voices)}條" not in raw:
@@ -279,19 +339,42 @@ def verify(voices, streamers, log):
 def main():
     ap = argparse.ArgumentParser(description="產生每條音效的 OG 分享預覽頁（預設 dry-run）")
     ap.add_argument("--execute", action="store_true", help="實際寫入檔案")
+    ap.add_argument("--mode", choices=MODE_ORDER, default=None,
+                    help="changed=只寫入有變動的頁（預設）｜force=全部重建｜"
+                         "skip=跳過已存在的頁。未指定且在互動終端時會詢問。")
     args = ap.parse_args()
     log = print
     ex = args.execute
 
     voices, streamers = load()
     log(f"音效 {len(voices)} 條；實況主 {len(streamers)} 位；base = {BASE_URL}")
+
+    mode = args.mode
+    if ex and mode is None:
+        n = len(list(OUT_DIR.glob("*.html"))) if OUT_DIR.is_dir() else 0
+        mode = ask_mode(n, log) if n else "force"
+
     log("=== 1. OG 縮圖 ===")
     build_images(streamers, ex, log)
     if ex:
         log(f"  已產生 {len(streamers)+1} 張 {OG_SIZE}×{OG_SIZE} PNG → assets/og/")
+
     log("=== 2. 音效預覽頁 ===")
-    total = build_pages(voices, streamers, ex, log)
-    log(f"  {'已產生' if ex else '將產生'} {len(voices)} 個檔案 → s/（合計約 {total/1e6:.1f} MB）")
+    if ex:
+        log(f"  模式：{MODES[mode]}")
+    total, st = build_pages(voices, streamers, ex, log, mode or "force")
+    if ex:
+        parts = [f"寫入 {st['written']}"]
+        if st["unchanged"]:
+            parts.append(f"無變動 {st['unchanged']}")
+        if st["skipped"]:
+            parts.append(f"跳過 {st['skipped']}")
+        if st["removed"]:
+            parts.append(f"移除已刪音效的舊頁 {st['removed']}")
+        log(f"  共 {len(voices)} 頁：" + "、".join(parts))
+    else:
+        log(f"  將產生 {len(voices)} 個檔案 → s/（合計約 {total/1e6:.1f} MB）")
+
     log("=== 3. 首頁 OG ===")
     changed = update_index(len(voices), ex, log)
 
@@ -299,6 +382,9 @@ def main():
         log("\ndry-run 完成，未寫入任何檔案。加 --execute 正式執行。")
         return
     verify(voices, streamers, log)
+    if mode == "skip" and st["skipped"]:
+        log(f"\n※ 有 {st['skipped']} 頁因「跳過已存在」未重新產生；"
+            f"若你改過 title／tags／網址格式，請改用 changed 或 force 模式重跑。")
     if changed:
         log("\n※ index-raw.html 已變更，請重新執行 build.bat 產生 index.html。")
 
